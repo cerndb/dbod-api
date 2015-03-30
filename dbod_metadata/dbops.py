@@ -17,20 +17,22 @@ from psycopg2 import connect, DatabaseError
 import ConfigParser
 import sys, traceback
 
-# Loads configuration
-config = ConfigParser.ConfigParser()
-with open('/etc/dbod/metadata.cfg') as fp:
-    try:
-        config.read(fp)
-    except IOError as exc:
-        traceback.print_exc(file=sys.stdout)
-        sys.exit(exc.errno)
 
-dbuser = config.get('database', 'user')
-dbhost = config.get('database', 'host')
-db = config.get('database', 'dbname')
-port = config.get('database', 'port')
-password = config.get('database', 'password')
+try:
+    # Loads configuration
+    config = ConfigParser.ConfigParser()
+    config.read('/etc/dbod/metadata.cfg')
+    dbuser = config.get('database', 'user')
+    dbhost = config.get('database', 'host')
+    db = config.get('database', 'database')
+    port = config.get('database', 'port')
+    password = config.get('database', 'password')
+except IOError as e:
+    traceback.print_exc(file=sys.stdout)
+    sys.exit(e.code)
+except ConfigParser.NoOptionError:
+    traceback.print_exc(file=sys.stdout)
+    sys.exit(1)
 
 #STATUS CODES
 NOT_FOUND = 404
@@ -38,7 +40,8 @@ NOT_FOUND = 404
 def entity_metadata(entity):
     """Returns a JSON object containing all the metadata for a certain entity"""
     try:
-        conn = connect(database=db, user=dbuser, host=dbhost, port=port)
+        conn = connect(database=db, user=dbuser, host=dbhost, port=port, 
+                password=password)
         cur = conn.cursor()
         cur.execute("""select data from metadata where name = %s""", (entity, ))
         res = cur.fetchone()
@@ -49,22 +52,21 @@ def entity_metadata(entity):
             abort(NOT_FOUND)
     except DatabaseError as dberr:
         # Problem connecting to database, return result from cache?
-        return jsonify(dberr)
+        return jsonify({"error": dberr})
 
 def host_metadata(host):
     """Returns a JSON object containing the metadata for all the entities
         residing on a host"""
     try:
-        conn = connect(database=db, user=dbuser, host=dbhost, port=port)
+        conn = connect(database=db, user=dbuser, host=dbhost, port=port,
+                password=password)
         cur = conn.cursor()
-        cur.execute("""select name, data from entities where name in
-        (select name
+        cur.execute("""select name, data
         from (
-            select name, json_array_elements(data->'hosts') host
+            select name, json_array_elements(data->'hosts') host, data
                 from metadata)
             as foo
-            where trim(foo.host::text, '"') = %s)
-        as bar""", (host, ))
+            where trim(foo.host::text, '"') = %s""", (host, ))
         res = cur.fetchall()
         cur.close()
         if res:
@@ -73,4 +75,4 @@ def host_metadata(host):
             abort(NOT_FOUND)
     except DatabaseError as dberr:
         # Problem connecting to database, return result from cache?
-        return jsonify(dberr)
+        return jsonify({"error": dberr})

@@ -27,7 +27,7 @@ def doc():
     """Generates api endpoint documentation"""
     APP.logger.info('GET /: Displaying API endpoints')
     return """Please use :
-        http://hostname:port/api/v1/entity/<entity_name>
+        http://hostname:port/api/v1/entity/<entity_name>\n
         http://hostname:port/api/v1/host/<hostname>\n"""
 
 @APP.route("/api/v1/entity/<entity>", methods=['GET'])
