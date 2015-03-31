@@ -19,25 +19,34 @@ import tornado.log
 app_log = tornado.log.logging.getLogger("tornado.application")
 app_log.setLevel(tornado.log.logging.DEBUG)
 
+# HTTP API status codes
+NOT_FOUND = 404
+
 class DocHandler(tornado.web.RequestHandler):
     """Generates api endpoint documentation"""
     def get(self):
         response = """Please use :
-            http://hostname:port/api/v1/entity/<entity_name>\n
-            http://hostname:port/api/v1/host/<hostname>\n"""
+            <p>http://hostname:port/api/v1/entity/NAME</p>
+            <p>http://hostname:port/api/v1/host/HOSTNAME</p>"""
         self.write(response)
 
 class EntityHandler(tornado.web.RequestHandler):
     def get(self, entity):
         """Returns metadata for a certain entity"""
         response = entity_metadata(entity)
-        app_log.info(response)
-        self.write(response)
+        app_log.debug(response)
+        if response:
+            self.write(response)
+        else:
+            raise tornado.web.HTTPError(NOT_FOUND)
 
 class HostHandler(tornado.web.RequestHandler):
     def get(self, host):
         """Returns an object containing the metadata for all the entities
             on a certain host"""
         response = host_metadata(host)
-
-        self.write(response)
+        if response:
+            app_log.debug(response)
+            self.write(response)
+        else:
+            raise tornado.web.HTTPError(NOT_FOUND)
