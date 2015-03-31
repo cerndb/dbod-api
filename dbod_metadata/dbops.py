@@ -12,7 +12,6 @@
 This file contains all database related code
 """
 
-from flask import abort, jsonify
 from psycopg2 import connect, DatabaseError
 import ConfigParser
 import sys, traceback
@@ -47,12 +46,12 @@ def entity_metadata(entity):
         res = cur.fetchone()
         cur.close()
         if res:
-            return jsonify(res[0])
+            return res[0]
         else:
-            abort(NOT_FOUND)
+            return None
     except DatabaseError as dberr:
         # Problem connecting to database, return result from cache?
-        return jsonify({"error": dberr})
+        return None
 
 def host_metadata(host):
     """Returns a JSON object containing the metadata for all the entities
@@ -70,9 +69,9 @@ def host_metadata(host):
         res = cur.fetchall()
         cur.close()
         if res:
-            return jsonify(res)
+            return res
         else:
-            abort(NOT_FOUND)
+            return None
     except DatabaseError as dberr:
         # Problem connecting to database, return result from cache?
-        return jsonify({"error": dberr})
+        return None

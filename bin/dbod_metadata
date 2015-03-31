@@ -14,8 +14,9 @@ DB On Demand metadata REST API server
 
 import ConfigParser
 import sys, traceback
-from dbod_metadata.views import APP
-import ssl
+from tornado.httpserver import HTTPServer
+from tornado.ioloop import IOLoop
+from dbod_metadata.handlers import *
 
 try:
     # Loads configuration
@@ -32,11 +33,21 @@ except ConfigParser.NoOptionError:
 
 def main():
     """ Main body """
-    context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
-    context.load_cert_chain(hostcert, hostkey)
+    
+    application = tornado.web.Application([
+            (r"/", DocHandler),
+            (r"/api/v1/entity/([^/]+)", EntityHandler),
+            (r"/api/v1/host/([^/]+)", HostHandler),
+            ], debug=True)
 
-    APP.run(host='127.0.0.1', port=6666, debug=True, ssl_context=context)
+    http_server = HTTPServer(application,
+            ssl_options = {
+                "certfile" : hostcert,
+                "keyfile" : hostkey,
+                })
 
+    http_server.listen(5443)
+    IOLoop.instance().start()
 
 if __name__ == "__main__":
     main()
