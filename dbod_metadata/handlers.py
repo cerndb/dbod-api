@@ -14,6 +14,10 @@ REST API Server for the DB On Demand System
 
 from dbod_metadata.dbops import entity_metadata, host_metadata
 import tornado.web
+import tornado.log
+
+app_log = tornado.log.logging.getLogger("tornado.application")
+app_log.setLevel(tornado.log.logging.DEBUG)
 
 class DocHandler(tornado.web.RequestHandler):
     """Generates api endpoint documentation"""
@@ -27,6 +31,7 @@ class EntityHandler(tornado.web.RequestHandler):
     def get(self, entity):
         """Returns metadata for a certain entity"""
         response = entity_metadata(entity)
+        app_log.info(response)
         self.write(response)
 
 class HostHandler(tornado.web.RequestHandler):
@@ -34,4 +39,5 @@ class HostHandler(tornado.web.RequestHandler):
         """Returns an object containing the metadata for all the entities
             on a certain host"""
         response = host_metadata(host)
+
         self.write(response)

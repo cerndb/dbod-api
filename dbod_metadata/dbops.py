@@ -14,8 +14,7 @@ This file contains all database related code
 
 from psycopg2 import connect, DatabaseError
 import ConfigParser
-import sys, traceback
-
+import sys, traceback, json
 
 try:
     # Loads configuration
@@ -69,7 +68,7 @@ def host_metadata(host):
         res = cur.fetchall()
         cur.close()
         if res:
-            return res
+            return json.dumps(res)
         else:
             return None
     except DatabaseError as dberr:
