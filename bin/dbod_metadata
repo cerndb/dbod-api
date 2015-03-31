@@ -12,16 +12,30 @@
 DB On Demand metadata REST API server
 """
 
+import ConfigParser
+import sys, traceback
 from dbod_metadata.views import APP
-#from OpenSSL import SSL
+import ssl
+
+try:
+    # Loads configuration
+    config = ConfigParser.ConfigParser()
+    config.read('/etc/dbod/metadata.cfg')
+    hostcert = config.get('ssl', 'hostcert')
+    hostkey = config.get('ssl', 'hostkey')
+except IOError as e:
+    traceback.print_exc(file=sys.stdout)
+    sys.exit(e.code)
+except ConfigParser.NoOptionError:
+    traceback.print_exc(file=sys.stdout)
+    sys.exit(1)
 
 def main():
     """ Main body """
-    #context = SSL.Context(SSL.SSLv23_METHOD)
-    #context.use_privatekey_file('yourserver.key')
-    #context.use_certificate_file('yourserver.crt')
+    context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+    context.load_cert_chain(hostcert, hostkey)
 
-    APP.run(host='127.0.0.1', port=6666, debug=True)
+    APP.run(host='127.0.0.1', port=6666, debug=True, ssl_context=context)
 
 
 if __name__ == "__main__":
