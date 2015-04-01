@@ -9,22 +9,24 @@
 # or submit itself to any jurisdiction.
 
 """
-DB On Demand metadata REST API server setup file
+DB On Demand REST API server setup file
 """
 
-from distutils.core import setup
+from setuptools import setup, find_packages
 
-setup(name='dbod_metadata',
+setup(name='dbod.api',
       version='0.1',
-      description='DB On Demand metadata server',
+      description='DB On Demand REST API',
       author='icot',
       author_email='icot@cern.ch',
       url='',
-      packages=['dbod_metadata'],
-      scripts=['bin/dbod_metadata'],
+      packages=find_packages(),
+      scripts=['bin/dbod-api'],
+      test_suite="",
       requires=[
-          'Flask',
-          'pyOpenSSL',
+          'ConfigParser',
+          'tornado',
           'psycopg2',
+          'nose',
           ],
      )
