@@ -12,7 +12,7 @@
 REST API Server for the DB On Demand System
 """
 
-from dbod_metadata.dbops import entity_metadata, host_metadata
+from dbod.api.dbops import entity_metadata, host_metadata
 import tornado.web
 import tornado.log
 import base64

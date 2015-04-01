@@ -16,7 +16,7 @@ import ConfigParser
 import sys, traceback
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
-from dbod_metadata.handlers import *
+from dbod.api.handlers import *
 
 try:
     # Loads configuration
