@@ -60,9 +60,7 @@ def http_basic_auth(f):
 
 class DocHandler(tornado.web.RequestHandler):
     """Generates the API endpoint documentation"""
-    @http_basic_auth
-    def get(self, user, pwd):
-        app_log.debug("user, pass: (%s, %s)" % (user, pwd))
+    def get(self):
         response = """Please use :
             <p>http://hostname:port/api/v1/entity/NAME</p>
             <p>http://hostname:port/api/v1/host/HOSTNAME</p>"""
