@@ -21,7 +21,7 @@ from dbod.api.handlers import *
 try:
     # Loads configuration
     config = ConfigParser.ConfigParser()
-    config.read('/etc/dbod/metadata.cfg')
+    config.read('/etc/dbod/api.cfg')
     hostcert = config.get('ssl', 'hostcert')
     hostkey = config.get('ssl', 'hostkey')
 except IOError as e:

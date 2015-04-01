@@ -19,7 +19,7 @@ import sys, traceback, json
 try:
     # Loads configuration
     config = ConfigParser.ConfigParser()
-    config.read('/etc/dbod/metadata.cfg')
+    config.read('/etc/dbod/api.cfg')
     dbuser = config.get('database', 'user')
     dbhost = config.get('database', 'host')
     db = config.get('database', 'database')
