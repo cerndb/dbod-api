@@ -28,5 +28,6 @@ setup(name='dbod.api',
           'tornado',
           'psycopg2',
           'nose',
+          'mock',
           ],
      )

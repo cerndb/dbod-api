@@ -2,3 +2,4 @@ psycopg2
 ConfigParser
 tornado
 nose
+mock
