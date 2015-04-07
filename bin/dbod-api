@@ -14,39 +14,58 @@ DB On Demand metadata REST API server
 
 import ConfigParser
 import sys, traceback
+from tornado.options import parse_command_line, options
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 from dbod.api.handlers import *
 
+import logging
+
 try:
-    # Loads configuration
+    # Try to load configuration file
     config = ConfigParser.ConfigParser()
     config.read('/etc/dbod/api.cfg')
     hostcert = config.get('ssl', 'hostcert')
     hostkey = config.get('ssl', 'hostkey')
-except IOError as e:
+    log_file = config.get('logging', 'path')
+    port = config.get('server', 'port')
+except IOError as exc:
+    # Configuration file not fount
     traceback.print_exc(file=sys.stdout)
-    sys.exit(e.code)
+    sys.exit(exc.code)
 except ConfigParser.NoOptionError:
+    # Required configuration paramete was not found
     traceback.print_exc(file=sys.stdout)
     sys.exit(1)
 
 def main():
     """ Main body """
-    
+
+    # Set up log file and level.
+    options.log_file_prefix = log_file
+    options.logging = 'debug'
+    options.log_to_stderr = True # Development only
+
+    # Parse server command line and set up logging defaults, if necessary
+    parse_command_line()
+
+    logging.info("Defining application (url, handler) pairs")
     application = tornado.web.Application([
             (r"/", DocHandler),
             (r"/api/v1/entity/([^/]+)", EntityHandler),
             (r"/api/v1/host/([^/]+)", HostHandler),
             ], debug=True)
 
+    logging.info("Configuring HTTP server")
     http_server = HTTPServer(application,
             ssl_options = {
                 "certfile" : hostcert,
                 "keyfile" : hostkey,
                 })
 
-    http_server.listen(5443)
+    http_server.listen(port)
+
+    logging.info("Starting application")
     IOLoop.instance().start()
 
 if __name__ == "__main__":
