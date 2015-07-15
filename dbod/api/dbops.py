@@ -14,7 +14,7 @@ This file contains all database related code
 
 from psycopg2 import connect, DatabaseError
 import ConfigParser
-import sys, traceback, json
+import sys, traceback, json, logging
 
 try:
     # Loads configuration
@@ -86,8 +86,8 @@ def next_dnsname():
         cur = conn.cursor()
         cur.execute("""select dns_name
         from functional_aliases
-        where db_name = NULL order by dns_name""")
-        res = cur.fetchall()
+        where db_name = NULL order by dns_name desc limit 1""")
+        res = cur.fetchOne()
         cur.close()
         if res:
             return json.dumps(res)
@@ -106,14 +106,12 @@ def last_dnsname():
         cur.execute("""select dns_name
         from functional_aliases
         order by dns_name desc limit 1""")
-        res = cur.fetchall()
+        res = cur.fetchone()
         cur.close()
-        if res:
-            return json.dumps(res)
-        else:
-            return None
+        return json.dumps(res)
     except DatabaseError as dberr:
         # Problem connecting to database, return result from cache?
+        logging.error(dberr)
         return None
 
 def add_functional_alias(dnsname, db_name, alias):

@@ -8,28 +8,30 @@
 # granted to it by virtue of its status as Intergovernmental Organization
 # or submit itself to any jurisdiction.
 
-import unittest
-
-class TestDB(unittest.TestCase):
-
-    def test_entity_metadata(self):
-        pass
-
-    def test_host_metadata(self):
-        pass
-
-    def test_last_dnsname(self):
-        pass
-
-    def test_next_dnsname(self):
-        pass
-    
-    def test_add_functional_alias(self):
-        pass
-
-    def test_update_functional_alias(self):
-        pass
+import nose
+import dbod.api.dbops
 
 
-if __name__ == '__main__':
-    unittest.main()
+def test_entity_metadata():
+    pass
+
+def test_host_metadata():
+    pass
+
+def test_last_dnsname():
+    print dbod.api.dbops.last_dnsname()
+    pass
+
+def test_next_dnsname():
+    print dbod.api.dbops.next_dnsname()
+    pass
+
+def test_add_functional_alias():
+    pass
+
+def test_update_functional_alias():
+    pass
+
+
+if __name__ == "__main__":
+    pass
