@@ -3,3 +3,4 @@ ConfigParser
 tornado
 nose
 mock
+suds

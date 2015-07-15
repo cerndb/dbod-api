@@ -74,3 +74,81 @@ def host_metadata(host):
     except DatabaseError as dberr:
         # Problem connecting to database, return result from cache?
         return None
+
+# Functional aliases related methods
+
+def next_dnsname():
+    """Returns the next dnsname which can be used for a newly created
+        instance, if any."""
+    try:
+        conn = connect(database=db, user=dbuser, host=dbhost, port=port,
+                password=password)
+        cur = conn.cursor()
+        cur.execute("""select dns_name
+        from functional_aliases
+        where db_name = NULL order by dns_name""")
+        res = cur.fetchall()
+        cur.close()
+        if res:
+            return json.dumps(res)
+        else:
+            return None
+    except DatabaseError as dberr:
+        # Problem connecting to database, return result from cache?
+        return None
+
+def last_dnsname():
+    """Returns the last used dnsname"""
+    try:
+        conn = connect(database=db, user=dbuser, host=dbhost, port=port,
+                password=password)
+        cur = conn.cursor()
+        cur.execute("""select dns_name
+        from functional_aliases
+        order by dns_name desc limit 1""")
+        res = cur.fetchall()
+        cur.close()
+        if res:
+            return json.dumps(res)
+        else:
+            return None
+    except DatabaseError as dberr:
+        # Problem connecting to database, return result from cache?
+        return None
+
+def add_functional_alias(dnsname, db_name, alias):
+    """Creates a dnsname record with its db_name and alias"""
+    try:
+        conn = connect(database=db, user=dbuser, host=dbhost, port=port,
+                password=password)
+        cur = conn.cursor()
+        cur.execute("""insert into functional_aliases(dns_name, db_name, alias)
+        values(%s,%s,%s)""", (dnsname, db_name, alias))
+        res = cur.fetchall()
+        cur.close()
+        if res:
+            return json.dumps(res)
+        else:
+            return None
+    except DatabaseError as dberr:
+        # Problem connecting to database, return result from cache?
+        return None
+
+def update_functional_alias(dnsname, db_name, alias):
+    """Updates a dnsname record with its db_name and alias"""
+    try:
+        conn = connect(database=db, user=dbuser, host=dbhost, port=port,
+                password=password)
+        cur = conn.cursor()
+        cur.execute("""update functional_aliases
+        set db_name = %s, alias = %s where dnsname = %s""", (db_name, alias, dnsname))
+        res = cur.fetchall()
+        cur.close()
+        if res:
+            return json.dumps(res)
+        else:
+            return None
+    except DatabaseError as dberr:
+        # Problem connecting to database, return result from cache?
+        return None
+
