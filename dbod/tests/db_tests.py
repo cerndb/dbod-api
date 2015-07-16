@@ -33,7 +33,7 @@ def test_get_functional_alias():
     falias = get_functional_alias('pinocho')
     logging.info("Functional alias for 'pinocho' %s", falias)
     if falias:
-        assert type(falias) is StringType
+        assert type(falias) is TupleType
 
 def test_next_dnsname():
     ndnsname = next_dnsname()
