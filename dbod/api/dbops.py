@@ -50,10 +50,7 @@ def entity_metadata(entity):
                 curs.execute("""select data from metadata where name = %s""",
                         (entity, ))
                 res = curs.fetchone()
-                if res:
-                    return res[0]
-                else:
-                    return None
+                return res[0] if res else None
     except DatabaseError as dberr:
         logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode[:2]))
         logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode))
@@ -72,10 +69,7 @@ def host_metadata(host):
                     as foo
                     where trim(foo.host::text, '"') = %s""", (host, ))
                 res = curs.fetchall() # Either a list of tuples or empty list
-                if res:
-                    return res
-                else:
-                    return None
+                return res if res else None
     except DatabaseError as dberr:
         logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode[:2]))
         logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode))
@@ -95,7 +89,8 @@ def next_dnsname():
                 curs.execute("""select dns_name
                 from functional_aliases
                 where db_name is NULL order by dns_name desc limit 1""")
-                return curs.fetchone() # Either a tuple or None
+                res = curs.fetchone()
+                return res[0] if res else None
     except DatabaseError as dberr:
         logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode[:2]))
         logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode))
@@ -127,7 +122,8 @@ def get_functional_alias(db_name):
                 curs.execute("""select dns_name, alias
                 from functional_aliases
                 where db_name = %s""", (db_name,))
-                return curs.fetchone()
+                res = curs.fetchone()
+                return res[0] if res else None
     except DatabaseError as dberr:
         logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode[:2]))
         logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode))
