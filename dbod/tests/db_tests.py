@@ -9,28 +9,36 @@
 # or submit itself to any jurisdiction.
 
 import nose
-import dbod.api.dbops
-
+from types import *
+from dbod.api.dbops import *
 
 def test_entity_metadata():
-    pass
+    metadata =  entity_metadata('pinocho')
+    assert type(metadata) is DictType
 
 def test_host_metadata():
-    pass
+    metadata = host_metadata('db-50019')
+    print type(metadata)
+    assert type(metadata) is StringType
 
-def test_last_dnsname():
-    print dbod.api.dbops.last_dnsname()
-    pass
+def test_get_functional_alias():
+    falias = get_functional_alias('pinocho')
+    print falias, type(falias)
+    assert type(falias) is StringType
 
 def test_next_dnsname():
-    print dbod.api.dbops.next_dnsname()
-    pass
-
-def test_add_functional_alias():
-    pass
+    ndnsname = next_dnsname()
+    print ndnsname, type(ndnsname)
+    assert type(ndnsname) is StringType
 
 def test_update_functional_alias():
-    pass
+    dnsname = next_dnsname()
+    res = update_functional_alias(dnsname, 'test', 'dbod-test')
+    print res
+    print get_functional_alias('test')
+    #update_functional_alias(dnsname, None, None)
+    print get_functional_alias('test')
+
 
 
 if __name__ == "__main__":
