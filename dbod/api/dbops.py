@@ -21,10 +21,10 @@ try:
     POOL = pool.ThreadedConnectionPool(
             5,  # Min. # of connections
             20, # Max. # of connections
-            database = CONFIG.get('db'),
-            user = CONFIG.get('dbuser'),
-            host = CONFIG.get('dbhost'),
-            port = CONFIG.get('port'),
+            database = CONFIG.get('db_name'),
+            user = CONFIG.get('db_user'),
+            host = CONFIG.get('db_host'),
+            port = CONFIG.get('db_port'),
             password = CONFIG.get('password'))
 except DatabaseError as dberr:
     logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode[:2]))
@@ -110,8 +110,7 @@ def get_functional_alias(db_name):
                 curs.execute("""select dns_name, alias
                 from functional_aliases
                 where db_name = %s""", (db_name,))
-                res = curs.fetchone()
-                return res[0] if res else None
+                return curs.fetchone()
     except DatabaseError as dberr:
         logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode[:2]))
         logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode))
