@@ -13,31 +13,19 @@ This file contains all database related code
 """
 
 from psycopg2 import connect, DatabaseError, pool, errorcodes
-import ConfigParser
 import sys, traceback, logging
 
-try:
-    # Loads configuration
-    config = ConfigParser.ConfigParser()
-    config.read('/etc/dbod/api.cfg')
-    dbuser = config.get('database', 'user')
-    dbhost = config.get('database', 'host')
-    db = config.get('database', 'database')
-    port = config.get('database', 'port')
-    password = config.get('database', 'password')
-except IOError as e:
-    traceback.print_exc(file=sys.stdout)
-    sys.exit(e.code)
-except ConfigParser.NoOptionError:
-    traceback.print_exc(file=sys.stdout)
-    sys.exit(1)
-
-#STATUS CODES
-NOT_FOUND = 404
+from dbod.config import CONFIG
 
 try:
-    POOL = pool.ThreadedConnectionPool(5, 20,
-        database=db, user=dbuser, host=dbhost, port=port, password=password)
+    POOL = pool.ThreadedConnectionPool(
+            5,  # Min. # of connections
+            20, # Max. # of connections
+            database = CONFIG.get('db'),
+            user = CONFIG.get('dbuser'),
+            host = CONFIG.get('dbhost'),
+            port = CONFIG.get('port'),
+            password = CONFIG.get('password'))
 except DatabaseError as dberr:
     logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode[:2]))
     logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode))
