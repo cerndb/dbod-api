@@ -37,6 +37,7 @@ def main():
     application = tornado.web.Application([
             (r"/", DocHandler),
             (r"/api/v1/entity/([^/]+)", EntityHandler),
+            (r"/api/v1/entity/alias/([^/]+)", FunctionalAliasHandler),
             (r"/api/v1/host/([^/]+)", HostHandler),
             ], debug=True)
 
