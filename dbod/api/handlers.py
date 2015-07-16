@@ -12,15 +12,17 @@
 REST API Server for the DB On Demand System
 """
 
-from dbod.api.dbops import entity_metadata, host_metadata
+from dbod.api.dbops import *
 import tornado.web
 import tornado.log
 import base64
 import functools
 import logging
+import json
 
 
 # HTTP API status codes
+OK = 200
 NOT_FOUND = 404
 UNAUTHORIZED = 401
 
@@ -89,7 +91,47 @@ class HostHandler(tornado.web.RequestHandler):
         response = host_metadata(host)
         if response:
             logging.debug(response)
-            self.write(response)
+            self.write(json.dumps(response))
         else:
-            logging.warning("Host not found: %s", host)
+            logging.warning("Metadata not found for host:  %s", host)
+            raise tornado.web.HTTPError(NOT_FOUND)
+
+class FunctionalAliasHandler(tornado.web.RequestHandler):
+    def get(self, entity):
+        """Returns the functional alias association for an entity"""
+        response = get_functional_alias(entity)
+        if response:
+            logging.debug(response)
+            self.write(json.dumps(response))
+        else:
+            logging.error("Functional alias not found for entity: %s", entity)
+            raise tornado.web.HTTPError(NOT_FOUND)
+
+    def post(self, entity, alias):
+        """Updates the functional alias association for an entity"""
+        dnsname = next_dnsname()
+        response = update_functional_alias(dnsname, entity, alias)
+        if response:
+            logging.debug("Functional alias (%s) successfully added for %s",
+                    alias, entity)
+            self.set_status(OK)
+            self.finish()
+        if response:
+            logging.debug(response)
+            self.write(json.dumps(response))
+        else:
+            logging.error("Functional alias not found for entity: %s", entity)
+            raise tornado.web.HTTPError(NOT_FOUND)
+    
+    def delete(self, entity):
+        """Removes the functional alias association for an entity"""
+        dnsname = get_functional_alias(entity)
+        response = update_functional_alias(dnsname, None, None)
+        if response:
+            logging.debug("Functional alias successfully removed for %s",
+                    entity)
+            self.set_status(OK)
+            self.finish()
+        else:
+            logging.error("Functional alias not found for entity: %s", entity)
             raise tornado.web.HTTPError(NOT_FOUND)
