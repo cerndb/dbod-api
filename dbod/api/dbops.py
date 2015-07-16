@@ -14,7 +14,7 @@ This file contains all database related code
 
 from psycopg2 import connect, DatabaseError, pool, errorcodes
 import ConfigParser
-import sys, traceback, json, logging
+import sys, traceback, logging
 
 try:
     # Loads configuration
@@ -35,8 +35,12 @@ except ConfigParser.NoOptionError:
 #STATUS CODES
 NOT_FOUND = 404
 
-POOL = pool.ThreadedConnectionPool(5, 20,
+try:
+    POOL = pool.ThreadedConnectionPool(5, 20,
         database=db, user=dbuser, host=dbhost, port=port, password=password)
+except DatabaseError as dberr:
+    logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode[:2]))
+    logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode))
 
 def entity_metadata(entity):
     """Returns a JSON object containing all the metadata for a certain entity"""
@@ -51,8 +55,8 @@ def entity_metadata(entity):
                 else:
                     return None
     except DatabaseError as dberr:
-        logging.error(errorcodes.lookup(dberr.pgcode[:2]))
-        logging.error(errorcodes.lookup(dberr.pgcode))
+        logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode[:2]))
+        logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode))
         return None
 
 def host_metadata(host):
@@ -67,14 +71,14 @@ def host_metadata(host):
                         from metadata)
                     as foo
                     where trim(foo.host::text, '"') = %s""", (host, ))
-                res = curs.fetchall()
+                res = curs.fetchall() # Either a list of tuples or empty list
                 if res:
-                    return json.dumps(res)
+                    return res
                 else:
                     return None
     except DatabaseError as dberr:
-        logging.error(errorcodes.lookup(dberr.pgcode[:2]))
-        logging.error(errorcodes.lookup(dberr.pgcode))
+        logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode[:2]))
+        logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode))
         return None
 
 # Functional aliases related methods
@@ -91,14 +95,10 @@ def next_dnsname():
                 curs.execute("""select dns_name
                 from functional_aliases
                 where db_name is NULL order by dns_name desc limit 1""")
-                res = curs.fetchone()
-                if res:
-                    return json.dumps(res)
-                else:
-                    return None
+                return curs.fetchone() # Either a tuple or None
     except DatabaseError as dberr:
-        logging.error(errorcodes.lookup(dberr.pgcode[:2]))
-        logging.error(errorcodes.lookup(dberr.pgcode))
+        logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode[:2]))
+        logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode))
         return None
 
 def update_functional_alias(dnsname, db_name, alias):
@@ -106,19 +106,17 @@ def update_functional_alias(dnsname, db_name, alias):
     try:
         with POOL.getconn() as conn:
             with conn.cursor() as curs:
-                curs.execute("""begin""")
+                logging.debug("Updating functional alias record (%s, %s, %s)",
+                    dnsname, db_name, alias)
                 curs.execute("""update functional_aliases
-                set db_name = %s, alias = %s where dnsname = %s""", 
+                set db_name = %s, alias = %s where dns_name = %s""",
                     (db_name, alias, dnsname,))
-                curs.execute("""commit""")
-                res = curs.statusmessage
-                if res:
-                    return json.dumps(res)
-                else:
-                    return None
+                conn.commit()
+                # Return True if the record was updated succesfully
+                return curs.rowcount == 1
     except DatabaseError as dberr:
-        logging.error(errorcodes.lookup(dberr.pgcode[:2]))
-        logging.error(errorcodes.lookup(dberr.pgcode))
+        logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode[:2]))
+        logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode))
         return None
 
 def get_functional_alias(db_name):
@@ -129,12 +127,8 @@ def get_functional_alias(db_name):
                 curs.execute("""select dns_name, alias
                 from functional_aliases
                 where db_name = %s""", (db_name,))
-                res = curs.fetchone()
-                if res:
-                    return json.dumps(res)
-                else:
-                    return None
+                return curs.fetchone()
     except DatabaseError as dberr:
-        logging.error(errorcodes.lookup(dberr.pgcode[:2]))
-        logging.error(errorcodes.lookup(dberr.pgcode))
+        logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode[:2]))
+        logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode))
         return None
