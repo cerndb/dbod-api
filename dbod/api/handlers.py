@@ -109,20 +109,23 @@ class FunctionalAliasHandler(tornado.web.RequestHandler):
             logging.error("Functional alias not found for entity: %s", entity)
             raise tornado.web.HTTPError(NOT_FOUND)
 
-    def post(self, entity, alias):
-        """Updates the functional alias association for an entity"""
+    def post(self, entity):
+        """Creates a functional alias association for an entity"""
         dnsname = next_dnsname()
-        response = update_functional_alias(dnsname, entity, alias)
-        if response:
-            logging.debug("Functional alias (%s) successfully added for %s",
-                    alias, entity)
-            self.set_status(OK)
-            self.finish()
-        if response:
-            logging.debug(response)
-            self.write(json.dumps(response))
+        if dnsname:
+            try:
+                alias = self.get_argument('alias')
+                response = update_functional_alias(dnsname[0], entity, alias)
+                if response:
+                    logging.debug("Functional alias (%s) successfully added for %s",
+                            alias, entity)
+                    self.set_status(CREATED)
+                    self.finish()
+            except tornado.web.MissingArgumentError as err:
+                logging.error("Missing 'alias' argument in request!")
+                raise tornado.web.MissingArgumentError()
         else:
-            logging.error("Functional alias not found for entity: %s", entity)
+            logging.error("No available dnsnames found!")
             raise tornado.web.HTTPError(NOT_FOUND)
     
     def delete(self, entity):
