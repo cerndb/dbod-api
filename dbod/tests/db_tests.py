@@ -38,7 +38,7 @@ def test_get_functional_alias():
 def test_next_dnsname():
     ndnsname = next_dnsname()
     logging.info("Next free dnsname: %s", ndnsname)
-    assert type(ndnsname) is StringType
+    assert type(ndnsname) is TupleType
 
 def test_update_functional_alias():
     dnsname = next_dnsname()
