@@ -25,7 +25,7 @@ try:
             user = CONFIG.get('db_user'),
             host = CONFIG.get('db_host'),
             port = CONFIG.get('db_port'),
-            password = CONFIG.get('password'))
+            password = CONFIG.get('db_pass'))
 except DatabaseError as dberr:
     logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode[:2]))
     logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode))
