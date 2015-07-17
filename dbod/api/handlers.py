@@ -13,6 +13,7 @@ REST API Server for the DB On Demand System
 """
 
 from dbod.api.dbops import *
+from dbod.config import CONFIG
 import tornado.web
 import tornado.log
 import base64
@@ -31,9 +32,9 @@ UNAUTHORIZED = 401
 # Basic HTTP Authentication decorator
 def http_basic_auth(fun):
     """Decorator for extracting HTTP basic authentication user/password pairs
-    from the request headers and passing them to the decorated method. It will
-    generate an HTTP UNAUTHORIZED (Error code 401) if the request is not using
-    HTTP basic authentication.
+    from the request headers and matching them to configurated credentials.
+    It will generate an HTTP UNAUTHORIZED (Error code 401) if the request is 
+    not using HTTP basic authentication.
 
     Example:
         @http_basic_auth
@@ -48,11 +49,16 @@ def http_basic_auth(fun):
             auth = self.request.headers.get('Authorization')
             scheme, _, token = auth.partition(' ')
             if scheme.lower() == 'basic':
-                # Decode user and password and pass them to the decorated
-                # method
+                # Decode user and password
                 user, _, pwd = base64.decodestring(token).partition(':')
-                logging.info("Authentiated access for user %s", user)
-                return fun(*args, user=user, pwd=pwd, **kwargs)
+                if user == CONFIG.get('api_user') and pwd == CONFIG.get('api_pass'):
+                    return fun(*args, **kwargs)
+                else:
+                    # Raise UNAUTHORIZED HTTP Error (401) 
+                    logging.error("Unauthorized access from: %s",
+                        self.request.headers)
+                    raise tornado.web.HTTPError(UNAUTHORIZED)
+
             else:
                 # We only support basic authentication
                 logging.error("Authentication scheme not recognized")
@@ -109,6 +115,7 @@ class FunctionalAliasHandler(tornado.web.RequestHandler):
             logging.error("Functional alias not found for entity: %s", entity)
             raise tornado.web.HTTPError(NOT_FOUND)
 
+    @http_basic_auth 
     def post(self, entity):
         """Creates a functional alias association for an entity"""
         dnsname = next_dnsname()
@@ -127,7 +134,8 @@ class FunctionalAliasHandler(tornado.web.RequestHandler):
         else:
             logging.error("No available dnsnames found!")
             raise tornado.web.HTTPError(NOT_FOUND)
-    
+
+    @http_basic_auth 
     def delete(self, entity):
         """Removes the functional alias association for an entity.
             If the functional alias doesn't exist it doesn't do anything"""
