@@ -76,9 +76,8 @@ def next_dnsname():
             with conn.cursor() as curs:
                 curs.execute("""select dns_name
                 from functional_aliases
-                where db_name is NULL order by dns_name desc limit 1""")
-                res = curs.fetchone()
-                return res[0] if res else None
+                where db_name is NULL order by dns_name limit 1""")
+                return curs.fetchone() # First unused dnsname or None
     except DatabaseError as dberr:
         logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode[:2]))
         logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode))
