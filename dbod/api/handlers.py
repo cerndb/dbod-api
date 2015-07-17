@@ -23,6 +23,8 @@ import json
 
 # HTTP API status codes
 OK = 200
+CREATED = 201 # Request fulfilled resulting in creation of new resource
+NO_CONTENT = 204 # Succesfull delete
 NOT_FOUND = 404
 UNAUTHORIZED = 401
 
@@ -124,14 +126,18 @@ class FunctionalAliasHandler(tornado.web.RequestHandler):
             raise tornado.web.HTTPError(NOT_FOUND)
     
     def delete(self, entity):
-        """Removes the functional alias association for an entity"""
-        dnsname = get_functional_alias(entity)
-        response = update_functional_alias(dnsname, None, None)
-        if response:
-            logging.debug("Functional alias successfully removed for %s",
-                    entity)
-            self.set_status(OK)
-            self.finish()
+        """Removes the functional alias association for an entity.
+            If the functional alias doesn't exist it doesn't do anything"""
+        dnsname_full = get_functional_alias(entity)
+        if dnsname_full:
+            dnsname = dnsname_full[0]
+            response = update_functional_alias(dnsname, None, None)
+            if response:
+                logging.debug("Functional alias successfully removed for %s",
+                        entity)
+                self.set_status(NO_CONTENT)
+                self.finish()
         else:
             logging.error("Functional alias not found for entity: %s", entity)
             raise tornado.web.HTTPError(NOT_FOUND)
+
