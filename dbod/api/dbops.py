@@ -43,6 +43,8 @@ def entity_metadata(entity):
         logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode[:2]))
         logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode))
         return None
+    finally:
+        POOL.putconn(conn)
 
 def host_metadata(host):
     """Returns a JSON object containing the metadata for all the entities
@@ -62,6 +64,8 @@ def host_metadata(host):
         logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode[:2]))
         logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode))
         return None
+    finally:
+        POOL.putconn(conn)
 
 # Functional aliases related methods
 #   The assumption for the first implementation is that the database
@@ -82,6 +86,8 @@ def next_dnsname():
         logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode[:2]))
         logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode))
         return None
+    finally:
+        POOL.putconn(conn)
 
 def update_functional_alias(dnsname, db_name, alias):
     """Updates a dnsname record with its db_name and alias"""
@@ -100,6 +106,8 @@ def update_functional_alias(dnsname, db_name, alias):
         logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode[:2]))
         logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode))
         return None
+    finally:
+        POOL.putconn(conn)
 
 def get_functional_alias(db_name):
     """Returns the funcional alias and dnsname for a certain database"""
@@ -114,3 +122,5 @@ def get_functional_alias(db_name):
         logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode[:2]))
         logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode))
         return None
+    finally:
+        POOL.putconn(conn)
