@@ -92,9 +92,24 @@ class EntityHandler(tornado.web.RequestHandler):
         else:
             logging.warning("Entity not found: %s", entity)
             raise tornado.web.HTTPError(NOT_FOUND)
+
+    @http_basic_auth
+    def post(self, entity):
+        """Returns metadata for a certain entity"""
+        try:
+            metadata = self.get_argument('metadata')
+            response = insert_metadata(entity, metadata)
+            if response:
+                logging.debug("Metadata successfully created for %s: %s",
+                        entity, metadata)
+                self.set_status(CREATED)
+                self.finish()
+        except tornado.web.MissingArgumentError as err:
+            logging.error("Missing 'metadata' argument in request!")
+            raise tornado.web.MissingArgumentError()
     
     @http_basic_auth
-    def update(self, entity):
+    def put(self, entity):
         """Returns metadata for a certain entity"""
         try:
             metadata = self.get_argument('metadata')
@@ -107,13 +122,6 @@ class EntityHandler(tornado.web.RequestHandler):
         except tornado.web.MissingArgumentError as err:
             logging.error("Missing 'metadata' argument in request!")
             raise tornado.web.MissingArgumentError()
-        response = update_metadata(entity, metadata)
-        if response:
-            logging.debug(response)
-            self.write(response)
-        else:
-            logging.warning("Entity not found: %s", entity)
-            raise tornado.web.HTTPError(NOT_FOUND)
 
     @http_basic_auth
     def delete(self, entity):

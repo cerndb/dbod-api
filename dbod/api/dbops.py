@@ -46,6 +46,23 @@ def get_metadata(entity):
     finally:
         POOL.putconn(conn)
 
+
+def insert_metadata(entity, metadata):
+    """Creates an entry in the metadata table"""
+    try:
+        with POOL.getconn() as conn:
+            with conn.cursor() as curs:
+                curs.execute("""insert into metadata(name, metadata) values(%s, %s)""",
+                        (entity, metadata, ))
+                res = curs.fetchone()
+                return res[0] if res else None
+    except DatabaseError as dberr:
+        logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode[:2]))
+        logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode))
+        return None
+    finally:
+        POOL.putconn(conn)
+
 def update_metadata(entity, metadata):
     """Updates the JSON object containing all the metadata for an entity"""
     try:
