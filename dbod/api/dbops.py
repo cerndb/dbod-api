@@ -30,12 +30,44 @@ except DatabaseError as dberr:
     logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode[:2]))
     logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode))
 
-def entity_metadata(entity):
+def get_metadata(entity):
     """Returns a JSON object containing all the metadata for a certain entity"""
     try:
         with POOL.getconn() as conn:
             with conn.cursor() as curs:
                 curs.execute("""select data from metadata where name = %s""",
+                        (entity, ))
+                res = curs.fetchone()
+                return res[0] if res else None
+    except DatabaseError as dberr:
+        logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode[:2]))
+        logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode))
+        return None
+    finally:
+        POOL.putconn(conn)
+
+def update_metadata(entity, metadata):
+    """Updates the JSON object containing all the metadata for an entity"""
+    try:
+        with POOL.getconn() as conn:
+            with conn.cursor() as curs:
+                curs.execute("""update metadata set data =%s where name = %s""",
+                        (entity, metadata, ))
+                res = curs.fetchone()
+                return res[0] if res else None
+    except DatabaseError as dberr:
+        logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode[:2]))
+        logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode))
+        return None
+    finally:
+        POOL.putconn(conn)
+
+def delete_metadata(entity):
+    """Deletes the metadata entry for an entity"""
+    try:
+        with POOL.getconn() as conn:
+            with conn.cursor() as curs:
+                curs.execute("""delete from metadata where name = %s""",
                         (entity, ))
                 res = curs.fetchone()
                 return res[0] if res else None
