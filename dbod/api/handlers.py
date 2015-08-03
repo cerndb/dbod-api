@@ -169,7 +169,7 @@ class FunctionalAliasHandler(tornado.web.RequestHandler):
                     logging.debug("Functional alias (%s) successfully added for %s",
                             alias, entity)
                     self.set_status(CREATED)
-                    self.finish()
+                    self.write(json.dumps(dnsname))
             except tornado.web.MissingArgumentError as err:
                 logging.error("Missing 'alias' argument in request!")
                 raise tornado.web.MissingArgumentError()
