@@ -128,8 +128,8 @@ class EntityHandler(tornado.web.RequestHandler):
         """Returns metadata for a certain entity"""
         response = delete_metadata(entity)
         if response:
-            logging.debug(response)
-            self.write(response)
+            self.set_status(NO_CONTENT)
+            self.finish()
         else:
             logging.warning("Entity not found: %s", entity)
             raise tornado.web.HTTPError(NOT_FOUND)

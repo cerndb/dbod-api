@@ -33,15 +33,16 @@ except DatabaseError as dberr:
 def get_metadata(entity):
     """Returns a JSON object containing all the metadata for a certain entity"""
     try:
+        entity = str(entity)
         with POOL.getconn() as conn:
             with conn.cursor() as curs:
-                curs.execute("""select data from metadata where name = %s""",
+                curs.execute("""select data from metadata where db_name = %s""",
                         (entity, ))
                 res = curs.fetchone()
                 return res[0] if res else None
     except DatabaseError as dberr:
-        logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode[:2]))
-        logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode))
+        logging.error("PG Error: %s", dberr.pgerror)
+        logging.error("PG Error lookup: %s", errorcodes.lookup(dberr.pgcode))
         return None
     finally:
         POOL.putconn(conn)
@@ -52,13 +53,16 @@ def insert_metadata(entity, metadata):
     try:
         with POOL.getconn() as conn:
             with conn.cursor() as curs:
-                curs.execute("""insert into metadata(name, metadata) values(%s, %s)""",
+                logging.debug("Creating metadata entry for %s", entity)
+                logging.debug("Metadata: %s", metadata)
+                curs.execute("""insert into metadata(db_name, data) values(%s, %s)""",
                         (entity, metadata, ))
-                res = curs.fetchone()
-                return res[0] if res else None
+                logging.debug('DB query: %s', curs.query)
+                conn.commit()
+                return curs.rowcount == 1
     except DatabaseError as dberr:
-        logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode[:2]))
-        logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode))
+        logging.error("PG Error: %s", dberr.pgerror)
+        logging.error("PG Error lookup: %s", errorcodes.lookup(dberr.pgcode))
         return None
     finally:
         POOL.putconn(conn)
@@ -68,13 +72,16 @@ def update_metadata(entity, metadata):
     try:
         with POOL.getconn() as conn:
             with conn.cursor() as curs:
-                curs.execute("""update metadata set data =%s where name = %s""",
-                        (entity, metadata, ))
-                res = curs.fetchone()
-                return res[0] if res else None
+                logging.debug("Updating metadata entry for %s", entity)
+                logging.debug("Metadata: %s", metadata)
+                curs.execute("""update metadata set data =%s where db_name = %s""",
+                        (metadata, entity,))
+                logging.debug('DB query: %s', curs.query)
+                conn.commit()
+                return curs.rowcount == 1
     except DatabaseError as dberr:
-        logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode[:2]))
-        logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode))
+        logging.error("PG Error: %s", dberr.pgerror)
+        logging.error("PG Error lookup: %s", errorcodes.lookup(dberr.pgcode))
         return None
     finally:
         POOL.putconn(conn)
@@ -84,13 +91,14 @@ def delete_metadata(entity):
     try:
         with POOL.getconn() as conn:
             with conn.cursor() as curs:
-                curs.execute("""delete from metadata where name = %s""",
+                curs.execute("""delete from metadata where db_name = %s""",
                         (entity, ))
-                res = curs.fetchone()
-                return res[0] if res else None
+                logging.debug('DB query: %s', curs.query)
+                conn.commit()
+                return curs.rowcount == 1
     except DatabaseError as dberr:
-        logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode[:2]))
-        logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode))
+        logging.error("PG Error: %s", dberr.pgerror)
+        logging.error("PG Error lookup: %s", errorcodes.lookup(dberr.pgcode))
         return None
     finally:
         POOL.putconn(conn)
@@ -101,9 +109,9 @@ def host_metadata(host):
     try:
         with POOL.getconn() as conn:
             with conn.cursor() as curs:
-                curs.execute("""select name, data
+                curs.execute("""select db_name, data
                 from (
-                    select name, json_array_elements(data->'hosts') host, data
+                    select db_name, json_array_elements(data->'hosts') host, data
                         from metadata)
                     as foo
                     where trim(foo.host::text, '"') = %s""", (host, ))
