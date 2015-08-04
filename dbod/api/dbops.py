@@ -138,6 +138,7 @@ def next_dnsname():
                 curs.execute("""select dns_name
                 from functional_aliases
                 where db_name is NULL order by dns_name limit 1""")
+                logging.debug('DB query: %s', curs.query)
                 return curs.fetchone() # First unused dnsname or None
     except DatabaseError as dberr:
         logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode[:2]))
@@ -156,6 +157,7 @@ def update_functional_alias(dnsname, db_name, alias):
                 curs.execute("""update functional_aliases
                 set db_name = %s, alias = %s where dns_name = %s""",
                     (db_name, alias, dnsname,))
+                logging.debug('DB query: %s', curs.query)
                 conn.commit()
                 # Return True if the record was updated succesfully
                 return curs.rowcount == 1
@@ -174,6 +176,7 @@ def get_functional_alias(db_name):
                 curs.execute("""select dns_name, alias
                 from functional_aliases
                 where db_name = %s""", (db_name,))
+                logging.debug('DB query: %s', curs.query)
                 return curs.fetchone()
     except DatabaseError as dberr:
         logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode[:2]))
