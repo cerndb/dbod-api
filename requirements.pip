@@ -1,8 +1,5 @@
 configparser
-mock
 nose
-pex
 psycopg2
-suds
 tornado
 virtualenv
