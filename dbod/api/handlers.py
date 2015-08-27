@@ -13,6 +13,7 @@ REST API Server for the DB On Demand System
 """
 
 from dbod.api.dbops import *
+from dbod.api.testorm import *
 from dbod.config import CONFIG
 import tornado.web
 import tornado.log
@@ -194,3 +195,14 @@ class FunctionalAliasHandler(tornado.web.RequestHandler):
             logging.error("Functional alias not found for entity: %s", entity)
             raise tornado.web.HTTPError(NOT_FOUND)
 
+class TestHandler(tornado.web.RequestHandler):
+    def get(self, host):
+        """Returns an object containing the metadata for all the entities
+            on a certain host"""
+        response = test_data(host)
+        if response:
+            logging.debug(response)
+            self.write(response)
+        else:
+            logging.warning("Host not found: %s", host)
+            raise tornado.web.HTTPError(NOT_FOUND)

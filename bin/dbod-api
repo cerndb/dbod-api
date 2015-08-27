@@ -28,7 +28,7 @@ def main():
     # Set up log file and level.
     options.log_file_prefix = CONFIG.get('log_file')
     options.logging = 'debug'
-    options.log_to_stderr = False
+    options.log_to_stderr = True
 
     # Parse server command line and set up logging defaults, if necessary
     parse_command_line()
@@ -39,6 +39,7 @@ def main():
             (r"/api/v1/entity/([^/]+)", EntityHandler),
             (r"/api/v1/entity/alias/([^/]+)", FunctionalAliasHandler),
             (r"/api/v1/host/([^/]+)", HostHandler),
+            (r"/api/v1/test/([^/]+)", TestHandler),
             ], debug=True)
 
     logging.info("Configuring HTTP server")
