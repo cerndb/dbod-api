@@ -39,7 +39,7 @@ def main():
             (r"/api/v1/entity/([^/]+)", EntityHandler),
             (r"/api/v1/entity/alias/([^/]+)", FunctionalAliasHandler),
             (r"/api/v1/host/([^/]+)", HostHandler),
-            (r"/api/v1/test/([^/]+)", TestHandler),
+            (r"/api/v1/fim/resource/([^/]+)", FimResourceHandler),
             ], debug=True)
 
     logging.info("Configuring HTTP server")

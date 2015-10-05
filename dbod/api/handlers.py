@@ -13,7 +13,7 @@ REST API Server for the DB On Demand System
 """
 
 from dbod.api.dbops import *
-from dbod.api.testorm import *
+from dbod.api.fimresources import *
 from dbod.config import CONFIG
 import tornado.web
 import tornado.log
@@ -195,14 +195,69 @@ class FunctionalAliasHandler(tornado.web.RequestHandler):
             logging.error("Functional alias not found for entity: %s", entity)
             raise tornado.web.HTTPError(NOT_FOUND)
 
-class TestHandler(tornado.web.RequestHandler):
-    def get(self, host):
-        """Returns an object containing the metadata for all the entities
-            on a certain host"""
-        response = test_data(host)
+class FimResourceHandler(tornado.web.RequestHandler):
+    def get(self, resource):
+        """Returns a resource request"""
+        response = get_resource(resource)
         if response:
             logging.debug(response)
-            self.write(response)
+            self.write(json.dumps(response))
         else:
-            logging.warning("Host not found: %s", host)
+            logging.error("Request not found with name: %s", resource)
             raise tornado.web.HTTPError(NOT_FOUND)
+            
+    def get(self):
+        self.write(json.dumps("asdf"))
+            
+    @http_basic_auth 
+    def post(self, resource):
+        """Creates an entry in the resources table"""
+        try:
+            username = self.get_argument('username')
+            db_name = self.get_argument('db_name')
+            e_group = self.get_argument('e_group')
+            category = self.get_argument('category')
+            expiry_date = self.get_argument('expiry_date')
+            db_type = self.get_argument('db_type')
+            db_size = int(self.get_argument('db_size'))
+            no_connections = int(self.get_argument('no_connections'))
+            project = self.get_argument('project')
+            description = self.get_argument('description')
+            
+            response = create_resource(username, db_name, e_group, category, expiry_date, db_type, db_size, no_connections, project, description)
+            if response:
+                logging.debug("Resource successfully created for %s: %s", resource, db_name)
+                self.set_status(CREATED)
+                self.finish()
+        except tornado.web.MissingArgumentError as err:
+            logging.error("Missing 'resource' argument in request!")
+            raise tornado.web.MissingArgumentError()
+            
+    @http_basic_auth
+    def put(self, resource):
+        """Returns metadata for a certain entity"""
+        try:
+            #metadata = self.get_argument('metadata')
+            response = 1#update_metadata(resource, metadata)
+            if response:
+                logging.debug("Metadata successfully updated for %s: %s",
+                        resource, resource)
+                self.set_status(OK)
+                self.finish()
+        except tornado.web.MissingArgumentError as err:
+            logging.error("Missing 'resource' argument in request!")
+            raise tornado.web.MissingArgumentError()
+            
+    @http_basic_auth 
+    def delete(self, resource):
+        """Removes the resource for an instance. If the instance doesn't exist it doesn't do anything"""
+        result = delete_resource(resource)
+        if result:
+            logging.debug("Resource %s successfully removed", resource)
+            self.set_status(NO_CONTENT)
+            self.finish()
+        else:
+            logging.error("Resource not found: %s", resource)
+            raise tornado.web.HTTPError(NOT_FOUND)
+            
+    
