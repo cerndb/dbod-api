@@ -32,6 +32,6 @@ class InstanceHandler(tornado.web.RequestHandler):
             logging.debug(json_str)
             self.write(json_str)
         else:
-            logging.warning("Entity not found: %s", entity)
+            logging.warning("Instance not found: %s", dbname)
             raise tornado.web.HTTPError(NOT_FOUND)
 

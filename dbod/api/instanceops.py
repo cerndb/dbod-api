@@ -16,6 +16,7 @@ from psycopg2 import connect, DatabaseError, pool, errorcodes
 import sys, traceback, logging
 
 from dbod.api.dbops import *
+from dbod.api.utils import *
 
 def get_instance(dbname):
     """Returns a JSON object containing all the data for a dbname"""
@@ -25,8 +26,11 @@ def get_instance(dbname):
             with conn.cursor() as curs:
                 curs.execute("""select * from instance where db_name = %s""",
                         (dbname, ))
-                res = curs.fetchone()
-                return res if res else None
+                rows = curs.fetchall()
+                cols = [i[0] for i in curs.description]
+                if rows:
+                    return create_json_from_result(rows, cols)
+                return None
     except DatabaseError as dberr:
         logging.error("PG Error: %s", dberr.pgerror)
         logging.error("PG Error lookup: %s", errorcodes.lookup(dberr.pgcode))
