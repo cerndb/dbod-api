@@ -18,6 +18,7 @@ from tornado.options import parse_command_line, options
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 from dbod.api.handlers import *
+from dbod.api.instancehandlers import *
 from dbod.config import CONFIG
 
 import logging
@@ -40,6 +41,7 @@ def main():
             (r"/api/v1/entity/alias/([^/]+)", FunctionalAliasHandler),
             (r"/api/v1/host/([^/]+)", HostHandler),
             (r"/api/v1/fim/resource/([^/]+)", FimResourceHandler),
+            (r"/api/v1/test/([^/]+)", InstanceHandler),
             ], debug=True)
 
     logging.info("Configuring HTTP server")
