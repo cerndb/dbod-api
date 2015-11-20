@@ -28,6 +28,18 @@ try:
     CONFIG['app_port'] = config.get('server', 'port')
     CONFIG['api_user'] = config.get('api', 'user')
     CONFIG['api_pass'] = config.get('api', 'password')
+    CONFIG['inst_user'] = config.get('instdatabase', 'user')
+    CONFIG['inst_host'] = config.get('instdatabase', 'host')
+    CONFIG['inst_name'] = config.get('instdatabase', 'database')
+    CONFIG['inst_port'] = config.get('instdatabase', 'port')
+    CONFIG['inst_pass'] = config.get('instdatabase', 'password')
+    CONFIG['inst_servname'] = config.get('instdatabase', 'serv_name')
+    CONFIG['fim_user'] = config.get('fimdatabase', 'user')
+    CONFIG['fim_host'] = config.get('fimdatabase', 'host')
+    CONFIG['fim_name'] = config.get('fimdatabase', 'database')
+    CONFIG['fim_port'] = config.get('fimdatabase', 'port')
+    CONFIG['fim_pass'] = config.get('fimdatabase', 'password')
+    CONFIG['fim_servname'] = config.get('fimdatabase', 'serv_name')
 
 except IOError as e:
     traceback.print_exc(file=sys.stdout)
