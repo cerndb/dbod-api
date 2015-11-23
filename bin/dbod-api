@@ -41,7 +41,8 @@ def main():
             (r"/api/v1/entity/alias/([^/]+)", FunctionalAliasHandler),
             (r"/api/v1/host/([^/]+)", HostHandler),
             (r"/api/v1/fim/resource/([^/]+)", FimResourceHandler),
-            (r"/api/v1/test/([^/]+)", InstanceHandler),
+            (r"/api/v1/instance/all/([^/]+)", InstanceListAllHandler),
+            (r"/api/v1/instance/([^/]+)", InstanceHandler),
             ], debug=True)
 
     logging.info("Configuring HTTP server")
