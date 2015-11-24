@@ -43,6 +43,8 @@ def main():
             (r"/api/v1/fim/resource/([^/]+)", FimResourceHandler),
             (r"/api/v1/entity/all/", InstanceListAllHandler),
             (r"/api/v1/entity/expired/", InstanceListExpiredHandler),
+            #(r"/api/v1/entity/access/([^/]+)/([^/]+)", ),
+            (r"/api/v1/entity/host/([^/]+)", InstanceListByHostHandler),
             ], debug=True)
 
     logging.info("Configuring HTTP server")

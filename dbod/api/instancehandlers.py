@@ -62,7 +62,18 @@ class InstanceListExpiredHandler(tornado.web.RequestHandler):
             logging.warning("No instances found")
             raise tornado.web.HTTPError(NOT_FOUND)
             
-class InstanceHostHandler(tornado.web.RequestHandler):
+class InstanceListByHostHandler(tornado.web.RequestHandler):
+    """Retrieves all the instances by an specified host"""
+    def get(self, host):
+        response = get_instances_by_host(host)
+        if response:
+            json_str = json.dumps(response)
+            self.write(json_str)
+        else:
+            logging.warning("No instances found")
+            raise tornado.web.HTTPError(NOT_FOUND)
+            
+class InstanceListHostHandler(tornado.web.RequestHandler):
     """Retrieves the list of hosts and the memory of each one"""
     def get(self):
         response = get_host_list()
