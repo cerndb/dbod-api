@@ -23,21 +23,34 @@ def get_instances_by_dbname(dbname):
     """Returns a JSON object containing all the data for a dbname"""
     try:
         dbname = str(dbname)
-        with POOL.getconn() as conn:
-            with conn.cursor() as curs:
-                curs.execute("""select * from instance where db_name = %s""",
-                        (dbname, ))
-                rows = curs.fetchall()
-                cols = [i[0] for i in curs.description]
-                if rows:
-                    return create_json_from_result(rows, cols)
-                return None
+        connI = get_inst_connection()
+        cursI = connI.cursor()
+        cursI.execute("""SELECT username, db_name, e_group, category, creation_date, expiry_date, db_type, db_size, no_connections, project, description, version, state, status, master, slave, host 
+                        FROM dod_instances WHERE db_name = :db_name AND status = 1
+                        ORDER BY db_name""", {"db_name": dbname})
+        rowsI = cursI.fetchall()
+        colsI = [i[0] for i in cursI.description]
+        if rowsI:
+            res = {"instance": create_json_from_result(rowsI, colsI) }
+        
+            # Load the user's data from FIM and join it to the result in Json
+            connF = get_fim_connection()
+            cursF = connF.cursor()
+            cursF.execute("""SELECT *
+                            FROM fim_ora_ma.db_on_demand WHERE instance_name = :db_name""", {"db_name": dbname})
+            rowsF = cursF.fetchall()
+            colsF = [i[0] for i in cursF.description]
+            if rowsF:
+                res["user"] = create_json_from_result(rowsF, colsF)
+            return res
+        return None
     except DatabaseError as dberr:
         logging.error("PG Error: %s", dberr.pgerror)
         logging.error("PG Error lookup: %s", errorcodes.lookup(dberr.pgcode))
         return None
     finally:
-        POOL.putconn(conn)
+        end_fim_connection(connF)
+        end_inst_connection(connI)
         
 def get_instances_by_host(host):
     """Returns a JSON object containing all the data for a host"""
