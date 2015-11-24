@@ -24,6 +24,8 @@ def create_json_from_result(rows, cols):
         for col, val in zip(cols, row):
             object[col] = val
         res.append(object)
+    if len(rows) == 1:
+        return res[0]
     return res
     
 def test():
