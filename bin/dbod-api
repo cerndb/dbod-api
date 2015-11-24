@@ -39,7 +39,7 @@ def main():
             (r"/", DocHandler),
             (r"/api/v1/entity/metadata/([^/]+)", EntityHandler),
             (r"/api/v1/entity/alias/([^/]+)", FunctionalAliasHandler),
-            (r"/api/v1/host/([^/]+)", HostHandler),
+            (r"/api/v1/host/metadata/([^/]+)", HostHandler),
             (r"/api/v1/fim/resource/([^/]+)", FimResourceHandler),
             (r"/api/v1/entity/all/", InstanceListAllHandler),
             (r"/api/v1/entity/expired/", InstanceListExpiredHandler),
