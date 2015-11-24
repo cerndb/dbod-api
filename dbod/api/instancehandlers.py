@@ -41,24 +41,26 @@ class InstanceHandler(tornado.web.RequestHandler):
             raise tornado.web.HTTPError(NOT_FOUND)
             
 class InstanceListAllHandler(tornado.web.RequestHandler):
-    """Retrieves all the instances, or all the instances of the user if username is provided"""
-    def get(self, username=None):
-        if username:
-            response = get_instances_by_username(username)
-            if response:
-                json_str = json.dumps(response)
-                self.write(json_str)
-            else:
-                logging.warning("Username not found: %s", username)
-                raise tornado.web.HTTPError(NOT_FOUND)
+    """Retrieves all the active instances"""
+    def get(self):
+        response = get_instances_by_status(1)
+        if response:
+            json_str = json.dumps(response)
+            self.write(json_str)
         else:
-            response = get_all_instances()
-            if response:
-                json_str = json.dumps(response)
-                self.write(json_str)
-            else:
-                logging.warning("No instances found")
-                raise tornado.web.HTTPError(NOT_FOUND)
+            logging.warning("No instances found")
+            raise tornado.web.HTTPError(NOT_FOUND)
+            
+class InstanceListExpiredHandler(tornado.web.RequestHandler):
+    """Retrieves all the expired instances"""
+    def get(self):
+        response = get_instances_by_status(0)
+        if response:
+            json_str = json.dumps(response)
+            self.write(json_str)
+        else:
+            logging.warning("No instances found")
+            raise tornado.web.HTTPError(NOT_FOUND)
             
 class InstanceHostHandler(tornado.web.RequestHandler):
     """Retrieves the list of hosts and the memory of each one"""
