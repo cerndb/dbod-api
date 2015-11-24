@@ -25,19 +25,14 @@ import json
 
 class InstanceHandler(tornado.web.RequestHandler):
     """Retrieves instances by a specific field: dbname, host, status"""
-    def get(self, field, value):
-        query = {'dbname': get_instances_by_dbname, 'host': get_instances_by_host, 'status': get_instances_by_status}
-        try:
-            response = query[field](value)
-        except:
-            logging.warning("Invalid field: %s", field)
-            raise tornado.web.HTTPError(NOT_FOUND)
-
+    def get(self, dbname):
+        response = get_instances_by_dbname(dbname)
         if response:
             json_str = json.dumps(response)
+            self.set_header("Content-Type", "application/json")
             self.write(json_str)
         else:
-            logging.warning("Instance not found: %s", value)
+            logging.warning("No instances found")
             raise tornado.web.HTTPError(NOT_FOUND)
             
 class InstanceListAllHandler(tornado.web.RequestHandler):
@@ -46,6 +41,7 @@ class InstanceListAllHandler(tornado.web.RequestHandler):
         response = get_instances_by_status(1)
         if response:
             json_str = json.dumps(response)
+            self.set_header("Content-Type", "application/json")
             self.write(json_str)
         else:
             logging.warning("No instances found")
@@ -57,6 +53,7 @@ class InstanceListExpiredHandler(tornado.web.RequestHandler):
         response = get_instances_by_status(0)
         if response:
             json_str = json.dumps(response)
+            self.set_header("Content-Type", "application/json")
             self.write(json_str)
         else:
             logging.warning("No instances found")
@@ -68,6 +65,7 @@ class InstanceListByHostHandler(tornado.web.RequestHandler):
         response = get_instances_by_host(host)
         if response:
             json_str = json.dumps(response)
+            self.set_header("Content-Type", "application/json")
             self.write(json_str)
         else:
             logging.warning("No instances found")
@@ -79,6 +77,7 @@ class InstanceListHostHandler(tornado.web.RequestHandler):
         response = get_host_list()
         if response:
             json_str = json.dumps(response)
+            self.set_header("Content-Type", "application/json")
             self.write(json_str)
         else:
             logging.warning("No hosts found: %s", value)
