@@ -21,6 +21,8 @@ from dbod.api.common.instdb import *
 
 def get_instances_by_dbname(dbname):
     """Returns a JSON object containing all the data for a dbname"""
+    connF = None
+    connI = None
     try:
         dbname = str(dbname)
         connI = get_inst_connection()
@@ -31,17 +33,18 @@ def get_instances_by_dbname(dbname):
         rowsI = cursI.fetchall()
         colsI = [i[0] for i in cursI.description]
         if rowsI:
-            res = {"instance": create_json_from_result(rowsI, colsI) }
+            res = create_json_from_result(rowsI, colsI)
         
             # Load the user's data from FIM and join it to the result in Json
             connF = get_fim_connection()
             cursF = connF.cursor()
-            cursF.execute("""SELECT *
+            cursF.execute("""SELECT instance_name, owner_first_name, owner_last_name, owner_login, owner_mail, owner_phone1, owner_phone2, owner_portable_phone, owner_department, owner_group, owner_section
                             FROM fim_ora_ma.db_on_demand WHERE instance_name = :db_name""", {"db_name": dbname})
             rowsF = cursF.fetchall()
             colsF = [i[0] for i in cursF.description]
+            print rowsF
             if rowsF:
-                res["user"] = create_json_from_result(rowsF, colsF)
+                res["USER"] = create_json_from_result(rowsF, colsF)
             return res
         return None
     except DatabaseError as dberr:
@@ -49,8 +52,10 @@ def get_instances_by_dbname(dbname):
         logging.error("PG Error lookup: %s", errorcodes.lookup(dberr.pgcode))
         return None
     finally:
-        end_fim_connection(connF)
-        end_inst_connection(connI)
+        if connF != None:
+            end_fim_connection(connF)
+        if connI != None:
+            end_inst_connection(connI)
         
 def get_instances_by_host(host):
     """Returns a JSON object containing all the data for a host"""
