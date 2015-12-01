@@ -28,6 +28,15 @@ def create_json_from_result(rows, cols):
         return res[0]
     return res
     
+def create_dict_from_result(rows, cols, map):
+    res = {}
+    for row in rows:
+        object = {}
+        for col, val in zip(cols, row):
+            object[col] = val
+        res[object[map]] = object
+    return res
+    
 def test():
     con = get_inst_connection()
 
