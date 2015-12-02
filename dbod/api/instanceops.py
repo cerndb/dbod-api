@@ -90,7 +90,21 @@ def get_instances_by_status(status):
         rows = curs.fetchall()
         cols = [i[0] for i in curs.description]
         if rows:
-            return create_json_from_result(rows, cols)
+            res = {"instances": create_json_from_result(rows, cols)}
+            
+            # Load the user's data from FIM and join it to the result in Json
+            connF = get_fim_connection()
+            cursF = connF.cursor()
+            cursF.execute("""SELECT instance_name, owner_first_name, owner_last_name, owner_login, owner_mail, owner_phone1, owner_phone2, owner_portable_phone, owner_department, owner_group, owner_section
+                            FROM fim_ora_ma.db_on_demand""")
+            rowsF = cursF.fetchall()
+            colsF = [i[0] for i in cursF.description]
+            if rowsF:
+                usersJson = create_dict_from_result(rowsF, colsF, "INSTANCE_NAME")
+                for instance in res["instances"]:
+                    if instance["DB_NAME"] in usersJson:
+                        instance["USER"] = usersJson[instance["DB_NAME"]]
+            return res
         return None
     except DatabaseError as dberr:
         logging.error("PG Error: %s", dberr.pgerror)
