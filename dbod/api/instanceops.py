@@ -90,7 +90,7 @@ def get_instances_by_status(status):
         rows = curs.fetchall()
         cols = [i[0] for i in curs.description]
         if rows:
-            res = {"instances": create_json_from_result(rows, cols)}
+            res = create_json_from_result(rows, cols)
             
             # Load the user's data from FIM and join it to the result in Json
             connF = get_fim_connection()
@@ -101,7 +101,7 @@ def get_instances_by_status(status):
             colsF = [i[0] for i in cursF.description]
             if rowsF:
                 usersJson = create_dict_from_result(rowsF, colsF, "INSTANCE_NAME")
-                for instance in res["instances"]:
+                for instance in res:
                     if instance["DB_NAME"] in usersJson:
                         instance["USER"] = usersJson[instance["DB_NAME"]]
             return res
@@ -133,22 +133,4 @@ def get_instances_by_username(username):
     finally:
         POOL.putconn(conn)
 
-def get_all_instances():
-    """Returns a JSON object containing all the instances"""
-    try:
-        with POOL.getconn() as conn:
-            with conn.cursor() as curs:
-                curs.execute("""SELECT username, db_name, e_group, category, creation_date, expiry_date, db_type, db_size, no_connections, project, description, version, state, status, master, slave, host 
-                                FROM instance WHERE status = '1'""")
-                rows = curs.fetchall()
-                cols = [i[0] for i in curs.description]
-                if rows:
-                    return create_json_from_result(rows, cols)
-                return None
-    except DatabaseError as dberr:
-        logging.error("PG Error: %s", dberr.pgerror)
-        logging.error("PG Error lookup: %s", errorcodes.lookup(dberr.pgcode))
-        return None
-    finally:
-        POOL.putconn(conn)
-    
+   
