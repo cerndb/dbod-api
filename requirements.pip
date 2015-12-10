@@ -2,6 +2,4 @@ configparser
 nose
 psycopg2
 tornado
-virtualenv
-SQLAlchemy
-cx_Oracle
+cx-oracle
