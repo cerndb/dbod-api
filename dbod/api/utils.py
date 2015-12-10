@@ -16,6 +16,7 @@ import json
 import sys, traceback, logging
 
 def create_json_from_result(rows, cols):
+    """Creates a JSON object from the result (rows and columns) of a database"""
     res = []
     for row in rows:
         object = {}
@@ -27,6 +28,8 @@ def create_json_from_result(rows, cols):
     return res
     
 def create_dict_from_result(rows, cols, map):
+    """Creates a JSON dictionary from the result (rows and columns) of a 
+    database, mapped by the string in the map parameter"""
     res = {}
     for row in rows:
         object = {}
