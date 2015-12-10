@@ -14,8 +14,6 @@ REST API Server for the DB On Demand System
 
 import json
 import sys, traceback, logging
-from common.instdb import *
-from common.fimdb import *
 
 def create_json_from_result(rows, cols):
     res = []
@@ -36,35 +34,3 @@ def create_dict_from_result(rows, cols, map):
             object[col] = val
         res[object[map]] = object
     return res
-    
-def test():
-    con = get_inst_connection()
-
-    cur = con.cursor()
-    cur.execute('select * from dod_instances')
-    resultset = cur.fetchall()
-    for result in resultset:
-        for item in result:
-            print (str(item)),
-        print ""
-    cur.close()
-    
-    end_inst_connection(con)
-    
-#test()
-
-def test2():
-    con = get_fim_connection()
-    
-    cur = con.cursor()
-    cur.execute('select * from fim_ora_ma.db_on_demand')
-    resultset = cur.fetchall()
-    for result in resultset:
-        for item in result:
-            print (str(item)),
-        print ""
-    cur.close()
-    
-    end_fim_connection(con)
-    
-#test2()
