@@ -16,16 +16,20 @@ import cx_Oracle as cx
 import logging
 from dbod.config import CONFIG
 
-_dsnfim = cx.makedsn(CONFIG.get('fim_host'), CONFIG.get('fim_port'), service_name = CONFIG.get('fim_servname'))
-_FIMPOOL = cx.SessionPool(CONFIG.get('fim_user'), CONFIG.get('fim_pass'), dsn=_dsnfim, min=1, max=5, increment=1)
+_dsnfim = cx.makedsn(CONFIG.get('fim_host'), 
+                     CONFIG.get('fim_port'), 
+                     service_name = CONFIG.get('fim_servname'))
+_FIMPOOL = cx.SessionPool(CONFIG.get('fim_user'), 
+                     CONFIG.get('fim_pass'), 
+                     dsn=_dsnfim, min=1, max=5, increment=1)
 
-# Get a connection from the pool
-def get_fim_connection():
+def get_connection():
+    """Gets and returns a connection from the pool"""
     try:
         return _FIMPOOL.acquire()
     except cx.DatabaseError as dberr:
-        logging.error("Oracle Error: %s", dberr)
+        logging.error("FIM Database Error: %s", dberr)
 
-# Return a connection to the pool
-def end_fim_connection(con):
+def end_connection(con):
+    """Release a connection back to the pool"""
     _FIMPOOL.release(con)

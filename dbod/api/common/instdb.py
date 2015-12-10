@@ -16,16 +16,20 @@ import cx_Oracle as cx
 import logging
 from dbod.config import CONFIG
 
-_dsnoracle = cx.makedsn(CONFIG.get('inst_host'), CONFIG.get('inst_port'), service_name = CONFIG.get('inst_servname'))
-_ORAPOOL = cx.SessionPool(CONFIG.get('inst_user'), CONFIG.get('inst_pass'), dsn=_dsnoracle, min=1, max=5, increment=1)
+_dsnoracle = cx.makedsn(CONFIG.get('inst_host'), 
+                        CONFIG.get('inst_port'), 
+                        service_name = CONFIG.get('inst_servname'))
+_ORAPOOL = cx.SessionPool(CONFIG.get('inst_user'), 
+                        CONFIG.get('inst_pass'), 
+                        dsn=_dsnoracle, min=1, max=5, increment=1)
 
-# Get a connection from the pool
-def get_inst_connection():
+def get_connection():
+    """Gets and returns a connection from the pool"""
     try:
         return _ORAPOOL.acquire()
     except cx.DatabaseError as dberr:
-        logging.error("Oracle Error: %s", dberr)
+        logging.error("Instance Database Error: %s", dberr)
 
-# Return a connection to the pool
-def end_inst_connection(con):
+def end_connection(con):
+    """Releases a connection back to the pool"""
     _ORAPOOL.release(con)

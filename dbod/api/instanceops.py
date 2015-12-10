@@ -17,7 +17,8 @@ import sys, traceback, logging
 
 from dbod.api.dbops import *
 from dbod.api.utils import *
-from dbod.api.common.instdb import *
+import dbod.api.common.instdb as instdb
+import dbod.api.common.fimdb as fimdb
 
 def get_instances_by_dbname(dbname):
     """Returns a JSON object containing all the data for a dbname"""
@@ -25,7 +26,7 @@ def get_instances_by_dbname(dbname):
     connI = None
     try:
         dbname = str(dbname)
-        connI = get_inst_connection()
+        connI = instdb.get_connection()
         cursI = connI.cursor()
         cursI.execute("""SELECT username, db_name, e_group, category, creation_date, expiry_date, db_type, db_size, no_connections, project, description, version, state, status, master, slave, host 
                         FROM dod_instances WHERE db_name = :db_name AND status = 1
@@ -36,13 +37,12 @@ def get_instances_by_dbname(dbname):
             res = create_json_from_result(rowsI, colsI)
         
             # Load the user's data from FIM and join it to the result in Json
-            connF = get_fim_connection()
+            connF = fimdb.get_connection()
             cursF = connF.cursor()
             cursF.execute("""SELECT instance_name, owner_first_name, owner_last_name, owner_login, owner_mail, owner_phone1, owner_phone2, owner_portable_phone, owner_department, owner_group, owner_section
                             FROM fim_ora_ma.db_on_demand WHERE instance_name = :db_name""", {"db_name": dbname})
             rowsF = cursF.fetchall()
             colsF = [i[0] for i in cursF.description]
-            print rowsF
             if rowsF:
                 res["USER"] = create_json_from_result(rowsF, colsF)
             return res
@@ -53,15 +53,15 @@ def get_instances_by_dbname(dbname):
         return None
     finally:
         if connF != None:
-            end_fim_connection(connF)
+            fimdb.end_connection(connF)
         if connI != None:
-            end_inst_connection(connI)
+            instdb.end_connection(connI)
         
 def get_instances_by_host(host):
     """Returns a JSON object containing all the data for a host"""
     try:
         host = str(host)
-        conn = get_inst_connection()
+        conn = instdb.get_connection()
         curs = conn.cursor()
         curs.execute("""SELECT username, db_name, e_group, category, creation_date, expiry_date, db_type, db_size, no_connections, project, description, version, state, status, master, slave, host 
                         FROM dod_instances WHERE host = :host AND status = 1
@@ -76,13 +76,13 @@ def get_instances_by_host(host):
         logging.error("PG Error lookup: %s", errorcodes.lookup(dberr.pgcode))
         return None
     finally:
-        end_inst_connection(conn)
+        instdb.end_connection(conn)
         
 def get_instances_by_status(status):
     """Returns a JSON object containing all the data for instances with a status"""
     try:
         status = str(status)
-        conn = get_inst_connection()
+        conn = instdb.get_connection()
         curs = conn.cursor()
         curs.execute("""SELECT username, db_name, e_group, category, creation_date, expiry_date, db_type, db_size, no_connections, project, description, version, state, status, master, slave, host 
                         FROM dod_instances WHERE status = :status
@@ -93,7 +93,7 @@ def get_instances_by_status(status):
             res = create_json_from_result(rows, cols)
             
             # Load the user's data from FIM and join it to the result in Json
-            connF = get_fim_connection()
+            connF = fimdb.get_connection()
             cursF = connF.cursor()
             cursF.execute("""SELECT instance_name, owner_first_name, owner_last_name, owner_login, owner_mail, owner_phone1, owner_phone2, owner_portable_phone, owner_department, owner_group, owner_section
                             FROM fim_ora_ma.db_on_demand""")
@@ -111,7 +111,7 @@ def get_instances_by_status(status):
         logging.error("PG Error lookup: %s", errorcodes.lookup(dberr.pgcode))
         return None
     finally:
-        end_inst_connection(conn)
+        instdb.end_connection(conn)
         
 def get_instances_by_username(username):
     """Returns a JSON object containing all the instances for the user"""
