@@ -2,4 +2,4 @@ configparser
 nose
 psycopg2
 tornado
-virtualenv
+cx-oracle

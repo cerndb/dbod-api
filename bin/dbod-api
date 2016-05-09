@@ -18,6 +18,7 @@ from tornado.options import parse_command_line, options
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 from dbod.api.handlers import *
+from dbod.api.instancehandlers import *
 from dbod.config import CONFIG
 
 import logging
@@ -28,7 +29,7 @@ def main():
     # Set up log file and level.
     options.log_file_prefix = CONFIG.get('log_file')
     options.logging = 'debug'
-    options.log_to_stderr = False
+    options.log_to_stderr = True
 
     # Parse server command line and set up logging defaults, if necessary
     parse_command_line()
@@ -36,9 +37,15 @@ def main():
     logging.info("Defining application (url, handler) pairs")
     application = tornado.web.Application([
             (r"/", DocHandler),
-            (r"/api/v1/entity/([^/]+)", EntityHandler),
+            (r"/api/v1/entity/metadata/([^/]+)", EntityHandler),
             (r"/api/v1/entity/alias/([^/]+)", FunctionalAliasHandler),
-            (r"/api/v1/host/([^/]+)", HostHandler),
+            (r"/api/v1/host/metadata/([^/]+)", HostHandler),
+            (r"/api/v1/fim/resource/([^/]+)", FimResourceHandler),
+            (r"/api/v1/entity/all/", InstanceListAllHandler),
+            (r"/api/v1/entity/expired/", InstanceListExpiredHandler),
+            #(r"/api/v1/entity/access/([^/]+)/([^/]+)", ),
+            (r"/api/v1/entity/([^/]+)", InstanceHandler),
+            (r"/api/v1/entity/host/([^/]+)", InstanceListByHostHandler),
             ], debug=True)
 
     logging.info("Configuring HTTP server")
