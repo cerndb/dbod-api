@@ -10,6 +10,17 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 
+-- Get volumes function
+CREATE OR REPLACE FUNCTION get_volumes(pid INTEGER)
+RETURNS JSON[] AS $$
+DECLARE
+  volumes JSON[];
+BEGIN
+  SELECT ARRAY (SELECT row_to_json(t) FROM (SELECT * FROM VOLUME WHERE instance_id = pid) t) INTO volumes;
+  return volumes;
+END
+$$ LANGUAGE plpgsql;
+
 
 -- DOD_INSTANCES View
 CREATE VIEW DOD_INSTANCES AS
