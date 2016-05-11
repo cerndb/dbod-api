@@ -1,4 +1,9 @@
 
+-- Drop view and function to be able to insert it again
+DROP VIEW api.test_metadata;
+DROP FUNCTION get_hosts(INTEGER[]);
+DROP FUNCTION get_volumes(INTEGER);
+
 -- Get hosts function
 CREATE OR REPLACE FUNCTION get_hosts(host_ids INTEGER[])
 RETURNS VARCHAR[] AS $$
