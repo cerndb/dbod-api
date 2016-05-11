@@ -34,6 +34,6 @@ FROM fo_instance;
 
 -- TEST_METADATA View
 CREATE VIEW api.test_metadata AS
-SELECT id, owner, name, category, type, version, get_hosts(host) hosts
-FROM instance;
+SELECT id, owner, name, category, type, version, get_hosts(host) hosts, get_volumes volumes
+FROM instance, get_volumes(id);
 
