@@ -65,6 +65,13 @@ CREATE TABLE host (
     memory integer NOT NULL
 );
 
+CREATE TABLE attributes (
+    id INTEGER NOT NULL,
+    instance_id integer NOT NULL,
+    name varchar(32) NOT NULL,
+    value varchar(250) NOT NULL
+);
+
 
 CREATE FOREIGN TABLE upgrade (
     db_type varchar(32) NOT NULL,
