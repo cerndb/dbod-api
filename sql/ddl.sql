@@ -49,7 +49,7 @@ CREATE TABLE instance (
 );
 
 CREATE TABLE volume (
-    id integer NOT NULL,
+    id serial,
     instance_id integer NOT NULL,
     file_mode char(4) NOT NULL,
     owner varchar(32) NOT NULL,
@@ -60,15 +60,10 @@ CREATE TABLE volume (
 );
 
 CREATE TABLE host (
-    id integer NOT NULL,
+    id serial,
     name varchar(63) NOT NULL,
     memory integer NOT NULL
 );
-
-
-    
-
-
 
 
 CREATE FOREIGN TABLE upgrade (
