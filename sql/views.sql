@@ -33,7 +33,9 @@ SELECT USERNAME, DB_NAME, E_GROUP, CATEGORY, CREATION_DATE, EXPIRY_DATE, DB_TYPE
 FROM fo_instance;
 
 -- TEST_METADATA View
-CREATE VIEW api.test_metadata AS
-SELECT id, owner, name, category, type, version, get_hosts(host) hosts, get_volumes volumes
-FROM instance, get_volumes(id);
-
+CREATE OR REPLACE VIEW api.test_metadata AS
+SELECT id, username, db_name, category, db_type, version, host, get_volumes volumes, 
+'/usr/local/mysql/mysql-' || version basedir,
+'/ORA/dbs03/' || db_name || '/mysql' datadir,
+'/ORA/dbs02/' || db_name || '/mysql' logdir
+FROM fo_instance, get_volumes(id);
