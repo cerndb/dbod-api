@@ -49,15 +49,7 @@ END
 $$ LANGUAGE plpgsql;
 
 
--- DOD_INSTANCES View
-CREATE VIEW DOD_INSTANCES AS
-SELECT USERNAME, DB_NAME, E_GROUP, CATEGORY, CREATION_DATE, EXPIRY_DATE, DB_TYPE, 0 DB_SIZE, 0 NO_CONNECTIONS, PROJECT, DESCRIPTION, VERSION, MASTER, SLAVE, HOST, STATE, STATUS
-FROM fo_instance;
-
 -- TEST_METADATA View
 CREATE OR REPLACE VIEW api.test_metadata AS
-SELECT id, username, db_name, category, db_type, version, host, get_volumes volumes, 
-'/usr/local/mysql/mysql-' || version basedir,
-'/ORA/dbs03/' || db_name || '/mysql' datadir,
-'/ORA/dbs02/' || db_name || '/mysql' logdir
-FROM fo_instance, get_volumes(id);
+SELECT id, username, db_name, category, db_type, version, host, get_volumes volumes, d.*
+FROM fo_instance, get_volumes(id), get_directories(db_name, db_type, version, '5500') d;
