@@ -27,18 +27,20 @@ END
 $$ LANGUAGE plpgsql;
 
 -- Get directories function
-CREATE OR REPLACE FUNCTION get_directories(inst_name VARCHAR, category VARCHAR, version VARCHAR, port VARCHAR)
-RETURNS TABLE (basedir VARCHAR, datadir VARCHAR, logdir VARCHAR, socket VARCHAR) AS $$
+CREATE OR REPLACE FUNCTION get_directories(inst_name VARCHAR, type VARCHAR, version VARCHAR, port VARCHAR)
+RETURNS TABLE (basedir VARCHAR, bindir VARCHAR, datadir VARCHAR, logdir VARCHAR, socket VARCHAR) AS $$
 BEGIN
-  IF category = 'MYSQL' THEN
+  IF type = 'MYSQL' THEN
     RETURN QUERY SELECT 
       ('/usr/local/mysql/mysql-' || version)::VARCHAR basedir, 
+      ('/usr/local/mysql/mysql-' || version || '/bin')::VARCHAR bindir, 
       ('/ORA/dbs03/' || upper(inst_name) || '/mysql')::VARCHAR datadir, 
       ('/ORA/dbs02/' || upper(inst_name) || '/mysql')::VARCHAR logdir, 
       ('/var/lib/mysql/mysql.sock.' || lower(inst_name) || '.' || port)::VARCHAR socket;
-  ELSIF category = 'PG' THEN
+  ELSIF type = 'PG' THEN
     RETURN QUERY SELECT 
       ('/usr/local/pgsql/pgsql-' || version)::VARCHAR basedir, 
+      ('/usr/local/mysql/mysql-' || version || '/bin')::VARCHAR bindir, 
       ('/ORA/dbs03/' || upper(inst_name) || '/data')::VARCHAR datadir, 
       ('/ORA/dbs02/' || upper(inst_name) || '/pg_xlog')::VARCHAR logdir, 
       ('/var/lib/pgsql/')::VARCHAR socket;
