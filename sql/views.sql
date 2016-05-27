@@ -21,7 +21,7 @@ RETURNS JSON[] AS $$
 DECLARE
   volumes JSON[];
 BEGIN
-  SELECT ARRAY (SELECT row_to_json(t) FROM (SELECT * FROM VOLUME WHERE instance_id = pid) t) INTO volumes;
+  SELECT ARRAY (SELECT row_to_json(t) FROM (SELECT * FROM public.volume WHERE instance_id = pid) t) INTO volumes;
   return volumes;
 END
 $$ LANGUAGE plpgsql;
