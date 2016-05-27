@@ -85,7 +85,8 @@ CREATE FOREIGN TABLE fo_dod_instances (
     slave varchar(32),
     host varchar(128),
     state varchar(32),
-    status varchar(32)
+    status varchar(32),
+    id int,
 )
 SERVER dbodtest
 OPTIONS (
