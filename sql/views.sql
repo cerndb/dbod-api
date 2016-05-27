@@ -26,6 +26,18 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 
+-- Get port function
+CREATE OR REPLACE FUNCTION get_attribute(name VARCHAR, instance_id INTEGER)
+RETURNS VARCHAR AS $$
+DECLARE
+  res VARCHAR;
+BEGIN
+  SELECT value FROM public.attributes A WHERE A.instance_id = instance_id AND A.name = name INTO res;
+  return res;
+END
+$$ LANGUAGE plpgsql;
+
+
 -- Get directories function
 CREATE OR REPLACE FUNCTION get_directories(inst_name VARCHAR, type VARCHAR, version VARCHAR, port VARCHAR)
 RETURNS TABLE (basedir VARCHAR, bindir VARCHAR, datadir VARCHAR, logdir VARCHAR, socket VARCHAR) AS $$
