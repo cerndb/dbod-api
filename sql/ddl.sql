@@ -65,8 +65,8 @@ CREATE TABLE host (
     memory integer NOT NULL
 );
 
-CREATE TABLE attributes (
-    id INTEGER NOT NULL,
+CREATE TABLE attribute (
+    id serial,
     instance_id integer NOT NULL,
     name varchar(32) NOT NULL,
     value varchar(250) NOT NULL
