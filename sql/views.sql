@@ -4,6 +4,16 @@ DROP VIEW api.test_metadata;
 DROP FUNCTION get_hosts(INTEGER[]);
 DROP FUNCTION get_volumes(INTEGER);
 
+-- Job stats view
+CREATE OR REPLACE VIEW job_stats AS 
+SELECT db_name, command_name, COUNT(*) as COUNT, ROUND(AVG(completion_date - creation_date) * 24*60*60) AS mean_duration
+FROM dod_jobs GROUP BY command_name, db_name;
+
+-- Command stats view
+CREATE OR REPLACE VIEW command_stats AS
+SELECT command_name, COUNT(*) AS COUNT, ROUND(AVG(completion_date - creation_date) * 24*60*60) AS mean_duration
+FROM dod_jobs GROUP BY command_name;
+
 -- Get hosts function
 CREATE OR REPLACE FUNCTION get_hosts(host_ids INTEGER[])
 RETURNS VARCHAR[] AS $$
