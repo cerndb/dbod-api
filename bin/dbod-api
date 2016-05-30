@@ -40,7 +40,7 @@ def main():
             (r"/api/v1/entity/alias/([^/]+)", FunctionalAliasHandler),
             (r"/api/v1/host/([^/]+)", HostHandler),
             (r"/api/v1/host/aliases/([^/]+)", HostAliases),
-            (r"/api/v1/metadata/([^/]+)", EntityMetadata),
+            (r"/api/v1/metadata/(?P<class>[^\/]+)/?(?P<name>[^\/]+)?", Metadata),
             (r"/api/v1/rundeck/resources.xml", RundeckResources),
             ], debug=True)
 

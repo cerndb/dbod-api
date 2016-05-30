@@ -251,21 +251,33 @@ class HostAliases(tornado.web.RequestHandler):
         else:
             logging.error("Internal host aliases endpoint not configured")
             
-class EntityMetadata(tornado.web.RequestHandler):
-    def get(self, name):
+class Metadata(tornado.web.RequestHandler):
+    def get(self, **args):
         """Returns entity metadata"""
         import requests
         url = config.get('postgrest', 'entity_metadata_url')
+        name = args.get('name')
+        etype = args.get('class')
         if url:
-            composed_url = url + '?db_name=eq.' + name
+            if etype == u'entity':
+                composed_url = url + '?db_name=eq.' + name
+            else:
+                composed_url = url + '?host=eq.' + name
             logging.debug('Requesting ' + composed_url )
             response = requests.get(composed_url)
             if response.ok:
                 data = json.loads(response.text)
-                d = data.pop()
-                self.write(d)
+                if data != []:
+                    if etype == u'entity':
+                        d = data.pop()
+                        self.write(d)
+                    else:
+                        self.write(json.dumps(data))
+                else: 
+                    logging.error("Entity metadata not found: " + name)
+                    raise tornado.web.HTTPError(NOT_FOUND)
             else: 
                 logging.error("Error fetching entity metadata: " + name)
-                raise tornado.web.HTTPError(NOT_FOUND)
+                raise tornado.web.HTTPError(response.status_code)
         else:
             logging.error("Internal entity metadata endpoint not configured")
