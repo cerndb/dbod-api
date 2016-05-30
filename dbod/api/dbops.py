@@ -15,17 +15,17 @@ This file contains all database related code
 from psycopg2 import connect, DatabaseError, pool, errorcodes
 import sys, traceback, logging
 
-from dbod.config import CONFIG
+from dbod.config import config
 
 try:
     POOL = pool.ThreadedConnectionPool(
             5,  # Min. # of connections
             20, # Max. # of connections
-            database = CONFIG.get('db_name'),
-            user = CONFIG.get('db_user'),
-            host = CONFIG.get('db_host'),
-            port = CONFIG.get('db_port'),
-            password = CONFIG.get('db_pass'))
+            database = config.get('database', 'database'),
+            user = config.get('database', 'user'),
+            host = config.get('database', 'host'),
+            port = config.get('database', 'port'),
+            password = config.get('database', 'password'))
 except DatabaseError as dberr:
     logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode[:2]))
     logging.error("PG Error: %s", errorcodes.lookup(dberr.pgcode))

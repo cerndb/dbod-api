@@ -18,7 +18,7 @@ from tornado.options import parse_command_line, options
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 from dbod.api.handlers import *
-from dbod.config import CONFIG
+from dbod.config import config
 
 import logging
 
@@ -26,7 +26,7 @@ def main():
     """ Main body """
 
     # Set up log file and level.
-    options.log_file_prefix = CONFIG.get('log_file')
+    options.log_file_prefix = config.get('logging','path')
     options.logging = 'debug'
     options.log_to_stderr = False
 
@@ -39,16 +39,18 @@ def main():
             (r"/api/v1/entity/([^/]+)", EntityHandler),
             (r"/api/v1/entity/alias/([^/]+)", FunctionalAliasHandler),
             (r"/api/v1/host/([^/]+)", HostHandler),
+            (r"/api/v1/host/aliases/([^/]+)", HostAliases),
+            (r"/api/v1/rundeck/resources.xml", RundeckResources),
             ], debug=True)
 
     logging.info("Configuring HTTP server")
     http_server = HTTPServer(application,
             ssl_options = {
-                "certfile" : CONFIG.get('hostcert') ,
-                "keyfile" : CONFIG.get('hostkey'),
+                "certfile" : config.get('ssl', 'hostcert') ,
+                "keyfile" : config.get('ssl', 'hostkey'),
                 })
 
-    http_server.listen(CONFIG.get('app_port'))
+    http_server.listen(config.get('server', 'port'))
 
     logging.info("Starting application")
     IOLoop.instance().start()

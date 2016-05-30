@@ -11,24 +11,12 @@
 import ConfigParser
 import sys, traceback
 
-CONFIG = {}
+config = None
 
 try:
     # Load configuration from file
     config = ConfigParser.ConfigParser()
     config.read('/etc/dbod/api.cfg')
-    CONFIG['db_user'] = config.get('database', 'user')
-    CONFIG['db_host'] = config.get('database', 'host')
-    CONFIG['db_name'] = config.get('database', 'database')
-    CONFIG['db_port'] = config.get('database', 'port')
-    CONFIG['db_pass'] = config.get('database', 'password')
-    CONFIG['hostcert'] = config.get('ssl', 'hostcert')
-    CONFIG['hostkey'] = config.get('ssl', 'hostkey')
-    CONFIG['log_file'] = config.get('logging', 'path')
-    CONFIG['app_port'] = config.get('server', 'port')
-    CONFIG['api_user'] = config.get('api', 'user')
-    CONFIG['api_pass'] = config.get('api', 'password')
-
 except IOError as e:
     traceback.print_exc(file=sys.stdout)
     sys.exit(e.code)
