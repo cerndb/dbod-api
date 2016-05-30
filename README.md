@@ -1,5 +1,8 @@
 # DBOD-API
 
+[![Build Status](https://travis-ci.org/cerndb/dbod-api.svg?branch=icot_rundeck)](https://travis-ci.org/cerndb/dbod-api)
+[![Coverage Status](https://coveralls.io/repos/github/cerndb/dbod-api/badge.svg?branch=master)](https://coveralls.io/github/cerndb/dbod-api?branch=master)
+
 ## Introduction
 
 This repository contains a REST API server which exposes a common and uniform
