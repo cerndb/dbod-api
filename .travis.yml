@@ -1,0 +1,16 @@
+language: python
+sudo: required
+dist: trusty
+python:
+    - "2.7"
+addons:
+    postgresql: "9.4"
+services:
+    - postgresql
+before_install:
+    - sudo mkdir /etc/dbod
+    - sudo mkdir /var/log/dbod
+    - sudo chown travis /var/log/dbod
+    - sudo cp static/api.cfg /etc/dbod
+script:
+    - nosetests
