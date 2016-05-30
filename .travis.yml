@@ -12,5 +12,10 @@ before_install:
     - sudo mkdir /var/log/dbod
     - sudo chown travis /var/log/dbod
     - sudo cp static/api.cfg /etc/dbod
+install:
+    - pip install -r requirements.txt
+    - pip install coveralls
 script:
-    - nosetests
+    - nosetests --with-coverage --cover-package=dbod --cover-html
+after_success:
+    coveralls 
