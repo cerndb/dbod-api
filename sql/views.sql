@@ -32,7 +32,7 @@ RETURNS VARCHAR AS $$
 DECLARE
   res VARCHAR;
 BEGIN
-  SELECT value FROM public.attributes A WHERE A.instance_id = instance_id AND A.name = name INTO res;
+  SELECT value FROM public.attribute A WHERE A.instance_id = instance_id AND A.name = name INTO res;
   return res;
 END
 $$ LANGUAGE plpgsql;
