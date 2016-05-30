@@ -3,3 +3,4 @@ nose
 psycopg2
 tornado
 virtualenv
+requests

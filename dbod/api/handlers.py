@@ -13,7 +13,7 @@ REST API Server for the DB On Demand System
 """
 
 from dbod.api.dbops import *
-from dbod.config import CONFIG
+from dbod.config import config
 import tornado.web
 import tornado.log
 import base64
@@ -51,7 +51,7 @@ def http_basic_auth(fun):
             if scheme.lower() == 'basic':
                 # Decode user and password
                 user, _, pwd = base64.decodestring(token).partition(':')
-                if user == CONFIG.get('api_user') and pwd == CONFIG.get('api_pass'):
+                if user == config.get('api','user') and pwd == config.get('api','pass'):
                     return fun(*args, **kwargs)
                 else:
                     # Raise UNAUTHORIZED HTTP Error (401) 
@@ -194,3 +194,60 @@ class FunctionalAliasHandler(tornado.web.RequestHandler):
             logging.error("Functional alias not found for entity: %s", entity)
             raise tornado.web.HTTPError(NOT_FOUND)
 
+
+class RundeckResources(tornado.web.RequestHandler):
+    def get(self):
+        """Returns an valid resources.xml file to import target entities in 
+            Rundeck"""
+
+        import requests
+        url = config.get('postgrest', 'rundeck_resources_url')
+        if url:
+            response = requests.get(url)
+            if response.ok:
+                data = json.loads(response.text)
+                d = {}
+                for entry in data:
+                    d[entry[u'db_name']] = entry
+                # Header
+                self.write('<?xml version="1.0" encoding="UTF-8"?>\n')
+                self.write('<project>\n')
+                for instance in sorted(d.keys()):
+                    body = d[instance]
+                    text = ('<node name="%s" description="" hostname="%s" username="%s" type="%s" subcategory="%s" port="%s" tags="%s"/>\n' % 
+                            ( instance, # Name
+                              body.get(u'hostname'),
+                              body.get(u'username'),
+                              body.get(u'category'), 
+                              body.get(u'db_type'), 
+                              body.get(u'port'), 
+                              body.get(u'tags')
+                              ))
+                    self.write(text)
+                self.write('</project>\n')
+            else: 
+                logging.error("Error fetching Rundeck resources.xml")
+                raise tornado.web.HTTPError(NOT_FOUND)
+        else:
+            logging.error("Internal Rundeck resources endpoint not configured")
+            
+
+class HostAliases(tornado.web.RequestHandler):
+    def get(self, host):
+        """list of ip-aliases registered in a host"""
+        import requests
+        url = config.get('postgrest', 'host_aliases_url')
+        if url:
+            composed_url = url + '?host=eq.' + host
+            logging.debug('Requesting ' + composed_url )
+            response = requests.get(url + '?host=eq.' + host)
+            if response.ok:
+                data = json.loads(response.text)
+                d = data.pop()
+                self.write(d.get('aliases'))
+            else: 
+                logging.error("Error fetching aliases in host: " + host)
+                raise tornado.web.HTTPError(NOT_FOUND)
+        else:
+            logging.error("Internal host aliases endpoint not configured")
+            
