@@ -62,6 +62,6 @@ $$ LANGUAGE plpgsql;
 
 
 -- TEST_METADATA View
-CREATE OR REPLACE VIEW api.test_metadata AS
-SELECT id, username, db_name, category, db_type, version, host, get_volumes volumes, d.*
-FROM fo_instance, get_volumes(id), get_directories(db_name, db_type, version, '5500') d;
+CREATE OR REPLACE VIEW api.metadata AS
+SELECT id, username, db_name, category, db_type, version, host, get_attribute('port', id) port, get_volumes volumes, d.*
+FROM fo_dod_instances, get_volumes(id), get_directories(db_name, db_type, version, get_attribute('port', id)) d;
