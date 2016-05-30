@@ -240,7 +240,7 @@ class HostAliases(tornado.web.RequestHandler):
         if url:
             composed_url = url + '?host=eq.' + host
             logging.debug('Requesting ' + composed_url )
-            response = requests.get(url + '?host=eq.' + host)
+            response = requests.get(composed_url)
             if response.ok:
                 data = json.loads(response.text)
                 d = data.pop()
