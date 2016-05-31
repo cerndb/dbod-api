@@ -209,7 +209,8 @@ class RundeckResources(tornado.web.RequestHandler):
                 d = {}
                 for entry in data:
                     d[entry[u'db_name']] = entry
-                # Header
+                self.set_header('Content-Type', 'text/xml')
+                # Page Header
                 self.write('<?xml version="1.0" encoding="UTF-8"?>\n')
                 self.write('<project>\n')
                 for instance in sorted(d.keys()):
