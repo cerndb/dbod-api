@@ -75,3 +75,15 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE VIEW api.metadata AS
 SELECT id, username, db_name, category, db_type, version, host, get_attribute('port', id) port, get_volumes volumes, d.*
 FROM fo_dod_instances, get_volumes(id), get_directories(db_name, db_type, version, get_attribute('port', id)) d;
+
+-- Rundeck instances View
+CREATE OR REPLACE VIEW api.rundeck_instances AS
+SELECT public.dod_instances.db_name, 
+       public.functional_aliases.alias hostname,
+       public.get_attribute('port', public.dod_instances.id) port,
+       'dbod' username,
+       public.dod_instances.db_type db_type,
+       public.dod_instances.category category,
+       db_type || ',' || category tags
+FROM public.dod_instances JOIN public.functional_aliases ON
+public.dod_instances.db_name = public.functional_aliases.db_name;
