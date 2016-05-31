@@ -87,3 +87,9 @@ SELECT public.dod_instances.db_name,
        db_type || ',' || category tags
 FROM public.dod_instances JOIN public.functional_aliases ON
 public.dod_instances.db_name = public.functional_aliases.db_name;
+
+-- Host aliases View
+CREATE OR REPLACE VIEW api.host_aliases AS
+SELECT host, string_agg('dbod-' || db_name || 'domain', E',') aliases 
+FROM dod_instances 
+GROUP BY host;
