@@ -12,9 +12,15 @@ before_install:
     - sudo mkdir /var/log/dbod
     - sudo chown travis /var/log/dbod
     - sudo cp static/api.cfg /etc/dbod
+    - wget https://github.com/begriffs/postgrest/releases/download/v0.3.1.1/postgrest-0.3.1.1-ubuntu.tar.xz
+    - tar xf postgrest-0.3.1.1-ubuntu.tar.xz
 install:
     - pip install -r requirements.txt
     - pip install coveralls
+before_script:
+    - psql -c 'CREATE DATABASE dbod;' -U postgres
+    - psql -f dbod/tests/db_test.sql -U postgres
+    - postgrest postgres://postgres@localhost/dbod -a postgres
 script:
     - nosetests --with-coverage --cover-package=dbod --cover-html
 after_success:
