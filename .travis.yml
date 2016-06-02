@@ -20,7 +20,7 @@ install:
 before_script:
     - psql -c 'CREATE DATABASE dbod;' -U postgres
     - psql -f dbod/tests/db_test.sql -U postgres
-    - postgrest postgres://postgres@localhost/dbod -a postgres
+    - ./postgrest postgres://postgres@localhost/dbod -a postgres &
 script:
     - nosetests --with-coverage --cover-package=dbod --cover-html
 after_success:
