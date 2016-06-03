@@ -13,12 +13,17 @@ from types import *
 import json
 import logging
 import sys
+import requests
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
-from dbod.api.dbops import *
+#from dbod.api.dbops import *
 
 def empty():
     assert(True)
+    
+def test_connection():
+    response = requests.get("http://localhost:3000")
+    assert(response.status_code == 200)
 
 if __name__ == "__main__":
     pass
