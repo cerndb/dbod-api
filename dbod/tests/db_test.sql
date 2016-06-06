@@ -10,7 +10,7 @@
 ------------------------------------------------
 
 -- DOD_COMMAND_DEFINITION
-CREATE TABLE dod_command_definition (
+CREATE TABLE public.dod_command_definition (
     command_name varchar(64) NOT NULL,
     type varchar(64) NOT NULL,
     exec varchar(2048),
@@ -19,7 +19,7 @@ CREATE TABLE dod_command_definition (
 );
 
 -- DOD_COMMAND_PARAMS
-CREATE TABLE dod_command_params (
+CREATE TABLE public.dod_command_params (
     username varchar(32) NOT NULL,
     db_name varchar(128) NOT NULL,
     command_name varchar(64) NOT NULL,
@@ -32,7 +32,7 @@ CREATE TABLE dod_command_params (
 );
 
 -- DOD_INSTANCE_CHANGES
-CREATE TABLE dod_instance_changes (
+CREATE TABLE public.dod_instance_changes (
     username varchar(32) NOT NULL,
     db_name varchar(128) NOT NULL,
     attribute varchar(32) NOT NULL,
@@ -44,7 +44,7 @@ CREATE TABLE dod_instance_changes (
 );
 
 -- DOD_INSTANCES
-CREATE TABLE dod_instances (
+CREATE TABLE public.dod_instances (
     username varchar(32) NOT NULL,
     db_name varchar(128) NOT NULL,
     e_group varchar(256),
@@ -67,7 +67,7 @@ CREATE TABLE dod_instances (
 );
 
 -- DOD_JOBS
-CREATE TABLE dod_jobs (
+CREATE TABLE public.dod_jobs (
     username varchar(32) NOT NULL,
     db_name varchar(128) NOT NULL,
     command_name varchar(64) NOT NULL,
@@ -85,7 +85,7 @@ CREATE TABLE dod_jobs (
 );
 
 -- DOD_UPGRADES
-CREATE TABLE dod_upgrades (
+CREATE TABLE public.dod_upgrades (
     db_type varchar(32) NOT NULL,
     category varchar(32) NOT NULL,
     version_from varchar(128) NOT NULL,
@@ -94,7 +94,7 @@ CREATE TABLE dod_upgrades (
 );
 
 -- VOLUME
-CREATE TABLE volume (
+CREATE TABLE public.volume (
     id serial,
     instance_id integer NOT NULL,
     file_mode char(4) NOT NULL,
@@ -106,22 +106,31 @@ CREATE TABLE volume (
 );
 
 -- HOST
-CREATE TABLE host (
+CREATE TABLE public.host (
     id serial,
     name varchar(63) NOT NULL,
     memory integer NOT NULL
 );
 
 -- ATTRIBUTE
-CREATE TABLE attribute (
+CREATE TABLE public.attribute (
     id serial,
     instance_id integer NOT NULL,
     name varchar(32) NOT NULL,
     value varchar(250) NOT NULL
 );
 
+-- FUNCTIONAL ALIASES
+CREATE TABLE public.functional_aliases
+(
+    dns_name character varying(256) NOT NULL,
+    db_name character varying(8),
+    alias character varying(256),
+    CONSTRAINT functional_aliases_pkey PRIMARY KEY (dns_name)
+);
+
 -- Insert test data for instances
-INSERT INTO dod_instances (username, db_name, e_group, category, creation_date, expiry_date, db_type, db_size, no_connections, project, description, version, master, slave, host, state, status, id)
+INSERT INTO public.dod_instances (username, db_name, e_group, category, creation_date, expiry_date, db_type, db_size, no_connections, project, description, version, master, slave, host, state, status, id)
 VALUES ('user01', 'dbod01', 'testgroupA', 'TEST', now(), NULL, 'MYSQL', 100, 100, 'API', 'Test instance 1', '5.6.17', NULL, NULL, 'host01', 'RUNNING', 1, 1),
        ('user01', 'dbod02', 'testgroupB', 'PROD', now(), NULL, 'PG', 50, 500, 'API', 'Test instance 2', '9.4.4', NULL, NULL, 'host03', 'RUNNING', 1, 2),
        ('user02', 'dbod03', 'testgroupB', 'TEST', now(), NULL, 'MYSQL', 100, 200, 'WEB', 'Expired instance 1', '5.5', NULL, NULL, 'host01', 'RUNNING', 0, 3),
@@ -129,14 +138,14 @@ VALUES ('user01', 'dbod01', 'testgroupA', 'TEST', now(), NULL, 'MYSQL', 100, 100
        ('user04', 'dbod05', 'testgroupC', 'TEST', now(), NULL, 'MYSQL', 300, 200, 'WEB', 'Test instance 4', '5.6.17', NULL, NULL, 'host01', 'RUNNING', 1, 5);
        
 -- Insert test data for volumes
-INSERT INTO volume (instance_id, file_mode, owner, vgroup, server, mount_options, mounting_path)
+INSERT INTO public.volume (instance_id, file_mode, owner, vgroup, server, mount_options, mounting_path)
 VALUES (1, '0755', 'TSM', 'ownergroup', 'NAS-server', 'rw,bg,hard', '/MNT/data1'),
        (2, '0755', 'TSM', 'ownergroup', 'NAS-server', 'rw,bg,hard', '/MNT/data2'),
        (4, '0755', 'TSM', 'ownergroup', 'NAS-server', 'rw,bg,hard,tcp', '/MNT/data4'),
        (5, '0755', 'TSM', 'ownergroup', 'NAS-server', 'rw,bg,hard', '/MNT/data5');
 
 -- Insert test data for attributes
-INSERT INTO attribute (instance_id, name, value)
+INSERT INTO public.attribute (instance_id, name, value)
 VALUES (1, 'port', '5501'),
        (2, 'port', '6603'),
        (3, 'port', '5510'),
@@ -144,8 +153,86 @@ VALUES (1, 'port', '5501'),
        (5, 'port', '5500');
         
 -- Insert test data for hosts
-INSERT INTO host (name, memory)
+INSERT INTO public.host (name, memory)
 VALUES ('host01', 12),
        ('host02', 24),
        ('host03', 64),
        ('host04', 256);
+       
+-- Job stats view
+CREATE OR REPLACE VIEW api.job_stats AS 
+SELECT db_name, command_name, COUNT(*) as COUNT, ROUND(AVG(completion_date - creation_date) * 24*60*60) AS mean_duration
+FROM dod_jobs GROUP BY command_name, db_name;
+
+-- Command stats view
+CREATE OR REPLACE VIEW api.command_stats AS
+SELECT command_name, COUNT(*) AS COUNT, ROUND(AVG(completion_date - creation_date) * 24*60*60) AS mean_duration
+FROM dod_jobs GROUP BY command_name;
+       
+-- Get hosts function
+CREATE OR REPLACE FUNCTION get_hosts(host_ids INTEGER[])
+RETURNS VARCHAR[] AS $$
+DECLARE
+  hosts VARCHAR := '';
+BEGIN
+  SELECT ARRAY (SELECT name FROM host WHERE id = ANY(host_ids)) INTO hosts;
+  RETURN hosts;
+END
+$$ LANGUAGE plpgsql;
+
+-- Get volumes function
+CREATE OR REPLACE FUNCTION get_volumes(pid INTEGER)
+RETURNS JSON[] AS $$
+DECLARE
+  volumes JSON[];
+BEGIN
+  SELECT ARRAY (SELECT row_to_json(t) FROM (SELECT * FROM public.volume WHERE instance_id = pid) t) INTO volumes;
+  return volumes;
+END
+$$ LANGUAGE plpgsql;
+
+-- Get port function
+CREATE OR REPLACE FUNCTION get_attribute(name VARCHAR, instance_id INTEGER)
+RETURNS VARCHAR AS $$
+DECLARE
+  res VARCHAR;
+BEGIN
+  SELECT value FROM public.attribute A WHERE A.instance_id = instance_id AND A.name = name INTO res;
+  return res;
+END
+$$ LANGUAGE plpgsql;
+
+
+-- Get directories function
+CREATE OR REPLACE FUNCTION get_directories(inst_name VARCHAR, type VARCHAR, version VARCHAR, port VARCHAR)
+RETURNS TABLE (basedir VARCHAR, bindir VARCHAR, datadir VARCHAR, logdir VARCHAR, socket VARCHAR) AS $$
+BEGIN
+  IF type = 'MYSQL' THEN
+    RETURN QUERY SELECT 
+      ('/usr/local/mysql/mysql-' || version)::VARCHAR basedir, 
+      ('/usr/local/mysql/mysql-' || version || '/bin')::VARCHAR bindir, 
+      ('/ORA/dbs03/' || upper(inst_name) || '/mysql')::VARCHAR datadir, 
+      ('/ORA/dbs02/' || upper(inst_name) || '/mysql')::VARCHAR logdir, 
+      ('/var/lib/mysql/mysql.sock.' || lower(inst_name) || '.' || port)::VARCHAR socket;
+  ELSIF type = 'PG' THEN
+    RETURN QUERY SELECT 
+      ('/usr/local/pgsql/pgsql-' || version)::VARCHAR basedir, 
+      ('/usr/local/mysql/mysql-' || version || '/bin')::VARCHAR bindir, 
+      ('/ORA/dbs03/' || upper(inst_name) || '/data')::VARCHAR datadir, 
+      ('/ORA/dbs02/' || upper(inst_name) || '/pg_xlog')::VARCHAR logdir, 
+      ('/var/lib/pgsql/')::VARCHAR socket;
+  END IF;
+END
+$$ LANGUAGE plpgsql;
+       
+CREATE VIEW api.instance AS
+SELECT * FROM public.dod_instances;
+
+CREATE VIEW api.volume AS
+SELECT * FROM public.volume;
+
+CREATE VIEW api.attribute AS
+SELECT * FROM public.attribute;
+
+CREATE VIEW api.host AS
+SELECT * FROM public.host;
