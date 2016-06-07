@@ -8,7 +8,7 @@
 # granted to it by virtue of its status as Intergovernmental Organization
 # or submit itself to any jurisdiction.
 
-import nose
+import unittest
 from types import *
 import json
 import logging
@@ -16,14 +16,34 @@ import sys
 import requests
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
-#from dbod.api.dbops import *
+class Test(unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        pass
 
-def empty():
-    assert(True)
-    
-def test_connection():
-    response = requests.get("http://localhost:3000")
-    assert(response.status_code == 200)
+    @classmethod
+    def tearDownClass(self):
+        pass
+        
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+        
+    def test_connection(self):
+        response = requests.get("http://localhost:3000")
+        self.assertEquals(response.status_code, 200)
+        
+    def test_metadata(self):
+        response = requests.get("http://localhost:3000/metadata")
+        self.assertEquals(response.status_code, 200)
+        
+    def test_metadata_has_5_instances(self):
+        response = requests.get("http://localhost:3000/metadata")
+        data = response.json()
+        self.assertEquals(len(data), 5)
+        
 
 if __name__ == "__main__":
-    pass
+    unittest.main()
