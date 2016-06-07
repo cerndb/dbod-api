@@ -159,6 +159,9 @@ VALUES ('host01', 12),
        ('host03', 64),
        ('host04', 256);
        
+-- Schema API
+CREATE SCHEMA api;
+       
 -- Job stats view
 CREATE OR REPLACE VIEW api.job_stats AS 
 SELECT db_name, command_name, COUNT(*) as COUNT, ROUND(AVG(completion_date - creation_date) * 24*60*60) AS mean_duration
@@ -192,12 +195,12 @@ END
 $$ LANGUAGE plpgsql;
 
 -- Get port function
-CREATE OR REPLACE FUNCTION get_attribute(name VARCHAR, instance_id INTEGER)
+CREATE OR REPLACE FUNCTION get_attribute(attr_name VARCHAR, inst_id INTEGER)
 RETURNS VARCHAR AS $$
 DECLARE
   res VARCHAR;
 BEGIN
-  SELECT value FROM public.attribute A WHERE A.instance_id = instance_id AND A.name = name INTO res;
+  SELECT value FROM public.attribute A WHERE A.instance_id = inst_id AND A.name = attr_name INTO res;
   return res;
 END
 $$ LANGUAGE plpgsql;
@@ -236,3 +239,26 @@ SELECT * FROM public.attribute;
 
 CREATE VIEW api.host AS
 SELECT * FROM public.host;
+
+-- Metadata View
+CREATE OR REPLACE VIEW api.metadata AS
+SELECT id, username, db_name, category, db_type, version, host, get_attribute('port', id) port, get_volumes volumes, d.*
+FROM dod_instances, get_volumes(id), get_directories(db_name, db_type, version, get_attribute('port', id)) d;
+
+-- Rundeck instances View
+CREATE OR REPLACE VIEW api.rundeck_instances AS
+SELECT public.dod_instances.db_name, 
+       public.functional_aliases.alias hostname,
+       public.get_attribute('port', public.dod_instances.id) port,
+       'dbod' username,
+       public.dod_instances.db_type db_type,
+       public.dod_instances.category category,
+       db_type || ',' || category tags
+FROM public.dod_instances JOIN public.functional_aliases ON
+public.dod_instances.db_name = public.functional_aliases.db_name;
+
+-- Host aliases View
+CREATE OR REPLACE VIEW api.host_aliases AS
+SELECT host, string_agg('dbod-' || db_name || 'domain', E',') aliases 
+FROM dod_instances 
+GROUP BY host;
