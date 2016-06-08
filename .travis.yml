@@ -22,6 +22,6 @@ before_script:
     - psql -f dbod/tests/db_test.sql -U postgres
     - ./postgrest postgres://postgres@localhost/dbod -a postgres -s api &
 script:
-    - nosetests --with-coverage --cover-package=dbod --cover-html
+    - nosetests --with-coverage --cover-package=dbod --cover-html -s
 after_success:
     coveralls 

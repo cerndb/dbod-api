@@ -33,14 +33,17 @@ class Test(unittest.TestCase):
         
     def test_connection(self):
         response = requests.get("http://localhost:3000")
+        print response.json()
         self.assertEquals(response.status_code, 200)
         
     def test_metadata(self):
         response = requests.get("http://localhost:3000/metadata")
+        print response.json()
         self.assertEquals(response.status_code, 200)
         
     def test_metadata_has_5_instances(self):
         response = requests.get("http://localhost:3000/metadata")
+        print response.json()
         data = response.json()
         self.assertEquals(len(data), 5)
         
