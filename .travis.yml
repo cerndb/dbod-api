@@ -19,9 +19,11 @@ install:
     - pip install coveralls
 before_script:
     - psql -c 'CREATE DATABASE dbod;' -U postgres
-    - psql -f dbod/tests/db_test.sql -U postgres
+    - psql -d dbod -f dbod/tests/db_test.sql -U postgres
     - ./postgrest postgres://postgres@localhost/dbod -a postgres -s api &
+    - sleep 5
 script:
+    - curl -g http://localhost:3000
     - nosetests --with-coverage --cover-package=dbod --cover-html -s
 after_success:
     coveralls 
