@@ -20,6 +20,7 @@ import base64
 import functools
 import logging
 import json
+import requests
 
 
 # HTTP API status codes
@@ -81,126 +82,10 @@ class DocHandler(tornado.web.RequestHandler):
             <p>http://hostname:port/api/v1/host/HOSTNAME</p>"""
         self.write(response)
 
-class EntityHandler(tornado.web.RequestHandler):
-
-    def get(self, entity):
-        """Returns metadata for a certain entity"""
-        response = get_metadata(entity)
-        if response:
-            logging.debug(response)
-            self.write(response)
-        else:
-            logging.warning("Entity not found: %s", entity)
-            raise tornado.web.HTTPError(NOT_FOUND)
-
-    @http_basic_auth
-    def post(self, entity):
-        """Returns metadata for a certain entity"""
-        try:
-            metadata = self.get_argument('metadata')
-            response = insert_metadata(entity, metadata)
-            if response:
-                logging.debug("Metadata successfully created for %s: %s",
-                        entity, metadata)
-                self.set_status(CREATED)
-                self.finish()
-        except tornado.web.MissingArgumentError as err:
-            logging.error("Missing 'metadata' argument in request!")
-            raise tornado.web.MissingArgumentError()
-    
-    @http_basic_auth
-    def put(self, entity):
-        """Returns metadata for a certain entity"""
-        try:
-            metadata = self.get_argument('metadata')
-            response = update_metadata(entity, metadata)
-            if response:
-                logging.debug("Metadata successfully updated for %s: %s",
-                        entity, metadata)
-                self.set_status(CREATED)
-                self.finish()
-        except tornado.web.MissingArgumentError as err:
-            logging.error("Missing 'metadata' argument in request!")
-            raise tornado.web.MissingArgumentError()
-
-    @http_basic_auth
-    def delete(self, entity):
-        """Returns metadata for a certain entity"""
-        response = delete_metadata(entity)
-        if response:
-            self.set_status(NO_CONTENT)
-            self.finish()
-        else:
-            logging.warning("Entity not found: %s", entity)
-            raise tornado.web.HTTPError(NOT_FOUND)
-
-class HostHandler(tornado.web.RequestHandler):
-    def get(self, host):
-        """Returns an object containing the metadata for all the entities
-            on a certain host"""
-        response = host_metadata(host)
-        if response:
-            logging.debug(response)
-            self.write(json.dumps(response))
-        else:
-            logging.warning("Metadata not found for host:  %s", host)
-            raise tornado.web.HTTPError(NOT_FOUND)
-
-class FunctionalAliasHandler(tornado.web.RequestHandler):
-    def get(self, entity):
-        """Returns the functional alias association for an entity"""
-        response = get_functional_alias(entity)
-        if response:
-            logging.debug(response)
-            self.write(json.dumps(response))
-        else:
-            logging.error("Functional alias not found for entity: %s", entity)
-            raise tornado.web.HTTPError(NOT_FOUND)
-
-    @http_basic_auth 
-    def post(self, entity):
-        """Creates a functional alias association for an entity"""
-        dnsname = next_dnsname()
-        if dnsname:
-            try:
-                alias = self.get_argument('alias')
-                response = update_functional_alias(dnsname[0], entity, alias)
-                if response:
-                    logging.debug("Functional alias (%s) successfully added for %s",
-                            alias, entity)
-                    self.set_status(CREATED)
-                    self.write(json.dumps(dnsname))
-            except tornado.web.MissingArgumentError as err:
-                logging.error("Missing 'alias' argument in request!")
-                raise tornado.web.MissingArgumentError()
-        else:
-            logging.error("No available dnsnames found!")
-            raise tornado.web.HTTPError(NOT_FOUND)
-
-    @http_basic_auth 
-    def delete(self, entity):
-        """Removes the functional alias association for an entity.
-            If the functional alias doesn't exist it doesn't do anything"""
-        dnsname_full = get_functional_alias(entity)
-        if dnsname_full:
-            dnsname = dnsname_full[0]
-            response = update_functional_alias(dnsname, None, None)
-            if response:
-                logging.debug("Functional alias successfully removed for %s",
-                        entity)
-                self.set_status(NO_CONTENT)
-                self.finish()
-        else:
-            logging.error("Functional alias not found for entity: %s", entity)
-            raise tornado.web.HTTPError(NOT_FOUND)
-
-
 class RundeckResources(tornado.web.RequestHandler):
     def get(self):
         """Returns an valid resources.xml file to import target entities in 
             Rundeck"""
-
-        import requests
         url = config.get('postgrest', 'rundeck_resources_url')
         if url:
             response = requests.get(url)
@@ -236,7 +121,6 @@ class RundeckResources(tornado.web.RequestHandler):
 class HostAliases(tornado.web.RequestHandler):
     def get(self, host):
         """list of ip-aliases registered in a host"""
-        import requests
         url = config.get('postgrest', 'host_aliases_url')
         if url:
             composed_url = url + '?host=eq.' + host
@@ -255,7 +139,6 @@ class HostAliases(tornado.web.RequestHandler):
 class Metadata(tornado.web.RequestHandler):
     def get(self, **args):
         """Returns entity metadata"""
-        import requests
         url = config.get('postgrest', 'entity_metadata_url')
         name = args.get('name')
         etype = args.get('class')
