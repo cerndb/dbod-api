@@ -14,10 +14,13 @@ DB On Demand metadata REST API server
 
 import ConfigParser
 import sys, traceback
+
 from tornado.options import parse_command_line, options
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
-from dbod.api.handlers import *
+
+from dbod.api.base import DocHandler
+from dbod.api.rundeck import *
 from dbod.config import config
 
 import logging
