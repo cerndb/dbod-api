@@ -26,9 +26,9 @@ def main():
     """ Main body """
 
     # Set up log file and level.
-    options.log_file_prefix = config.get('logging','path')
-    options.logging = 'debug'
-    options.log_to_stderr = False
+    options.log_file_prefix = config.get('logging', 'path')
+    options.logging = config.get('logging', 'level')
+    options.log_to_stderr = config.getboolean('logging', 'stderr')
 
     # Parse server command line and set up logging defaults, if necessary
     parse_command_line()
@@ -42,14 +42,18 @@ def main():
             (r"/api/v1/host/aliases/([^/]+)", HostAliases),
             (r"/api/v1/metadata/(?P<class>[^\/]+)/?(?P<name>[^\/]+)?", Metadata),
             (r"/api/v1/rundeck/resources.xml", RundeckResources),
-            ], debug=True)
+            ], debug=config.getboolean('tornado', 'debug'))
 
     logging.info("Configuring HTTP server")
-    http_server = HTTPServer(application,
-            ssl_options = {
-                "certfile" : config.get('ssl', 'hostcert') ,
-                "keyfile" : config.get('ssl', 'hostkey'),
-                })
+    if (config.has_section('ssl')):
+        http_server = HTTPServer(application,
+                ssl_options = {
+                    "certfile" : config.get('ssl', 'hostcert') ,
+                    "keyfile" : config.get('ssl', 'hostkey'),
+                    })
+    else:
+        http_server = HTTPServer(application)
+        logging.info("Host certificate undefined, SSL is DISABLED")
 
     http_server.listen(config.get('server', 'port'))
 
