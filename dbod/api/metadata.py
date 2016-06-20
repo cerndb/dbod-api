@@ -21,6 +21,7 @@ from dbod.config import config
 
 class Metadata(tornado.web.RequestHandler):
     def get(self, **args):
+        self.set_header("Content-Type", 'application/json')
         """Returns entity metadata"""
         url = config.get('postgrest', 'entity_metadata_url')
         name = args.get('name')
