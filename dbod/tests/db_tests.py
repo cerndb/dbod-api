@@ -16,7 +16,9 @@ import sys
 import requests
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
-class Test(unittest.TestCase):
+from dbod.api.dbops import *
+
+class TestMetadata(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         pass
@@ -33,19 +35,38 @@ class Test(unittest.TestCase):
         
     def test_connection(self):
         response = requests.get("http://localhost:3000")
-        print response.json()
         self.assertEquals(response.status_code, 200)
         
     def test_metadata(self):
         response = requests.get("http://localhost:3000/metadata")
-        print response.json()
         self.assertEquals(response.status_code, 200)
         
     def test_metadata_has_5_instances(self):
         response = requests.get("http://localhost:3000/metadata")
-        print response.json()
         data = response.json()
         self.assertEquals(len(data), 5)
+        
+    # def test_metadata_get_entity_dbod01(self):
+        # response = requests.get("http://localhost:3000/metadata")
+        
+class TestAPI(unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        pass
+
+    @classmethod
+    def tearDownClass(self):
+        pass
+        
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+        
+    def test_connection(self):
+        response = requests.get("https://localhost:5432/", verify=False)
+        self.assertEquals(response.status_code, 200)
         
 
 if __name__ == "__main__":
