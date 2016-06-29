@@ -17,10 +17,12 @@ before_install:
 install:
     - pip install -r requirements.txt
     - pip install coveralls
+    - python setup.py install
 before_script:
     - psql -c 'CREATE DATABASE dbod;' -U postgres
     - psql -d dbod -f dbod/tests/db_test.sql -U postgres
     - ./postgrest postgres://postgres@localhost/dbod -a postgres -s api &
+    - bin/dbod-api
     - sleep 5
 script:
     - curl -g http://localhost:3000
