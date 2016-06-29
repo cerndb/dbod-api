@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 # Copyright (C) 2015, CERN
 # This software is distributed under the terms of the GNU General Public
@@ -16,9 +14,7 @@ import sys
 import requests
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
-from dbod.api.dbops import *
-
-class TestMetadata(unittest.TestCase):
+class Metadata(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         pass
@@ -46,28 +42,3 @@ class TestMetadata(unittest.TestCase):
         data = response.json()
         self.assertEquals(len(data), 5)
         
-    # def test_metadata_get_entity_dbod01(self):
-        # response = requests.get("http://localhost:3000/metadata")
-        
-class TestAPI(unittest.TestCase):
-    @classmethod
-    def setUpClass(self):
-        pass
-
-    @classmethod
-    def tearDownClass(self):
-        pass
-        
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
-        
-    def test_connection(self):
-        response = requests.get("https://localhost:5432/", verify=False)
-        self.assertEquals(response.status_code, 200)
-        
-
-if __name__ == "__main__":
-    unittest.main()
