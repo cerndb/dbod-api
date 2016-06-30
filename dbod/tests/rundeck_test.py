@@ -30,6 +30,6 @@ class Rundeck(unittest.TestCase):
         pass
         
     def test_connection(self):
-        response = requests.get("https://localhost:5432/", verify=False)
+        response = requests.get("https://localhost:5443/", verify=False)
         self.assertEquals(response.status_code, 200)
         

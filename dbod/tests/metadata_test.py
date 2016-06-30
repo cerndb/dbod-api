@@ -30,15 +30,15 @@ class Metadata(unittest.TestCase):
         pass
         
     def test_connection(self):
-        response = requests.get("http://localhost:3000")
+        response = requests.get("http://localhost:3000", verify=False)
         self.assertEquals(response.status_code, 200)
         
     def test_metadata(self):
-        response = requests.get("http://localhost:3000/metadata")
+        response = requests.get("http://localhost:3000/metadata", verify=False)
         self.assertEquals(response.status_code, 200)
         
     def test_metadata_has_5_instances(self):
-        response = requests.get("http://localhost:3000/metadata")
+        response = requests.get("http://localhost:3000/metadata", verify=False)
         data = response.json()
         self.assertEquals(len(data), 5)
         
