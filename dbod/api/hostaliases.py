@@ -28,9 +28,8 @@ class HostAliases(tornado.web.RequestHandler):
             logging.debug('Requesting ' + composed_url )
             response = requests.get(composed_url)
             if response.ok:
-                data = json.loads(response.text)
-                d = data.pop()
-                self.write(d.get('aliases'))
+                data = response.json()
+                self.write({'response' : data})
             else: 
                 logging.error("Error fetching aliases in host: " + host)
                 raise tornado.web.HTTPError(NOT_FOUND)
