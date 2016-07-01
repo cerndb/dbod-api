@@ -14,9 +14,9 @@ REST API Server for the DB On Demand System
 
 import tornado.web
 import logging
-import json
 import requests
 
+from dbod.api.base import *
 from dbod.config import config
 
 class Metadata(tornado.web.RequestHandler):
@@ -26,21 +26,20 @@ class Metadata(tornado.web.RequestHandler):
         url = config.get('postgrest', 'entity_metadata_url')
         name = args.get('name')
         etype = args.get('class')
-        if url:
+        if url and name:
             if etype == u'entity':
                 composed_url = url + '?db_name=eq.' + name
-            else:
+            elif etype == u'host':
                 composed_url = url + '?host=eq.' + name
-            logging.debug('Requesting ' + composed_url )
-            response = requests.get(composed_url)
+            else:
+                logging.error("Unsupported endpoint")
+                raise tornado.web.HTTPError(NOT_FOUND)
+            logging.debug('Requesting ' + composed_url)
+            response = requests.get(composed_url, verify=False)
             if response.ok:
-                data = json.loads(response.text)
-                if data != []:
-                    if etype == u'entity':
-                        d = data.pop()
-                        self.write(d)
-                    else:
-                        self.write(json.dumps(data))
+                data = response.json()
+                if data:
+                    self.write({'response' : data})
                 else: 
                     logging.error("Entity metadata not found: " + name)
                     raise tornado.web.HTTPError(NOT_FOUND)
@@ -49,3 +48,4 @@ class Metadata(tornado.web.RequestHandler):
                 raise tornado.web.HTTPError(response.status_code)
         else:
             logging.error("Internal entity metadata endpoint not configured")
+            raise tornado.web.HTTPError(NOT_FOUND)
