@@ -29,7 +29,4 @@ class Rundeck(unittest.TestCase):
     def tearDown(self):
         pass
         
-    def test_connection(self):
-        response = requests.get("https://localhost:5443/", verify=False)
-        self.assertEquals(response.status_code, 200)
         
