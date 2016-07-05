@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 # Copyright (C) 2015, CERN
 # This software is distributed under the terms of the GNU General Public
@@ -6,31 +8,24 @@
 # granted to it by virtue of its status as Intergovernmental Organization
 # or submit itself to any jurisdiction.
 
-import unittest
-import requests
+import tornado.web
+import json
 
+from tornado.testing import AsyncHTTPTestCase
+from tornado.testing import get_unused_port
 from timeout_decorator import timeout
 
-class Metadata(unittest.TestCase):
-    @classmethod
-    def setUpClass(self):
-        pass
-    
-    @classmethod
-    def tearDownClass(self):
-        pass
-    
-    def setUp(self):
-        pass
-    
-    def tearDown(self):
-        pass
-    
+from dbod.api.api import *
+
+class MetadataTest(AsyncHTTPTestCase):
+    def get_app(self):
+        return tornado.web.Application(handlers)
+
     @timeout(5)
     def test_single_instance_by_name(self):
-        response = requests.get("http://localhost:5443/api/v1/metadata/entity/dbod01", verify=False)
-        data = response.json()["response"]
-        self.assertEquals(response.status_code, 200)
+        response = self.fetch("/api/v1/metadata/entity/dbod01")
+        data = json.loads(response.body)["response"]
+        self.assertEquals(response.code, 200)
         self.assertEquals(len(data), 1)
         self.assertEquals(data[0]["db_name"], "dbod01")
         self.assertTrue(data[0]["volumes"] != None)
@@ -38,23 +33,23 @@ class Metadata(unittest.TestCase):
     
     @timeout(5)
     def test_no_instance_by_name(self):
-        response = requests.get("http://localhost:5443/api/v1/metadata/entity/invalid", verify=False)
-        self.assertEquals(response.status_code, 404)
+        response = self.fetch("/api/v1/metadata/entity/invalid")
+        self.assertEquals(response.code, 404)
     
     @timeout(5)
     def test_single_instance_by_host(self):
-        response = requests.get("http://localhost:5443/api/v1/metadata/host/host03", verify=False)
-        data = response.json()["response"]
-        self.assertEquals(response.status_code, 200)
+        response = self.fetch("/api/v1/metadata/host/host03")
+        data = json.loads(response.body)["response"]
+        self.assertEquals(response.code, 200)
         self.assertEquals(len(data), 1)
         self.assertTrue(data[0]["volumes"] != None)
         self.assertEquals(data[0]["host"], "host03")
     
     @timeout(5)
     def test_multiple_instances_by_host(self):
-        response = requests.get("http://localhost:5443/api/v1/metadata/host/host01", verify=False)
-        data = response.json()["response"]
-        self.assertEquals(response.status_code, 200)
+        response = self.fetch("/api/v1/metadata/host/host01")
+        data = json.loads(response.body)["response"]
+        self.assertEquals(response.code, 200)
         self.assertEquals(len(data), 4)
         list = []
         for i in range(4):
@@ -66,8 +61,6 @@ class Metadata(unittest.TestCase):
     
     @timeout(5)
     def test_no_instance_by_host(self):
-        response = requests.get("http://localhost:5443/api/v1/metadata/host/invalid", verify=False)
-        self.assertEquals(response.status_code, 404)
+        response = self.fetch("/api/v1/metadata/host/invalid")
+        self.assertEquals(response.code, 404)
     
-        
-        
