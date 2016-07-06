@@ -63,4 +63,9 @@ class MetadataTest(AsyncHTTPTestCase):
     def test_no_instance_by_host(self):
         response = self.fetch("/api/v1/metadata/host/invalid")
         self.assertEquals(response.code, 404)
+        
+    @timeout(5)
+    def test_invalid_class(self):
+        response = self.fetch("/api/v1/metadata/invalid/invalid")
+        self.assertEquals(response.code, 404)
     
