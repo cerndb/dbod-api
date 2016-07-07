@@ -18,7 +18,7 @@ from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 
 from dbod.api.base import DocHandler
-from dbod.api.rundeck import RundeckResources
+from dbod.api.rundeck import RundeckResources, RundeckJobs
 from dbod.api.metadata import Metadata
 from dbod.api.hostaliases import HostAliases
 from dbod.config import config
@@ -31,6 +31,7 @@ handlers = [
     (r"/api/v1/host/aliases/([^/]+)", HostAliases),
     (r"/api/v1/metadata/(?P<class>[^\/]+)/?(?P<name>[^\/]+)?", Metadata),
     (r"/api/v1/rundeck/resources.xml", RundeckResources),
+    (r"/api/v1/rundeck/job/(?P<job>[^\/]+)/?(?P<entity>[^\/]+)?", RundeckJobs),
     ]
 
 class Application():

@@ -16,7 +16,9 @@ import tornado.web
 import logging
 import json
 import requests
+import time
 
+from dbod.api.base import *
 from dbod.config import config
 
 class RundeckResources(tornado.web.RequestHandler):
@@ -53,3 +55,63 @@ class RundeckResources(tornado.web.RequestHandler):
                 raise tornado.web.HTTPError(NOT_FOUND)
         else:
             logging.error("Internal Rundeck resources endpoint not configured")
+            
+class RundeckJobs(tornado.web.RequestHandler):
+    def get(self, **args):
+        """Returns the output of a job execution"""
+        job = args.get('job')
+        response = self.__get_output__(job)
+        if response.ok:
+            self.set_header("Content-Type", 'application/json')
+            self.write({'response' : json.loads(response.text)})
+        else:
+            logging.error("Error reading the job: " + job)
+            raise tornado.web.HTTPError(response.status_code)
+
+    def post(self, **args):
+        """Executes a new Rundeck job and returns the output"""
+        job = args.get('job')
+        entity = args.get('entity')
+        response_run = self.__run_job__(job, entity)
+        if response_run.ok:
+            data = json.loads(response_run.text)
+            exid = str(data["id"])
+            timeout = 20
+            while timeout > 0:
+                response_output = self.__get_output__(exid)
+                if response_output.ok:
+                    output = json.loads(response_output.text)
+                    logging.debug(output)
+                    if output["execState"] != "running":
+                        if output["execState"] == "succeeded":
+                            self.set_header("Content-Type", 'application/json')
+                            self.write({'response' : json.loads(response_output.text)})
+                            timeout = 0
+                        else:
+                            logging.error("The job completed with errors: " + exid)
+                            raise tornado.web.HTTPError(NOT_FOUND)
+                    else:
+                        timeout -= 1
+                        time.sleep(0.500)
+                else:
+                    logging.error("Error reading the job: " + exid)
+                    raise tornado.web.HTTPError(response_output.status_code)
+        else:
+            logging.error("Error running the job: " + jobid)
+            raise tornado.web.HTTPError(response_run.status_code)
+        
+    def __get_output__(self, execution):
+        """Returns the output of a job execution"""
+        api_job_output = config.get('rundeck', 'api_job_output').format(execution)
+        return requests.get(api_job_output, headers={'Authorization': config.get('rundeck', 'api_authorization')}, verify=False)
+            
+    def __run_job__(self, job, entity):
+        """Executes a new Rundeck job and returns the output"""
+        jobid = config.get('rundeck-jobs', job)
+        if jobid:
+            run_job_url = config.get('rundeck', 'api_run_job').format(jobid)
+            return requests.post(run_job_url, headers={'Authorization': config.get('rundeck', 'api_authorization')}, verify=False, data = {'filter':'name: ' + entity})
+        
+        
+        
+        
