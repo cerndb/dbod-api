@@ -29,7 +29,6 @@ setup(name='dbod.api',
       requires=[
           'ConfigParser',
           'tornado',
-          'psycopg2',
           'nose',
           'mock',
           'requests',

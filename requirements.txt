@@ -1,6 +1,5 @@
 configparser
 nose
-psycopg2
 tornado==4.2
 virtualenv
 requests
