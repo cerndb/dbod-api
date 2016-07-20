@@ -9,6 +9,8 @@
 -- Create the structure for the test database --
 ------------------------------------------------
 
+CREATE SCHEMA public;
+
 -- DOD_COMMAND_DEFINITION
 CREATE TABLE public.dod_command_definition (
     command_name varchar(64) NOT NULL,
@@ -28,7 +30,7 @@ CREATE TABLE public.dod_command_params (
     name varchar(64) NOT NULL,
     value text,
     category varchar(20),
-    PRIMARY KEY (db_name)
+    PRIMARY KEY (username, db_name, command_name, type, creation_date, name)
 );
 
 -- DOD_INSTANCE_CHANGES
@@ -40,11 +42,12 @@ CREATE TABLE public.dod_instance_changes (
     requester varchar(32) NOT NULL,
     old_value varchar(1024),
     new_value varchar(1024),
-    PRIMARY KEY (db_name)
+    PRIMARY KEY (username, db_name, attribute, change_date)
 );
 
 -- DOD_INSTANCES
 CREATE TABLE public.dod_instances (
+    id serial,
     username varchar(32) NOT NULL,
     db_name varchar(128) NOT NULL,
     e_group varchar(256),
@@ -52,7 +55,7 @@ CREATE TABLE public.dod_instances (
     creation_date date NOT NULL,
     expiry_date date,
     db_type varchar(32) NOT NULL,
-    db_size int NOT NULL,
+    db_size int,
     no_connections int,
     project varchar(128),
     description varchar(1024),
@@ -62,7 +65,6 @@ CREATE TABLE public.dod_instances (
     host varchar(128),
     state varchar(32),
     status varchar(32),
-    id int,
     PRIMARY KEY (id)
 );
 
@@ -102,14 +104,16 @@ CREATE TABLE public.volume (
     vgroup varchar(32) NOT NULL,
     server varchar(63) NOT NULL,
     mount_options varchar(256) NOT NULL,
-    mounting_path varchar(256) NOT NULL
+    mounting_path varchar(256) NOT NULL,
+    PRIMARY KEY (id)
 );
 
 -- HOST
 CREATE TABLE public.host (
     id serial,
     name varchar(63) NOT NULL,
-    memory integer NOT NULL
+    memory integer NOT NULL,
+    PRIMARY KEY (id)
 );
 
 -- ATTRIBUTE
@@ -117,12 +121,12 @@ CREATE TABLE public.attribute (
     id serial,
     instance_id integer NOT NULL,
     name varchar(32) NOT NULL,
-    value varchar(250) NOT NULL
+    value varchar(250) NOT NULL,
+    PRIMARY KEY (id)
 );
 
 -- FUNCTIONAL ALIASES
-CREATE TABLE public.functional_aliases
-(
+CREATE TABLE public.functional_aliases (
     dns_name character varying(256) NOT NULL,
     db_name character varying(8),
     alias character varying(256),
@@ -140,9 +144,11 @@ VALUES ('user01', 'dbod01', 'testgroupA', 'TEST', now(), NULL, 'MYSQL', 100, 100
 -- Insert test data for volumes
 INSERT INTO public.volume (instance_id, file_mode, owner, vgroup, server, mount_options, mounting_path)
 VALUES (1, '0755', 'TSM', 'ownergroup', 'NAS-server', 'rw,bg,hard', '/MNT/data1'),
+       (1, '0755', 'TSM', 'ownergroup', 'NAS-server', 'rw', '/MNT/bin'),
        (2, '0755', 'TSM', 'ownergroup', 'NAS-server', 'rw,bg,hard', '/MNT/data2'),
        (4, '0755', 'TSM', 'ownergroup', 'NAS-server', 'rw,bg,hard,tcp', '/MNT/data4'),
-       (5, '0755', 'TSM', 'ownergroup', 'NAS-server', 'rw,bg,hard', '/MNT/data5');
+       (5, '0755', 'TSM', 'ownergroup', 'NAS-server', 'rw,bg,hard', '/MNT/data5'),
+       (5, '0755', 'TSM', 'ownergroup', 'NAS-server', 'rw', '/MNT/bin');
 
 -- Insert test data for attributes
 INSERT INTO public.attribute (instance_id, name, value)
