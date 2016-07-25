@@ -65,7 +65,8 @@ CREATE TABLE public.dod_instances (
     host varchar(128),
     state varchar(32),
     status varchar(32),
-    PRIMARY KEY (id)
+    CONSTRAINT dod_instances_pkey PRIMARY KEY (id),
+    CONSTRAINT dod_instances_dbname UNIQUE (db_name)
 );
 
 -- DOD_JOBS
@@ -134,12 +135,12 @@ CREATE TABLE public.functional_aliases (
 );
 
 -- Insert test data for instances
-INSERT INTO public.dod_instances (username, db_name, e_group, category, creation_date, expiry_date, db_type, db_size, no_connections, project, description, version, master, slave, host, state, status, id)
-VALUES ('user01', 'dbod01', 'testgroupA', 'TEST', now(), NULL, 'MYSQL', 100, 100, 'API', 'Test instance 1', '5.6.17', NULL, NULL, 'host01', 'RUNNING', 1, 1),
-       ('user01', 'dbod02', 'testgroupB', 'PROD', now(), NULL, 'PG', 50, 500, 'API', 'Test instance 2', '9.4.4', NULL, NULL, 'host03', 'RUNNING', 1, 2),
-       ('user02', 'dbod03', 'testgroupB', 'TEST', now(), NULL, 'MYSQL', 100, 200, 'WEB', 'Expired instance 1', '5.5', NULL, NULL, 'host01', 'RUNNING', 0, 3),
-       ('user03', 'dbod04', 'testgroupA', 'PROD', now(), NULL, 'PG', 250, 10, 'LCC', 'Test instance 3', '9.4.5', NULL, NULL, 'host01', 'RUNNING', 1, 4),
-       ('user04', 'dbod05', 'testgroupC', 'TEST', now(), NULL, 'MYSQL', 300, 200, 'WEB', 'Test instance 4', '5.6.17', NULL, NULL, 'host01', 'RUNNING', 1, 5);
+INSERT INTO public.dod_instances (username, db_name, e_group, category, creation_date, expiry_date, db_type, db_size, no_connections, project, description, version, master, slave, host, state, status)
+VALUES ('user01', 'dbod01', 'testgroupA', 'TEST', now(), NULL, 'MYSQL', 100, 100, 'API', 'Test instance 1', '5.6.17', NULL, NULL, 'host01', 'RUNNING', 1),
+       ('user01', 'dbod02', 'testgroupB', 'PROD', now(), NULL, 'PG', 50, 500, 'API', 'Test instance 2', '9.4.4', NULL, NULL, 'host03', 'RUNNING', 1),
+       ('user02', 'dbod03', 'testgroupB', 'TEST', now(), NULL, 'MYSQL', 100, 200, 'WEB', 'Expired instance 1', '5.5', NULL, NULL, 'host01', 'RUNNING', 0),
+       ('user03', 'dbod04', 'testgroupA', 'PROD', now(), NULL, 'PG', 250, 10, 'LCC', 'Test instance 3', '9.4.5', NULL, NULL, 'host01', 'RUNNING', 1),
+       ('user04', 'dbod05', 'testgroupC', 'TEST', now(), NULL, 'MYSQL', 300, 200, 'WEB', 'Test instance 4', '5.6.17', NULL, NULL, 'host01', 'RUNNING', 1);
        
 -- Insert test data for volumes
 INSERT INTO public.volume (instance_id, file_mode, owner, vgroup, server, mount_options, mounting_path)
@@ -167,6 +168,11 @@ VALUES ('host01', 12),
        
 -- Schema API
 CREATE SCHEMA api;
+
+-- Dod_instances view
+CREATE OR REPLACE VIEW api.dod_instances AS
+SELECT id, username, db_name, e_group, category, creation_date, expiry_date, db_type, db_size, no_connections, project, description, version, master, slave, host, state, status
+FROM dod_instances;
        
 -- Job stats view
 CREATE OR REPLACE VIEW api.job_stats AS 
