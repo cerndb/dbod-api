@@ -78,8 +78,8 @@ class Entity(tornado.web.RequestHandler):
         if response.ok:
             entid = json.loads(response.text)[0]["id"]
             logging.debug("Deleting instance id: " + str(entid))
-            __delete_instance__(entid)
-            self.set_status(response.status_code)
+            self.__delete_instance__(entid)
+            self.set_status(204)
         else:
             logging.error("Instance not found: " + instance)
             raise tornado.web.HTTPError(response.status_code)
