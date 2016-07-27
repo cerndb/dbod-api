@@ -21,13 +21,13 @@ from dbod.api.base import DocHandler
 from dbod.api.rundeck import RundeckResources, RundeckJobs
 from dbod.api.metadata import Metadata
 from dbod.api.hostaliases import HostAliases
+from dbod.api.entity import Entity
 from dbod.config import config
 
 handlers = [
     (r"/", DocHandler),
-    # (r"/api/v1/entity/([^/]+)", EntityHandler),
     # (r"/api/v1/entity/alias/([^/]+)", FunctionalAliasHandler),
-    # (r"/api/v1/host/([^/]+)", HostHandler),
+    (r"/api/v1/entity/([^/]+)", Entity),
     (r"/api/v1/host/aliases/([^/]+)", HostAliases),
     (r"/api/v1/metadata/(?P<class>[^\/]+)/?(?P<name>[^\/]+)?", Metadata),
     (r"/api/v1/rundeck/resources.xml", RundeckResources),
