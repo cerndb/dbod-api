@@ -65,24 +65,52 @@ class Entity(tornado.web.RequestHandler):
         """Updates an instance"""
         entity = json.loads(self.request.body)
         logging.debug(entity)
-        response = requests.patch("http://localhost:3000/instance?db_name=eq." + instance, json=entity)
-        if response.ok:
-            self.set_status(response.status_code)
+        entid = self.__get_instance_id__(instance)
+        
+        # Check if the port is changed
+        if "port" in entity:
+            port = {"value":entity["port"]}
+            del entity["port"]
+            response = requests.patch("http://localhost:3000/attribute?instance_id=eq." + str(entid) + "&name=eq.port", json=port)
+            if response.ok:
+                self.set_status(response.status_code)
+            else:
+                logging.error("Error updating port on instance: " + instance)
+                raise tornado.web.HTTPError(response.status_code)
+        
+        # Check if the volumes are changed
+        if "volumes" in entity:
+            volumes = entity["volumes"]
+            del entity["volumes"]
+            logging.debug("Cambiar volumes a: " + str(volumes))
+        
+        if entity:
+            response = requests.patch("http://localhost:3000/instance?db_name=eq." + instance, json=entity)
+            if response.ok:
+                self.set_status(response.status_code)
+            else:
+                logging.error("Instance not found: " + instance)
+                raise tornado.web.HTTPError(response.status_code)
         else:
-            logging.error("Instance not found: " + instance)
-            raise tornado.web.HTTPError(response.status_code)
+            self.set_status(NO_CONTENT)
             
     def delete(self, instance):
         """Deletes an instance by name"""
-        response = requests.get("http://localhost:3000/instance?db_name=eq." + instance)
-        if response.ok:
-            entid = json.loads(response.text)[0]["id"]
+        entid = self.__get_instance_id__(instance)
+        if entid:
             logging.debug("Deleting instance id: " + str(entid))
             self.__delete_instance__(entid)
             self.set_status(204)
         else:
             logging.error("Instance not found: " + instance)
             raise tornado.web.HTTPError(response.status_code)
+            
+    def __get_instance_id__(self, instance):
+        response = requests.get("http://localhost:3000/instance?db_name=eq." + instance)
+        if response.ok:
+            return json.loads(response.text)[0]["id"]
+        else:
+            return None
             
     def __delete_instance__(self, inst_id):
         requests.delete("http://localhost:3000/attribute?instance_id=eq." + str(inst_id))
