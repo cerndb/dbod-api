@@ -26,6 +26,10 @@ class Entity(tornado.web.RequestHandler):
         """Inserts a new instance in the database"""
         entity = json.loads(self.request.body)
         
+        if not "port" in entity or not "volumes" in entity:
+            logging.error("Port or volumes not defined for entity: " + instance)
+            raise tornado.web.HTTPError(INVALID_REQUEST)
+        
         # Get the port
         port = entity["port"]
         del entity["port"]
