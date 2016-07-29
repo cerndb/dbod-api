@@ -16,6 +16,7 @@ import tornado.web
 import logging
 import requests
 import json
+import urllib
 
 from dbod.api.base import *
 from dbod.config import config
@@ -64,7 +65,6 @@ class Entity(tornado.web.RequestHandler):
     def put(self, instance):
         """Updates an instance"""
         entity = json.loads(self.request.body)
-        logging.debug(entity)
         entid = self.__get_instance_id__(instance)
         
         # Check if the port is changed
@@ -82,7 +82,18 @@ class Entity(tornado.web.RequestHandler):
         if "volumes" in entity:
             volumes = entity["volumes"]
             del entity["volumes"]
-            logging.debug("Cambiar volumes a: " + str(volumes))
+            # Delete current volumes
+            response = requests.delete("http://localhost:3000/volume?instance_id=eq." + str(entid))
+            if response.ok:
+                response = requests.post("http://localhost:3000/volume", json=volumes)
+                if response.ok:
+                    self.set_status(response.status_code)
+                else:
+                    logging.error("Error adding volumes for instance: " + str(entid))
+                    raise tornado.web.HTTPError(response.status_code)
+            else:
+                logging.error("Error deleting old volumes for instance: " + (entid))
+                raise tornado.web.HTTPError(response.status_code)
         
         if entity:
             response = requests.patch("http://localhost:3000/instance?db_name=eq." + instance, json=entity)
