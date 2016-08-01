@@ -132,6 +132,7 @@ CREATE TABLE public.functional_aliases (
     db_name character varying(8),
     alias character varying(256),
     CONSTRAINT functional_aliases_pkey PRIMARY KEY (dns_name)
+    CONSTRAINT db_name_con UNIQUE (db_name)
 );
 
 -- Insert test data for instances
@@ -166,6 +167,14 @@ VALUES ('host01', 12),
        ('host03', 64),
        ('host04', 256);
        
+-- Insert test data for database aliases
+INSERT INTO public.functional_aliases (dns_name, db_name, alias)
+VALUES ('db-dbod-dns01','dbod_01','dbod-dbod-01.cern.ch'),
+       ('db-dbod-dns02','dbod_02','dbod-dbod-02.cern.ch'),
+       ('db-dbod-dns03','dbod_03','dbod-dbod-03.cern.ch'),
+       ('db-dbod-dns04','dbod_04','dbod-dbod-04.cern.ch'),
+       ('db-dbod-dns05', NULL, NULL);
+
 -- Schema API
 CREATE SCHEMA api;
 
@@ -274,3 +283,8 @@ CREATE OR REPLACE VIEW api.host_aliases AS
 SELECT host, string_agg('dbod-' || db_name || 'domain', E',') aliases 
 FROM dod_instances 
 GROUP BY host;
+
+-- Functional aliases view
+CREATE OR REPLACE VIEW api.functional_aliases AS
+SELECT * 
+FROM functional_aliases;
