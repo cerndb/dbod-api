@@ -25,6 +25,7 @@ CREATED = 201 # Request fulfilled resulting in creation of new resource
 NO_CONTENT = 204 # Succesfull delete
 NOT_FOUND = 404
 UNAUTHORIZED = 401
+BAD_REQUEST = 400
 
 # Basic HTTP Authentication decorator
 def http_basic_auth(fun):
