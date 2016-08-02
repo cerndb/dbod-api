@@ -27,7 +27,6 @@ from dbod.config import config
 
 handlers = [
     (r"/", DocHandler),
-    # (r"/api/v1/entity/alias/([^/]+)", FunctionalAliasHandler),
     (r"/api/v1/entity/([^/]+)", Entity),
     (r"/api/v1/host/aliases/([^/]+)", HostAliases),
     (r"/api/v1/entity/alias/([^/]*)", FunctionalAliasHandler),
