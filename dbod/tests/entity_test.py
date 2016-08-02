@@ -27,6 +27,7 @@ class EntityTest(AsyncHTTPTestCase):
 
     @timeout(5)
     def test_create_entity(self):
+        ### Creation of a new instance in a correct way.
         response = self.fetch("/api/v1/entity/testdb", method='DELETE')
         
         entity = """{
@@ -35,8 +36,8 @@ class EntityTest(AsyncHTTPTestCase):
         "volumes": [
             {"vgroup": "ownergroup", "file_mode": "0755", "server": "NAS-server", "mount_options": "rw,bg,hard", 
             "owner": "TSM", "mounting_path": "/MNT/data1"}, 
-            {"vgroup": "ownergroup", "file_mode": "0755", 
-            "server": "NAS-server", "mount_options": "rw,bg,hard", "owner": "TSM", "mounting_path": "/MNT/bin"}
+            {"vgroup": "ownergroup", "file_mode": "0755", "server": "NAS-server", "mount_options": "rw,bg,hard", 
+            "owner": "TSM", "mounting_path": "/MNT/bin"}
         ]}"""
         
         # Create the instance
@@ -61,14 +62,15 @@ class EntityTest(AsyncHTTPTestCase):
         
     @timeout(5)
     def test_create_existing_entity(self):
+        ### Creation of an entity that already exists
         entity = """{
         "username": "testuser", "category": "TEST", "creation_date":"2016-07-20", 
         "version": "5.6.17", "db_type": "MYSQL", "port": "5505", "host": "testhost", "db_name": "dbod01", 
         "volumes": [
             {"vgroup": "ownergroup", "file_mode": "0755", "server": "NAS-server", "mount_options": "rw,bg,hard", 
             "owner": "TSM", "mounting_path": "/MNT/data1"}, 
-            {"vgroup": "ownergroup", "file_mode": "0755", 
-            "server": "NAS-server", "mount_options": "rw,bg,hard", "owner": "TSM", "mounting_path": "/MNT/bin"}
+            {"vgroup": "ownergroup", "file_mode": "0755", "server": "NAS-server", "mount_options": "rw,bg,hard",
+            "owner": "TSM", "mounting_path": "/MNT/bin"}
         ]}"""
         
         # Create the instance
@@ -77,14 +79,15 @@ class EntityTest(AsyncHTTPTestCase):
     
     @timeout(5)
     def test_create_entity_invalid_fields(self):
+        ### Creation of an entity with an undefined required field (db_type)
         entity = """{
         "username": "testuser", "category": "TEST", "creation_date":"2016-07-20", 
         "version": "5.6.17", "port": "5505", "host": "testhost", "db_name": "very_long_name", 
         "volumes": [
             {"vgroup": "ownergroup", "file_mode": "0755", "server": "NAS-server", "mount_options": "rw,bg,hard", 
             "owner": "TSM", "mounting_path": "/MNT/data1"}, 
-            {"vgroup": "ownergroup", "file_mode": "0755", 
-            "server": "NAS-server", "mount_options": "rw,bg,hard", "owner": "TSM", "mounting_path": "/MNT/bin"}
+            {"vgroup": "ownergroup", "file_mode": "0755", "server": "NAS-server", "mount_options": "rw,bg,hard", 
+            "owner": "TSM", "mounting_path": "/MNT/bin"}
         ]}"""
         
         # Create the instance
@@ -93,14 +96,15 @@ class EntityTest(AsyncHTTPTestCase):
         
     @timeout(5)
     def test_create_entity_no_port(self):
+        ### Creation of an entity without port
         entity = """{
         "username": "testuser", "category": "TEST", "creation_date":"2016-07-20", 
         "version": "5.6.17", "db_type": "MYSQL", "host": "testhost", "db_name": "very_long_name", 
         "volumes": [
             {"vgroup": "ownergroup", "file_mode": "0755", "server": "NAS-server", "mount_options": "rw,bg,hard", 
             "owner": "TSM", "mounting_path": "/MNT/data1"}, 
-            {"vgroup": "ownergroup", "file_mode": "0755", 
-            "server": "NAS-server", "mount_options": "rw,bg,hard", "owner": "TSM", "mounting_path": "/MNT/bin"}
+            {"vgroup": "ownergroup", "file_mode": "0755", "server": "NAS-server", "mount_options": "rw,bg,hard", 
+            "owner": "TSM", "mounting_path": "/MNT/bin"}
         ]}"""
         
         # Create the instance
@@ -109,6 +113,7 @@ class EntityTest(AsyncHTTPTestCase):
     
     @timeout(5)
     def test_create_entity_no_volumes(self):
+        ### Creation of an entity without volumes
         entity = """{
         "username": "testuser", "category": "TEST", "creation_date":"2016-07-20", 
         "version": "5.6.17", "db_type": "MYSQL", "port": "5505", "host": "testhost", "db_name": "very_long_name"}"""
@@ -119,6 +124,7 @@ class EntityTest(AsyncHTTPTestCase):
         
     @timeout(5)
     def test_edit_entity_username(self):
+        ### Edit the username correctly
         entity = """{"username": "newuser"}"""
         restore = """{"username": "user01"}"""
         
@@ -138,6 +144,7 @@ class EntityTest(AsyncHTTPTestCase):
         
     @timeout(5)
     def test_edit_entity_dbname(self):
+        ### Edit the dbname correctly
         entity = """{"db_name": "newdb01"}"""
         restore = """{"db_name": "dbod01"}"""
         
@@ -157,6 +164,7 @@ class EntityTest(AsyncHTTPTestCase):
         
     @timeout(5)
     def test_edit_entity_port(self):
+        ### Edit the port correctly
         entity = """{"port": "3005"}"""
         restore = """{"port": "5501"}"""
         
@@ -176,6 +184,7 @@ class EntityTest(AsyncHTTPTestCase):
         
     @timeout(5)
     def test_edit_entity_port_and_host(self):
+        ### Edit the host and port correctly
         entity = """{"port": "3005", "host": "newhost"}"""
         restore = """{"port": "5501", "host": "host01"}"""
 
@@ -194,5 +203,40 @@ class EntityTest(AsyncHTTPTestCase):
         response = self.fetch("/api/v1/entity/dbod01", method='PUT', body=restore)
         self.assertEquals(response.code, 204)
         
-
+    @timeout(5)
+    def test_edit_entity_volumes(self):
+        ### Edit volumes correctly
+        entity = """{"volumes": [
+            {"vgroup": "testgroup", "file_mode": "0755", "server": "NAS-server", "mount_options": "rw,bg,hard", 
+            "owner": "TSM", "mounting_path": "/MNT/data1"}, 
+            {"vgroup": "testgroup", "file_mode": "0755", "server": "NAS-server", "mount_options": "rw,bg,hard", 
+            "owner": "TSM", "mounting_path": "/MNT/test"},
+            {"vgroup": "testgroup", "file_mode": "0755", "server": "NAS-server", "mount_options": "rw,bg,hard", 
+            "owner": "TSM", "mounting_path": "/MNT/bin"}
+        ]}"""
+        restore = """{"volumes": [
+            {"vgroup": "ownergroup", "file_mode": "0755", "server": "NAS-server", "mount_options": "rw,bg,hard", 
+            "owner": "TSM", "mounting_path": "/MNT/data1"}, 
+            {"vgroup": "ownergroup", "file_mode": "0755", "server": "NAS-server", "mount_options": "rw", 
+            "owner": "TSM", "mounting_path": "/MNT/bin"}
+        ]}"""
+        
+        # Edit the instance
+        response = self.fetch("/api/v1/entity/dbod01", method='PUT', body=entity)
+        self.assertEquals(response.code, 204)
+        
+        # Check the metadata for this instance
+        response = self.fetch("/api/v1/metadata/entity/dbod01")
+        self.assertEquals(response.code, 200)
+        data = json.loads(response.body)["response"]
+        self.assertEquals(len(data[0]["volumes"]), 3)
+        self.assertEquals(data[0]["volumes"][0]["vgroup"], "testgroup")
+        self.assertEquals(data[0]["volumes"][1]["vgroup"], "testgroup")
+        self.assertEquals(data[0]["volumes"][2]["vgroup"], "testgroup")
+        self.assertEquals(data[0]["volumes"][1]["mounting_path"], "/MNT/test")
+        
+        # Restore the instance
+        response = self.fetch("/api/v1/entity/dbod01", method='PUT', body=restore)
+        self.assertEquals(response.code, 204)
+        
         
