@@ -28,7 +28,7 @@ class Entity(tornado.web.RequestHandler):
         
         if not "port" in entity or not "volumes" in entity:
             logging.error("Port or volumes not defined for entity: " + instance)
-            raise tornado.web.HTTPError(INVALID_REQUEST)
+            raise tornado.web.HTTPError(BAD_REQUEST)
         
         # Get the port
         port = entity["port"]
