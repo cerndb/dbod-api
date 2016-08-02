@@ -22,6 +22,18 @@ from dbod.api.base import *
 from dbod.config import config
 
 class Entity(tornado.web.RequestHandler):
+    def get(self, name):
+        """Returns an instance by db_name"""
+        response = requests.get("http://localhost:3000/instance?db_name=eq." + name)
+        if response.ok:
+            data = response.json()
+            if data:
+                self.write({'response' : data})
+                self.set_status(OK)
+            else: 
+                logging.error("Entity metadata not found: " + name)
+                raise tornado.web.HTTPError(NOT_FOUND)
+
     def post(self, instance):
         """Inserts a new instance in the database"""
         entity = json.loads(self.request.body)
@@ -91,9 +103,9 @@ class Entity(tornado.web.RequestHandler):
             
             # Delete current volumes
             response = requests.delete("http://localhost:3000/volume?instance_id=eq." + str(entid))
-            if response.status_code == 204:
+            if response.ok:
                 response = requests.post("http://localhost:3000/volume", json=volumes)
-                if response.status_code == 201:
+                if response.ok:
                     self.set_status(response.status_code)
                 else:
                     logging.error("Error adding volumes for instance: " + str(entid))
@@ -126,7 +138,11 @@ class Entity(tornado.web.RequestHandler):
     def __get_instance_id__(self, instance):
         response = requests.get("http://localhost:3000/instance?db_name=eq." + instance)
         if response.ok:
-            return json.loads(response.text)[0]["id"]
+            data = response.json()
+            if data:
+                return data[0]["id"]
+            else:
+                return None
         else:
             return None
             
