@@ -131,7 +131,7 @@ CREATE TABLE public.functional_aliases (
     dns_name character varying(256) NOT NULL,
     db_name character varying(8),
     alias character varying(256),
-    CONSTRAINT functional_aliases_pkey PRIMARY KEY (dns_name)
+    CONSTRAINT functional_aliases_pkey PRIMARY KEY (dns_name),
     CONSTRAINT db_name_con UNIQUE (db_name)
 );
 
