@@ -85,18 +85,21 @@ class Entity(tornado.web.RequestHandler):
         # Check if the volumes are changed
         if "volumes" in entity:
             volumes = entity["volumes"]
+            for volume in volumes:
+                volume["instance_id"] = entid
             del entity["volumes"]
+            
             # Delete current volumes
             response = requests.delete("http://localhost:3000/volume?instance_id=eq." + str(entid))
-            if response.ok:
+            if response.status_code == 204:
                 response = requests.post("http://localhost:3000/volume", json=volumes)
-                if response.ok:
+                if response.status_code == 201:
                     self.set_status(response.status_code)
                 else:
                     logging.error("Error adding volumes for instance: " + str(entid))
                     raise tornado.web.HTTPError(response.status_code)
             else:
-                logging.error("Error deleting old volumes for instance: " + (entid))
+                logging.error("Error deleting old volumes for instance: " + str(entid))
                 raise tornado.web.HTTPError(response.status_code)
         
         if entity:
