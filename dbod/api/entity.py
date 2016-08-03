@@ -24,7 +24,7 @@ from dbod.config import config
 class Entity(tornado.web.RequestHandler):
     def get(self, name):
         """Returns an instance by db_name"""
-        response = requests.get("http://localhost:3000/instance?db_name=eq." + name)
+        response = requests.get(config.get('postgrest', 'instance_url') + "?db_name=eq." + name)
         if response.ok:
             data = response.json()
             if data:
@@ -51,7 +51,7 @@ class Entity(tornado.web.RequestHandler):
         del entity["volumes"]
         
         # Insert the entity in database using PostREST
-        response = requests.post("http://localhost:3000/instance", json=entity, headers={'Prefer': 'return=representation'})
+        response = requests.post(config.get('postgrest', 'instance_url'), json=entity, headers={'Prefer': 'return=representation'})
         if response.ok:
             entid = json.loads(response.text)["id"]
             logging.debug("Created entity with id: " + str(entid))
@@ -61,9 +61,9 @@ class Entity(tornado.web.RequestHandler):
                 volume["instance_id"] = entid
 
             # Insert the volumes in database using PostREST
-            response = requests.post("http://localhost:3000/volume", json=volumes)
+            response = requests.post(config.get('postgrest', 'volume_url'), json=volumes)
             if response.ok:
-                response = requests.post("http://localhost:3000/attribute", json={'instance_id': entid, 'name': 'port', 'value': port})
+                response = requests.post(config.get('postgrest', 'attribute_url'), json={'instance_id': entid, 'name': 'port', 'value': port})
                 if response.ok:
                     self.set_status(CREATED)
                 else:
@@ -87,7 +87,7 @@ class Entity(tornado.web.RequestHandler):
         if "port" in entity:
             port = {"value":entity["port"]}
             del entity["port"]
-            response = requests.patch("http://localhost:3000/attribute?instance_id=eq." + str(entid) + "&name=eq.port", json=port)
+            response = requests.patch(config.get('postgrest', 'attribute_url') + "?instance_id=eq." + str(entid) + "&name=eq.port", json=port)
             if response.ok:
                 self.set_status(response.status_code)
             else:
@@ -102,9 +102,9 @@ class Entity(tornado.web.RequestHandler):
             del entity["volumes"]
             
             # Delete current volumes
-            response = requests.delete("http://localhost:3000/volume?instance_id=eq." + str(entid))
+            response = requests.delete(config.get('postgrest', 'volume_url') + "?instance_id=eq." + str(entid))
             if response.ok:
-                response = requests.post("http://localhost:3000/volume", json=volumes)
+                response = requests.post(config.get('postgrest', 'volume_url'), json=volumes)
                 if response.ok:
                     self.set_status(response.status_code)
                 else:
@@ -115,7 +115,7 @@ class Entity(tornado.web.RequestHandler):
                 raise tornado.web.HTTPError(response.status_code)
         
         if entity:
-            response = requests.patch("http://localhost:3000/instance?db_name=eq." + instance, json=entity)
+            response = requests.patch(config.get('postgrest', 'instance_url') + "?db_name=eq." + instance, json=entity)
             if response.ok:
                 self.set_status(response.status_code)
             else:
@@ -136,7 +136,7 @@ class Entity(tornado.web.RequestHandler):
             raise tornado.web.HTTPError(response.status_code)
             
     def __get_instance_id__(self, instance):
-        response = requests.get("http://localhost:3000/instance?db_name=eq." + instance)
+        response = requests.get(config.get('postgrest', 'instance_url') + "?db_name=eq." + instance)
         if response.ok:
             data = response.json()
             if data:
@@ -147,8 +147,8 @@ class Entity(tornado.web.RequestHandler):
             return None
             
     def __delete_instance__(self, inst_id):
-        requests.delete("http://localhost:3000/attribute?instance_id=eq." + str(inst_id))
-        requests.delete("http://localhost:3000/volume?instance_id=eq." + str(inst_id))
-        requests.delete("http://localhost:3000/instance?id=eq." + str(inst_id))
+        requests.delete(config.get('postgrest', 'attribute_url') + "?instance_id=eq." + str(inst_id))
+        requests.delete(config.get('postgrest', 'volume_url') + "?instance_id=eq." + str(inst_id))
+        requests.delete(config.get('postgrest', 'instance_url') + "?id=eq." + str(inst_id))
         
 
