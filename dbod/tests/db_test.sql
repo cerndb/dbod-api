@@ -9,7 +9,7 @@
 -- Create the structure for the test database --
 ------------------------------------------------
 
-CREATE SCHEMA public;
+CREATE SCHEMA IF NOT EXISTS public;
 
 -- DOD_COMMAND_DEFINITION
 CREATE TABLE public.dod_command_definition (
@@ -176,7 +176,7 @@ VALUES ('db-dbod-dns01','dbod_01','dbod-dbod-01.cern.ch'),
        ('db-dbod-dns05', NULL, NULL);
 
 -- Schema API
-CREATE SCHEMA api;
+CREATE SCHEMA IF NOT EXISTS api;
 
 -- Dod_instances view
 CREATE OR REPLACE VIEW api.dod_instances AS
