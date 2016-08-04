@@ -33,6 +33,9 @@ class Instance(tornado.web.RequestHandler):
             else: 
                 logging.error("Instance metadata not found: " + name)
                 raise tornado.web.HTTPError(NOT_FOUND)
+        else:
+            logging.error("Entity metadata not found: " + name)
+            raise tornado.web.HTTPError(NOT_FOUND)
 
     def post(self, name):
         """Inserts a new instance in the database"""
