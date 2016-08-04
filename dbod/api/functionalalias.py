@@ -19,20 +19,12 @@ from sys import exc_info
 import requests
 import tornado.web
 import tornado.escape
-from dbod.api.base import NOT_FOUND, BAD_REQUEST
+from dbod.api.base import NOT_FOUND, BAD_REQUEST 
 from dbod.config import config
 
-class FunctionalAliasHandler(tornado.web.RequestHandler):
+class FunctionalAlias(tornado.web.RequestHandler):
     '''The handler for the instance/alias/<endpoint>'''
     url = config.get('postgrest', 'functional_alias_url')
-    if not url:
-        logging.error("Internal instance/alias endpoint not configured")
-        raise tornado.web.HTTPError(NOT_FOUND)
-
-    def data_received(self, *arg, **kwargs):
-        '''Abstract method which handles streamed request data.'''
-        #No need for implementation
-        pass
 
     def get(self, db_name, *args):
         '''Returns db_name's alias and dns name'''
@@ -72,8 +64,8 @@ class FunctionalAliasHandler(tornado.web.RequestHandler):
             composed_url = self.url + query_select + query_filter
             try:
                 response_dns = requests.get(composed_url, headers=headers)
-                response_dns_dict = literal_eval(response_dns.text)[0]
                 if response_dns.ok:
+                    response_dns_dict = literal_eval(response_dns.text)[0]
                     return response_dns_dict['dns_name']
                 else:
                     return None
@@ -83,18 +75,6 @@ class FunctionalAliasHandler(tornado.web.RequestHandler):
                 return None
             
 
-        def check_if_exists(column, value):
-            '''It checks if the inserted data already exists in the functional_aliases table'''
-            query = '?%s=eq.%s&select=%s' %(column, value, column)
-            composed_url = self.url + query
-            response = requests.get(composed_url)
-            if response.ok and literal_eval(response.text):
-                logging.error("A(n) %s with the value of %s already exists in the functional_aliases table" %(column,value))
-                return True
-            else:
-                
-                return False
-        #self.set_header("Content-Type", 'application/json')
         self.set_header('Prefer', 'return=representation')
         logging.debug(args)
         logging.debug('Arguments:' + str(self.request.arguments))
@@ -120,7 +100,6 @@ class FunctionalAliasHandler(tornado.web.RequestHandler):
                            "alias": alias}
             logging.debug("Data to insert: " + str(insert_data))
 
-            #if not check_if_exists('db_name', db_name) and  not check_if_exists('alias', alias):
             composed_url = self.url + '?dns_name=eq.' + dns_name
             logging.debug('Requesting insertion: ' + composed_url)
             
@@ -160,7 +139,6 @@ class FunctionalAliasHandler(tornado.web.RequestHandler):
                     return None
             else: 
                 return None
-
 
         logging.debug(args)
         logging.debug('Arguments:' + str(self.request.arguments))
