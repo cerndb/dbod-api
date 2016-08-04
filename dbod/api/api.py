@@ -67,5 +67,5 @@ class Application():
         http_server.listen(options.port)
         
         # Starting
-        logging.info("Starting application")
+        logging.info("Starting application on port: " + str(port))
         tornado.ioloop.IOLoop.instance().start()
