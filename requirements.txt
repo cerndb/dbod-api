@@ -1,3 +1,4 @@
+setuptools>=17.1
 configparser
 nose
 tornado==4.2
