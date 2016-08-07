@@ -28,7 +28,7 @@ class EntityTest(AsyncHTTPTestCase):
     @timeout(5)
     def test_create_entity(self):
         ### Creation of a new instance in a correct way.
-        response = self.fetch("/api/v1/entity/testdb", method='DELETE')
+        response = self.fetch("/api/v1/instance/testdb", method='DELETE')
         
         entity = """{
         "username": "testuser", "category": "TEST", "creation_date":"2016-07-20", 
@@ -41,7 +41,7 @@ class EntityTest(AsyncHTTPTestCase):
         ]}"""
         
         # Create the instance
-        response = self.fetch("/api/v1/entity/create", method='POST', body=entity)
+        response = self.fetch("/api/v1/instance/create", method='POST', body=entity)
         self.assertEquals(response.code, 201)
         
         # Check the metadata for this new instance
@@ -53,7 +53,7 @@ class EntityTest(AsyncHTTPTestCase):
         self.assertEquals(data[0]["port"], "5505")  # Reminder: the port is saved as a String in DB
         
         # Delete the created instance
-        response = self.fetch("/api/v1/entity/testdb", method='DELETE')
+        response = self.fetch("/api/v1/instance/testdb", method='DELETE')
         self.assertEquals(response.code, 204)
         
         # Check again, the metadata should be empty
@@ -74,7 +74,7 @@ class EntityTest(AsyncHTTPTestCase):
         ]}"""
         
         # Create the instance
-        response = self.fetch("/api/v1/entity/create", method='POST', body=entity)
+        response = self.fetch("/api/v1/instance/create", method='POST', body=entity)
         self.assertEquals(response.code, 409)
     
     @timeout(5)
@@ -91,7 +91,7 @@ class EntityTest(AsyncHTTPTestCase):
         ]}"""
         
         # Create the instance
-        response = self.fetch("/api/v1/entity/create", method='POST', body=entity)
+        response = self.fetch("/api/v1/instance/create", method='POST', body=entity)
         self.assertEquals(response.code, 400)
         
     @timeout(5)
@@ -108,7 +108,7 @@ class EntityTest(AsyncHTTPTestCase):
         ]}"""
         
         # Create the instance
-        response = self.fetch("/api/v1/entity/create", method='POST', body=entity)
+        response = self.fetch("/api/v1/instance/create", method='POST', body=entity)
         self.assertEquals(response.code, 400)
     
     @timeout(5)
@@ -119,7 +119,7 @@ class EntityTest(AsyncHTTPTestCase):
         "version": "5.6.17", "db_type": "MYSQL", "port": "5505", "host": "testhost", "db_name": "very_long_name"}"""
         
         # Create the instance
-        response = self.fetch("/api/v1/entity/create", method='POST', body=entity)
+        response = self.fetch("/api/v1/instance/create", method='POST', body=entity)
         self.assertEquals(response.code, 400)
         
     @timeout(5)
@@ -129,7 +129,7 @@ class EntityTest(AsyncHTTPTestCase):
         restore = """{"username": "user01"}"""
         
         # Edit the instance
-        response = self.fetch("/api/v1/entity/dbod01", method='PUT', body=entity)
+        response = self.fetch("/api/v1/instance/dbod01", method='PUT', body=entity)
         self.assertEquals(response.code, 204)
         
         # Check the metadata for this instance
@@ -139,7 +139,7 @@ class EntityTest(AsyncHTTPTestCase):
         self.assertEquals(data[0]["username"], "newuser")
         
         # Restore the instance
-        response = self.fetch("/api/v1/entity/dbod01", method='PUT', body=restore)
+        response = self.fetch("/api/v1/instance/dbod01", method='PUT', body=restore)
         self.assertEquals(response.code, 204)
         
     @timeout(5)
@@ -149,7 +149,7 @@ class EntityTest(AsyncHTTPTestCase):
         restore = """{"db_name": "dbod01"}"""
         
         # Edit the instance
-        response = self.fetch("/api/v1/entity/dbod01", method='PUT', body=entity)
+        response = self.fetch("/api/v1/instance/dbod01", method='PUT', body=entity)
         self.assertEquals(response.code, 204)
         
         # Check the metadata for this instance
@@ -159,7 +159,7 @@ class EntityTest(AsyncHTTPTestCase):
         self.assertEquals(data[0]["db_name"], "newdb01")
         
         # Restore the instance
-        response = self.fetch("/api/v1/entity/newdb01", method='PUT', body=restore)
+        response = self.fetch("/api/v1/instance/newdb01", method='PUT', body=restore)
         self.assertEquals(response.code, 204)
         
     @timeout(5)
@@ -169,7 +169,7 @@ class EntityTest(AsyncHTTPTestCase):
         restore = """{"port": "5501"}"""
         
         # Edit the instance
-        response = self.fetch("/api/v1/entity/dbod01", method='PUT', body=entity)
+        response = self.fetch("/api/v1/instance/dbod01", method='PUT', body=entity)
         self.assertEquals(response.code, 204)
         
         # Check the metadata for this instance
@@ -179,7 +179,7 @@ class EntityTest(AsyncHTTPTestCase):
         self.assertEquals(data[0]["port"], "3005")
         
         # Restore the instance
-        response = self.fetch("/api/v1/entity/dbod01", method='PUT', body=restore)
+        response = self.fetch("/api/v1/instance/dbod01", method='PUT', body=restore)
         self.assertEquals(response.code, 204)
         
     @timeout(5)
@@ -189,7 +189,7 @@ class EntityTest(AsyncHTTPTestCase):
         restore = """{"port": "5501", "host": "host01"}"""
 
         # Edit the instance
-        response = self.fetch("/api/v1/entity/dbod01", method='PUT', body=entity)
+        response = self.fetch("/api/v1/instance/dbod01", method='PUT', body=entity)
         self.assertEquals(response.code, 204)
         
         # Check the metadata for this instance
@@ -200,7 +200,7 @@ class EntityTest(AsyncHTTPTestCase):
         self.assertEquals(data[0]["host"], "newhost")
         
         # Restore the instance
-        response = self.fetch("/api/v1/entity/dbod01", method='PUT', body=restore)
+        response = self.fetch("/api/v1/instance/dbod01", method='PUT', body=restore)
         self.assertEquals(response.code, 204)
         
     @timeout(5)
@@ -222,7 +222,7 @@ class EntityTest(AsyncHTTPTestCase):
         ]}"""
         
         # Edit the instance
-        response = self.fetch("/api/v1/entity/dbod01", method='PUT', body=entity)
+        response = self.fetch("/api/v1/instance/dbod01", method='PUT', body=entity)
         self.assertEquals(response.code, 204)
         
         # Check the metadata for this instance
@@ -236,7 +236,7 @@ class EntityTest(AsyncHTTPTestCase):
         self.assertEquals(data[0]["volumes"][1]["mounting_path"], "/MNT/test")
         
         # Restore the instance
-        response = self.fetch("/api/v1/entity/dbod01", method='PUT', body=restore)
+        response = self.fetch("/api/v1/instance/dbod01", method='PUT', body=restore)
         self.assertEquals(response.code, 204)
         
         
