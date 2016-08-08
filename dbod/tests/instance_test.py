@@ -21,13 +21,14 @@ from dbod.api.api import *
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
-class EntityTest(AsyncHTTPTestCase):
+class InstanceTest(AsyncHTTPTestCase):
+    '''Class to test instances endpoint'''
     def get_app(self):
         return tornado.web.Application(handlers, debug=True)
 
     @timeout(5)
-    def test_create_entity(self):
-        ### Creation of a new instance in a correct way.
+    def test_create_instance(self):
+        '''Creation of a new instance in a correct way'''
         response = self.fetch("/api/v1/instance/testdb", method='DELETE')
         
         entity = """{
@@ -61,8 +62,8 @@ class EntityTest(AsyncHTTPTestCase):
         self.assertEquals(response.code, 404)
         
     @timeout(5)
-    def test_create_existing_entity(self):
-        ### Creation of an entity that already exists
+    def test_create_existing_instance(self):
+        '''Creation of an entity that already exists'''
         entity = """{
         "username": "testuser", "category": "TEST", "creation_date":"2016-07-20", 
         "version": "5.6.17", "db_type": "MYSQL", "port": "5505", "host": "testhost", "db_name": "dbod01", 
@@ -78,8 +79,8 @@ class EntityTest(AsyncHTTPTestCase):
         self.assertEquals(response.code, 409)
     
     @timeout(5)
-    def test_create_entity_invalid_fields(self):
-        ### Creation of an entity with an undefined required field (db_type)
+    def test_create_instance_invalid_fields(self):
+        '''Creation of an entity with an undefined required field (db_type)'''
         entity = """{
         "username": "testuser", "category": "TEST", "creation_date":"2016-07-20", 
         "version": "5.6.17", "port": "5505", "host": "testhost", "db_name": "very_long_name", 
@@ -95,8 +96,8 @@ class EntityTest(AsyncHTTPTestCase):
         self.assertEquals(response.code, 400)
         
     @timeout(5)
-    def test_create_entity_no_port(self):
-        ### Creation of an entity without port
+    def test_create_instance_no_port(self):
+        '''Creation of an entity without port'''
         entity = """{
         "username": "testuser", "category": "TEST", "creation_date":"2016-07-20", 
         "version": "5.6.17", "db_type": "MYSQL", "host": "testhost", "db_name": "very_long_name", 
@@ -112,8 +113,8 @@ class EntityTest(AsyncHTTPTestCase):
         self.assertEquals(response.code, 400)
     
     @timeout(5)
-    def test_create_entity_no_volumes(self):
-        ### Creation of an entity without volumes
+    def test_create_instance_no_volumes(self):
+        '''Creation of an entity without volumes'''
         entity = """{
         "username": "testuser", "category": "TEST", "creation_date":"2016-07-20", 
         "version": "5.6.17", "db_type": "MYSQL", "port": "5505", "host": "testhost", "db_name": "very_long_name"}"""
@@ -123,8 +124,8 @@ class EntityTest(AsyncHTTPTestCase):
         self.assertEquals(response.code, 400)
         
     @timeout(5)
-    def test_edit_entity_username(self):
-        ### Edit the username correctly
+    def test_edit_instance_username(self):
+        '''Edit the username correctly'''
         entity = """{"username": "newuser"}"""
         restore = """{"username": "user01"}"""
         
@@ -143,8 +144,8 @@ class EntityTest(AsyncHTTPTestCase):
         self.assertEquals(response.code, 204)
         
     @timeout(5)
-    def test_edit_entity_dbname(self):
-        ### Edit the dbname correctly
+    def test_edit_instance_dbname(self):
+        '''Edit the dbname correctly'''
         entity = """{"db_name": "newdb01"}"""
         restore = """{"db_name": "dbod01"}"""
         
@@ -163,8 +164,8 @@ class EntityTest(AsyncHTTPTestCase):
         self.assertEquals(response.code, 204)
         
     @timeout(5)
-    def test_edit_entity_port(self):
-        ### Edit the port correctly
+    def test_edit_instance_port(self):
+        '''Edit the port correctly'''
         entity = """{"port": "3005"}"""
         restore = """{"port": "5501"}"""
         
@@ -183,8 +184,8 @@ class EntityTest(AsyncHTTPTestCase):
         self.assertEquals(response.code, 204)
         
     @timeout(5)
-    def test_edit_entity_port_and_host(self):
-        ### Edit the host and port correctly
+    def test_edit_instance_port_and_host(self):
+        '''Edit the host and port correctly'''
         entity = """{"port": "3005", "host": "newhost"}"""
         restore = """{"port": "5501", "host": "host01"}"""
 
@@ -204,8 +205,8 @@ class EntityTest(AsyncHTTPTestCase):
         self.assertEquals(response.code, 204)
         
     @timeout(5)
-    def test_edit_entity_volumes(self):
-        ### Edit volumes correctly
+    def test_edit_instance_volumes(self):
+        '''Edit volumes correctly'''
         entity = """{"volumes": [
             {"vgroup": "testgroup", "file_mode": "0755", "server": "NAS-server", "mount_options": "rw,bg,hard", 
             "owner": "TSM", "mounting_path": "/MNT/data1"}, 

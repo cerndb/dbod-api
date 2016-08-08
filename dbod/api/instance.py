@@ -21,7 +21,7 @@ import urllib
 from dbod.api.base import *
 from dbod.config import config
 
-class Entity(tornado.web.RequestHandler):
+class Instance(tornado.web.RequestHandler):
     def get(self, name):
         """Returns an instance by db_name"""
         response = requests.get(config.get('postgrest', 'instance_url') + "?db_name=eq." + name)
