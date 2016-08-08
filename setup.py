@@ -15,7 +15,7 @@ DB On Demand REST API server setup file
 from setuptools import setup, find_packages
 
 setup(name='dbod.api',
-      version='0.6.7',
+      version='0.6.8',
       description='DB On Demand REST API',
       author='CERN',
       author_email='icot@cern.ch',

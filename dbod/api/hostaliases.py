@@ -14,9 +14,9 @@ REST API Server for the DB On Demand System
 
 import tornado.web
 import logging
-import json
 import requests
 
+from dbod.api.base import *
 from dbod.config import config
 
 class HostAliases(tornado.web.RequestHandler):
@@ -27,8 +27,8 @@ class HostAliases(tornado.web.RequestHandler):
             composed_url = url + '?host=eq.' + host
             logging.debug('Requesting ' + composed_url )
             response = requests.get(composed_url)
-            if response.ok:
-                data = response.json()
+            data = response.json()
+            if response.ok and data:
                 self.write({'response' : data})
             else: 
                 logging.error("Error fetching aliases in host: " + host)
