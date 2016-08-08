@@ -75,6 +75,11 @@ class DocHandler(tornado.web.RequestHandler):
     def get(self):
         logging.info("Generating API endpoints doc")
         response = """Please use :
-            <p>http://hostname:port/api/v1/entity/NAME</p>
-            <p>http://hostname:port/api/v1/host/HOSTNAME</p>"""
+            <p>http://hostname:port/api/v1/instance/NAME</p>
+            <p>http://hostname:port/api/v1/instance/alias/NAME</p>
+            <p>http://hostname:port/api/v1/host/aliases/HOSTNAME</p>
+            <p>http://hostname:port/api/v1/metadata/instance/NAME</p>
+            <p>http://hostname:port/api/v1/metadata/host/HOSTNAME</p>
+            <p>http://hostname:port/api/v1/rundeck/resources.xml</p>
+            <p>http://hostname:port/api/v1/rundeck/job/JOB/NODE</p>"""
         self.write(response)
