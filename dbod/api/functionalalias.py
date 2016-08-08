@@ -23,10 +23,10 @@ from dbod.api.base import NOT_FOUND, BAD_REQUEST
 from dbod.config import config
 
 class FunctionalAliasHandler(tornado.web.RequestHandler):
-    '''The handler for the entity/alias/<endpoint>'''
+    '''The handler for the instance/alias/<endpoint>'''
     url = config.get('postgrest', 'functional_alias_url')
     if not url:
-        logging.error("Internal entity/alias endpoint not configured")
+        logging.error("Internal instance/alias endpoint not configured")
         raise tornado.web.HTTPError(NOT_FOUND)
 
     def data_received(self, *arg, **kwargs):
@@ -145,7 +145,7 @@ class FunctionalAliasHandler(tornado.web.RequestHandler):
 
     def delete(self, db_name, *args):
         '''Deletes or else asssigns to NULL the db_name and alias fields.'''
-        """Removes the functional alias association for an entity.
+        """Removes the functional alias association for an instance.
            If the functional alias doesn't exist it doesn't do anything"""
 
         def get_dns(db_name):

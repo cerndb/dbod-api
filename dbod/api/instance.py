@@ -31,32 +31,32 @@ class Instance(tornado.web.RequestHandler):
                 self.write({'response' : data})
                 self.set_status(OK)
             else: 
-                logging.error("Entity metadata not found: " + name)
+                logging.error("Instance metadata not found: " + name)
                 raise tornado.web.HTTPError(NOT_FOUND)
 
-    def post(self, instance):
+    def post(self, name):
         """Inserts a new instance in the database"""
-        entity = json.loads(self.request.body)
+        instance = json.loads(self.request.body)
         
-        if not "port" in entity or not "volumes" in entity:
-            logging.error("Port or volumes not defined for entity: " + instance)
+        if not "port" in instance or not "volumes" in instance:
+            logging.error("Port or volumes not defined for instance: " + name)
             raise tornado.web.HTTPError(BAD_REQUEST)
         
         # Get the port
-        port = entity["port"]
-        del entity["port"]
+        port = instance["port"]
+        del instance["port"]
         
         # Get the volumes
-        volumes = entity["volumes"]
-        del entity["volumes"]
+        volumes = instance["volumes"]
+        del instance["volumes"]
         
-        # Insert the entity in database using PostREST
-        response = requests.post(config.get('postgrest', 'instance_url'), json=entity, headers={'Prefer': 'return=representation'})
+        # Insert the instance in database using PostREST
+        response = requests.post(config.get('postgrest', 'instance_url'), json=instance, headers={'Prefer': 'return=representation'})
         if response.ok:
             entid = json.loads(response.text)["id"]
-            logging.debug("Created entity with id: " + str(entid))
+            logging.debug("Created instance with id: " + str(entid))
         
-            # Add entity id to volumes
+            # Add instance id to volumes
             for volume in volumes:
                 volume["instance_id"] = entid
 
@@ -75,31 +75,31 @@ class Instance(tornado.web.RequestHandler):
                 self.__delete_instance__(entid)
                 raise tornado.web.HTTPError(response.status_code)
         else:
-            logging.error("Error creating the entity: " + response.text)
+            logging.error("Error creating the instance: " + response.text)
             raise tornado.web.HTTPError(response.status_code)
             
-    def put(self, instance):
+    def put(self, name):
         """Updates an instance"""
-        entity = json.loads(self.request.body)
-        entid = self.__get_instance_id__(instance)
+        instance = json.loads(self.request.body)
+        entid = self.__get_instance_id__(name)
         
         # Check if the port is changed
-        if "port" in entity:
-            port = {"value":entity["port"]}
-            del entity["port"]
+        if "port" in instance:
+            port = {"value":instance["port"]}
+            del instance["port"]
             response = requests.patch(config.get('postgrest', 'attribute_url') + "?instance_id=eq." + str(entid) + "&name=eq.port", json=port)
             if response.ok:
                 self.set_status(response.status_code)
             else:
-                logging.error("Error updating port on instance: " + instance)
+                logging.error("Error updating port on instance: " + name)
                 raise tornado.web.HTTPError(response.status_code)
         
         # Check if the volumes are changed
-        if "volumes" in entity:
-            volumes = entity["volumes"]
+        if "volumes" in instance:
+            volumes = instance["volumes"]
             for volume in volumes:
                 volume["instance_id"] = entid
-            del entity["volumes"]
+            del instance["volumes"]
             
             # Delete current volumes
             response = requests.delete(config.get('postgrest', 'volume_url') + "?instance_id=eq." + str(entid))
@@ -114,29 +114,29 @@ class Instance(tornado.web.RequestHandler):
                 logging.error("Error deleting old volumes for instance: " + str(entid))
                 raise tornado.web.HTTPError(response.status_code)
         
-        if entity:
-            response = requests.patch(config.get('postgrest', 'instance_url') + "?db_name=eq." + instance, json=entity)
+        if instance:
+            response = requests.patch(config.get('postgrest', 'instance_url') + "?db_name=eq." + name, json=instance)
             if response.ok:
                 self.set_status(response.status_code)
             else:
-                logging.error("Instance not found: " + instance)
+                logging.error("Instance not found: " + name)
                 raise tornado.web.HTTPError(response.status_code)
         else:
             self.set_status(NO_CONTENT)
             
-    def delete(self, instance):
+    def delete(self, name):
         """Deletes an instance by name"""
-        entid = self.__get_instance_id__(instance)
+        entid = self.__get_instance_id__(name)
         if entid:
             logging.debug("Deleting instance id: " + str(entid))
             self.__delete_instance__(entid)
             self.set_status(204)
         else:
-            logging.error("Instance not found: " + instance)
+            logging.error("Instance not found: " + name)
             raise tornado.web.HTTPError(response.status_code)
             
-    def __get_instance_id__(self, instance):
-        response = requests.get(config.get('postgrest', 'instance_url') + "?db_name=eq." + instance)
+    def __get_instance_id__(self, name):
+        response = requests.get(config.get('postgrest', 'instance_url') + "?db_name=eq." + name)
         if response.ok:
             data = response.json()
             if data:

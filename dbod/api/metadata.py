@@ -22,12 +22,12 @@ from dbod.config import config
 class Metadata(tornado.web.RequestHandler):
     def get(self, **args):
         self.set_header("Content-Type", 'application/json')
-        """Returns entity metadata"""
-        url = config.get('postgrest', 'entity_metadata_url')
+        """Returns instance metadata"""
+        url = config.get('postgrest', 'metadata_url')
         name = args.get('name')
         etype = args.get('class')
         if url and name:
-            if etype == u'entity':
+            if etype == u'instance':
                 composed_url = url + '?db_name=eq.' + name
             elif etype == u'host':
                 composed_url = url + '?host=eq.' + name
@@ -41,11 +41,11 @@ class Metadata(tornado.web.RequestHandler):
                 if data:
                     self.write({'response' : data})
                 else: 
-                    logging.error("Entity metadata not found: " + name)
+                    logging.error("Instance metadata not found: " + name)
                     raise tornado.web.HTTPError(NOT_FOUND)
             else: 
-                logging.error("Error fetching entity metadata: " + name)
+                logging.error("Error fetching instance metadata: " + name)
                 raise tornado.web.HTTPError(response.status_code)
         else:
-            logging.error("Internal entity metadata endpoint not configured")
+            logging.error("Internal instance metadata endpoint not configured")
             raise tornado.web.HTTPError(NOT_FOUND)

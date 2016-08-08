@@ -23,7 +23,7 @@ class MetadataTest(AsyncHTTPTestCase):
 
     @timeout(5)
     def test_single_instance_by_name(self):
-        response = self.fetch("/api/v1/metadata/entity/dbod01")
+        response = self.fetch("/api/v1/metadata/instance/dbod01")
         data = json.loads(response.body)["response"]
         self.assertEquals(response.code, 200)
         self.assertEquals(len(data), 1)
@@ -33,7 +33,7 @@ class MetadataTest(AsyncHTTPTestCase):
     
     @timeout(5)
     def test_no_instance_by_name(self):
-        response = self.fetch("/api/v1/metadata/entity/invalid")
+        response = self.fetch("/api/v1/metadata/instance/invalid")
         self.assertEquals(response.code, 404)
     
     @timeout(5)

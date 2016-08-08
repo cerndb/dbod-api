@@ -71,8 +71,8 @@ class RundeckJobs(tornado.web.RequestHandler):
     def post(self, **args):
         """Executes a new Rundeck job and returns the output"""
         job = args.get('job')
-        entity = args.get('entity')
-        response_run = self.__run_job__(job, entity)
+        node = args.get('node')
+        response_run = self.__run_job__(job, node)
         if response_run.ok:
             data = json.loads(response_run.text)
             exid = str(data["id"])
@@ -105,12 +105,12 @@ class RundeckJobs(tornado.web.RequestHandler):
         api_job_output = config.get('rundeck', 'api_job_output').format(execution)
         return requests.get(api_job_output, headers={'Authorization': config.get('rundeck', 'api_authorization')}, verify=False)
             
-    def __run_job__(self, job, entity):
+    def __run_job__(self, job, node):
         """Executes a new Rundeck job and returns the output"""
         jobid = config.get('rundeck-jobs', job)
         if jobid:
             run_job_url = config.get('rundeck', 'api_run_job').format(jobid)
-            return requests.post(run_job_url, headers={'Authorization': config.get('rundeck', 'api_authorization')}, verify=False, data = {'filter':'name: ' + entity})
+            return requests.post(run_job_url, headers={'Authorization': config.get('rundeck', 'api_authorization')}, verify=False, data = {'filter':'name: ' + node})
         
         
         

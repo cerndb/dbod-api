@@ -29,10 +29,10 @@ handlers = [
     (r"/", DocHandler),
     (r"/api/v1/instance/([^/]+)", Instance),
     (r"/api/v1/host/aliases/([^/]+)", HostAliases),
-    (r"/api/v1/entity/alias/([^/]*)", FunctionalAliasHandler),
+    (r"/api/v1/instance/alias/([^/]*)", FunctionalAliasHandler),
     (r"/api/v1/metadata/(?P<class>[^\/]+)/?(?P<name>[^\/]+)?", Metadata),
     (r"/api/v1/rundeck/resources.xml", RundeckResources),
-    (r"/api/v1/rundeck/job/(?P<job>[^\/]+)/?(?P<entity>[^\/]+)?", RundeckJobs),
+    (r"/api/v1/rundeck/job/(?P<job>[^\/]+)/?(?P<node>[^\/]+)?", RundeckJobs),
     ]
 
 class Application():
