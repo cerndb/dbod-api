@@ -10,13 +10,18 @@
 
 import ConfigParser
 import sys, traceback
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-c", "--config", default="/etc/dbod/api.cfg", help="specify the location of the config file")
+args, unk = parser.parse_known_args()
 
 config = None
 
 try:
     # Load configuration from file
     config = ConfigParser.ConfigParser()
-    config.read('/etc/dbod/api.cfg')
+    config.read(args.config)
 except IOError as e:
     traceback.print_exc(file=sys.stdout)
     sys.exit(e.code)

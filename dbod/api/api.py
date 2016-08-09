@@ -45,7 +45,7 @@ class Application():
         # Port and arguments
         port = config.get('server', 'port')
         define('port', default=port, help='Port to be used')
-        parse_command_line()
+        parse_command_line([])
         
         # Defining handlers
         logging.info("Defining application (url, handler) pairs")
