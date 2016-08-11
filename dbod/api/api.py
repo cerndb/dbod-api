@@ -20,7 +20,7 @@ from tornado.ioloop import IOLoop
 from dbod.api.base import DocHandler
 from dbod.api.rundeck import RundeckResources, RundeckJobs
 from dbod.api.metadata import Metadata
-from dbod.api.functionalalias import FunctionalAliasHandler
+from dbod.api.functionalalias import FunctionalAlias
 from dbod.api.hostaliases import HostAliases
 from dbod.api.instance import Instance
 from dbod.config import config
@@ -29,7 +29,7 @@ handlers = [
     (r"/", DocHandler),
     (r"/api/v1/instance/([^/]+)", Instance),
     (r"/api/v1/host/aliases/([^/]+)", HostAliases),
-    (r"/api/v1/instance/alias/([^/]*)", FunctionalAliasHandler),
+    (r"/api/v1/instance/alias/([^/]*)", FunctionalAlias),
     (r"/api/v1/metadata/(?P<class>[^\/]+)/?(?P<name>[^\/]+)?", Metadata),
     (r"/api/v1/rundeck/resources.xml", RundeckResources),
     (r"/api/v1/rundeck/job/(?P<job>[^\/]+)/?(?P<node>[^\/]+)?", RundeckJobs),
