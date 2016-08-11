@@ -9,7 +9,7 @@
 # or submit itself to any jurisdiction.
 
 """
-REST API Server for the DB On Demand System
+Metadata module, which includes all the classes related with metadata endpoints.
 """
 
 import tornado.web
@@ -20,9 +20,10 @@ from dbod.api.base import *
 from dbod.config import config
 
 class Metadata(tornado.web.RequestHandler):
+    """The handler of /metadata/<class>/<name>"""
     def get(self, **args):
+        """Returns the metadata of a host or an instance"""
         self.set_header("Content-Type", 'application/json')
-        """Returns instance metadata"""
         url = config.get('postgrest', 'metadata_url')
         name = args.get('name')
         etype = args.get('class')

@@ -8,6 +8,10 @@
 # granted to it by virtue of its status as Intergovernmental Organization
 # or submit itself to any jurisdiction.
 
+"""
+Configuration module, which reads and parses the configuration file.
+"""
+
 import ConfigParser
 import sys, traceback
 import argparse

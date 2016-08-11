@@ -9,7 +9,7 @@
 # or submit itself to any jurisdiction.
 
 """
-REST API Server for the DB On Demand System
+Rundeck module, which includes the rundeck classes and endpoints.
 """
 
 import tornado.web
@@ -22,8 +22,9 @@ from dbod.api.base import *
 from dbod.config import config
 
 class RundeckResources(tornado.web.RequestHandler):
+    """The class of /rundeck/resources.xml"""
     def get(self):
-        """Returns an valid resources.xml file to import target entities in 
+        """Returns a valid resources.xml file to import target entities in 
             Rundeck"""
         url = config.get('postgrest', 'rundeck_resources_url')
         if url:
@@ -57,6 +58,8 @@ class RundeckResources(tornado.web.RequestHandler):
             logging.error("Internal Rundeck resources endpoint not configured")
             
 class RundeckJobs(tornado.web.RequestHandler):
+    """Class to manage the endpoints used to execute and visualize jobs execution in Rundeck
+       /rundeck/jobs/<job>/<node>"""
     def get(self, **args):
         """Returns the output of a job execution"""
         job = args.get('job')

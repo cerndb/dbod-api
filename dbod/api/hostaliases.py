@@ -9,7 +9,7 @@
 # or submit itself to any jurisdiction.
 
 """
-REST API Server for the DB On Demand System
+Host Aliases module
 """
 
 import tornado.web
@@ -20,8 +20,9 @@ from dbod.api.base import *
 from dbod.config import config
 
 class HostAliases(tornado.web.RequestHandler):
+    """The handler of /host/aliases/<host>"""
     def get(self, host):
-        """list of ip-aliases registered in a host"""
+        """Returns the list of ip-aliases registered in a host"""
         url = config.get('postgrest', 'host_aliases_url')
         if url:
             composed_url = url + '?host=eq.' + host

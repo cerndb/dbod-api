@@ -9,7 +9,7 @@
 # or submit itself to any jurisdiction.
 
 """
-REST API Server for the DB On Demand System
+Functional alias module
 """
 
 import logging
@@ -23,13 +23,11 @@ from dbod.api.base import NOT_FOUND, BAD_REQUEST
 from dbod.config import config
 
 class FunctionalAlias(tornado.web.RequestHandler):
-    """The handler for the instance/alias/<endpoint>"""
+    """The handler of /instance/alias/<instance>"""
     url = config.get('postgrest', 'functional_alias_url')
 
     def get(self, db_name, *args):
         """Returns db_name's alias and dns name"""
-        #self.set_header('Content-Type', 'application/json')
-        
         logging.debug(args)
         logging.debug('Arguments:' + str(self.request.arguments))
         composed_url = self.url + '?db_name=eq.' + db_name + '&select=dns_name,alias'

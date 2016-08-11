@@ -8,6 +8,10 @@
 # granted to it by virtue of its status as Intergovernmental Organization
 # or submit itself to any jurisdiction.
 
+"""
+Main module to initialize the Tornado Server and endpoints
+"""
+
 import ConfigParser
 import sys, traceback
 import tornado.web

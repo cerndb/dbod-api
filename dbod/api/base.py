@@ -9,7 +9,7 @@
 # or submit itself to any jurisdiction.
 
 """
-REST API Server for the DB On Demand System
+Base module with common methods and classes used by another endpoints.
 """
 
 import tornado.web
@@ -71,7 +71,7 @@ def http_basic_auth(fun):
     return wrapper
     
 class DocHandler(tornado.web.RequestHandler):
-    """Generates the API endpoint documentation"""
+    """Shows the list of endpoints available in the API"""
     def get(self):
         logging.info("Generating API endpoints doc")
         response = """Please use :
