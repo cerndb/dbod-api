@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-'''Testing functional alias endpoint'''
+"""Testing functional alias endpoint"""
 # -*- coding: utf-8 -*-
 
 # Copyright (C) 2015, CERN
@@ -21,7 +21,7 @@ import requests
 from dbod.api.api import handlers
 
 class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
-    '''Class for testing functional alias with nosetest'''
+    """Class for testing functional alias with nosetest"""
     #headers = {'Content-Type': 'application/x-www-form-urlencoded', 
     #           'Prefer': 'return=representation',
     #           'Accept': 'text/json'}
@@ -34,7 +34,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
 
     @timeout(5)
     def test_get_single_alias_by_name(self):
-        '''test for getting the right data'''
+        """test for getting the right data"""
         print 'test_get_single_alias_by_name'
         db_name = 'dbod_01'
         response = self.fetch("/api/v1/instance/alias/%s" %(db_name))
@@ -48,7 +48,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
 
     @timeout(5)
     def test_get_invalid_dbname(self):
-        '''test when the db_name does not exist'''
+        """test when the db_name does not exist"""
         print 'test_get_invalid_dbname'
         response = self.fetch("/api/v1/instance/alias/%s" %(self.db_name_test))
         data = response.body
@@ -59,7 +59,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
     @timeout(5)
     @patch('dbod.api.functionalalias.requests.get')
     def test_get_bad_response(self, mock_get):
-        '''test when the get response code is not 200. Server/api error'''
+        """test when the get response code is not 200. Server/api error"""
         print 'test_get_bad_response'
         status_code_test = 503
         mock_get.return_value = MagicMock(spec=requests.models.Response, 
@@ -72,7 +72,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
 
     @timeout(5)
     def test_novalid_db(self):
-        '''test when the given db does not exist'''
+        """test when the given db does not exist"""
         print 'test_novalid_db'
         response = self.fetch("/api/v1/instance/alias/some_db")
         self.assertEquals(response.code, 404)
@@ -80,7 +80,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
 
     @timeout(5)
     def test_post_valid_request(self):
-        '''test when the arguments are valid and dns_name is available'''
+        """test when the arguments are valid and dns_name is available"""
         print 'test_post_valid_request'
         body = 'functional_alias={"%s": "%s"}' %(self.db_name_test, self.alias_test)
         response = self.fetch("/api/v1/instance/alias/", 
@@ -99,7 +99,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
 
     @timeout(5)
     def test_post_duplicate(self):
-        '''test when there is a request to insert a db_name which already exists'''
+        """test when there is a request to insert a db_name which already exists"""
         print 'test_post_duplicate'
         body = 'functional_alias={"dbod_01": "dbod-dbod-01.cern.ch"}'
         response = self.fetch("/api/v1/instance/alias/", 
@@ -109,7 +109,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
 
     @timeout(5)
     def test_post_no_dns(self):
-        '''test when there are no any dns available'''
+        """test when there are no any dns available"""
         print 'test_post_no_dns'
         body = 'functional_alias={"%s": "%s"}' %(self.db_name_test, self.alias_test)
         self.fetch("/api/v1/instance/alias/", 
@@ -126,7 +126,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
 
     @timeout(5)
     def test_post_no_valid_argument(self):
-        '''test if the provided argument is valid'''
+        """test if the provided argument is valid"""
         print 'test_post_no_valid_argument'
         body = 'something={"%s": "%s"}' %(self.db_name_test, self.alias_test)
         response = self.fetch("/api/v1/instance/alias/", 
@@ -136,7 +136,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
 
     @timeout(5)
     def test_post_bad_argument(self):
-        '''test if the provided argument is valid'''
+        """test if the provided argument is valid"""
         print 'test_post_bad_argument'
         body = 'functional_alias={%s: %s}' %(self.db_name_test, self.alias_test)
         response = self.fetch("/api/v1/instance/alias/", 
@@ -147,7 +147,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
     @timeout(5)
     @patch('dbod.api.functionalalias.requests.get')
     def test_post_nextdns_failure(self, mock_get):
-        '''test when there is a server error when getting an available dns_name'''
+        """test when there is a server error when getting an available dns_name"""
         status_code_test = 503
         mock_get.return_value = MagicMock(spec=requests.models.Response, 
                                           ok=False,
@@ -165,7 +165,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
 
     @timeout(5)
     def test_delete_valid_request(self):
-        '''test when there is a valid request to delete a previous inserted db_name'''
+        """test when there is a valid request to delete a previous inserted db_name"""
         print 'test_delete_valid_request'
         # create entity to be deleted
         body = 'functional_alias={"%s": "%s"}' %(self.db_name_test, self.alias_test)
@@ -178,7 +178,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
 
 
     def test_delete_invalid_dbname(self):
-        '''test when the given db_name to be deleted does not exist'''
+        """test when the given db_name to be deleted does not exist"""
         print 'test_delete_invalid_dbname'
         response = self.fetch("/api/v1/instance/alias/%s" %(self.db_name_test), 
                               method="DELETE")
@@ -187,7 +187,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
     @timeout(5)
     @patch('dbod.api.functionalalias.requests.get')
     def test_delete_getdns_failure(self, mock_get):
-        '''test an unsuccessful get of the dns_name'''
+        """test an unsuccessful get of the dns_name"""
         print 'test_delete_getdns_failure'
         status_code_test = 503
         mock_get.return_value = MagicMock(spec=requests.models.Response,
@@ -201,7 +201,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
     @timeout(5)
     @patch('dbod.api.functionalalias.requests.patch')
     def test_delete_nosuccess_delete(self, mock_get):
-        '''test an unsuccessful deletion'''
+        """test an unsuccessful deletion"""
         print 'test_delete_nosuccess_delete'
         status_code_test = 503
         mock_get.return_value = MagicMock(spec=requests.models.Response,
