@@ -15,7 +15,7 @@ Modules
    dbod.api
    dbod.api.api
    dbod.api.base
-   dbod.api.entity
+   dbod.api.instance
    dbod.api.functionalalias
    dbod.api.hostaliases
    dbod.api.metadata
