@@ -8,7 +8,8 @@ addons:
 services:
     - postgresql
 before_install:
-    - sudo [ $(ip addr show | grep "inet6 ::1" | wc -l) -lt "1" ] && sudo sed -i '/^::1/d' /etc/hosts && sudo sed -i '/^127.0.1.1/d' /etc/hosts
+    # Remove IPv6 entry via https://github.com/travis-ci/travis-ci/issues/4978
+    - sudo sed -i '/^::1/d' /etc/hosts && sudo sed -i '/^127.0.1.1/d' /etc/hosts && sudo sed -i '/^fe80::4001:aff:fef0:2b/d' /etc/hosts
     - sudo mkdir /etc/dbod
     - sudo mkdir /var/log/dbod
     - sudo chown travis /var/log/dbod
