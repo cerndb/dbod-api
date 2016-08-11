@@ -23,11 +23,11 @@ from dbod.api.base import NOT_FOUND, BAD_REQUEST
 from dbod.config import config
 
 class FunctionalAlias(tornado.web.RequestHandler):
-    '''The handler for the instance/alias/<endpoint>'''
+    """The handler for the instance/alias/<endpoint>"""
     url = config.get('postgrest', 'functional_alias_url')
 
     def get(self, db_name, *args):
-        '''Returns db_name's alias and dns name'''
+        """Returns db_name's alias and dns name"""
         #self.set_header('Content-Type', 'application/json')
         
         logging.debug(args)
@@ -49,11 +49,11 @@ class FunctionalAlias(tornado.web.RequestHandler):
 
 
     def post(self, *args):
-        '''Updates a row with db_name and the alias. The dns_name is already there.'''
+        """Updates a row with db_name and the alias. The dns_name is already there."""
 
         def next_dnsname():
-            '''Returns the next dnsname which can be used for a newly created
-        instance, if any'''
+            """Returns the next dnsname which can be used for a newly created
+        instance, if any"""
             
             #self.set_header('Content-Type', 'application/json')
             #LIMIT is not working in postgrest but it uses some headers for that as well
@@ -123,12 +123,12 @@ class FunctionalAlias(tornado.web.RequestHandler):
             raise tornado.web.HTTPError(BAD_REQUEST)
 
     def delete(self, db_name, *args):
-        '''Deletes or else asssigns to NULL the db_name and alias fields.'''
-        """Removes the functional alias association for an instance.
+        """Deletes or else asssigns to NULL the db_name and alias fields
+           Removes the functional alias association for an instance.
            If the functional alias doesn't exist it doesn't do anything"""
 
         def get_dns(db_name):
-            '''Get the dns_name given the db_name'''
+            """Get the dns_name given the db_name"""
             composed_url = self.url + '?db_name=eq.' + db_name + '&select=dns_name'
             response = requests.get(composed_url)
             if response.ok:
