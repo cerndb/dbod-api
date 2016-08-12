@@ -308,10 +308,24 @@ BEGIN
   ELSIF type = 'PG' THEN
     RETURN QUERY SELECT 
       ('/usr/local/pgsql/pgsql-' || version)::VARCHAR basedir, 
-      ('/usr/local/mysql/mysql-' || version || '/bin')::VARCHAR bindir, 
+      ('/usr/local/pgsql/pgsql-' || version || '/bin')::VARCHAR bindir, 
       ('/ORA/dbs03/' || upper(inst_name) || '/data')::VARCHAR datadir, 
       ('/ORA/dbs02/' || upper(inst_name) || '/pg_xlog')::VARCHAR logdir, 
       ('/var/lib/pgsql/')::VARCHAR socket;
+  ELSIF type = 'InfluxDB' THEN
+    RETURN QUERY SELECT 
+      ('/usr/local/influxdb/influxdb-' || version)::VARCHAR basedir, 
+      ('/usr/local/influxdb/influxdb-' || version || '/bin')::VARCHAR bindir, 
+      ('/ORA/dbs03/' || upper(inst_name) || '/data')::VARCHAR datadir, 
+      ('/ORA/dbs02/' || upper(inst_name) || '/pg_xlog')::VARCHAR logdir, 
+      ('/tmp')::VARCHAR socket;
+  ELSE
+    RETURN QUERY SELECT 
+      ('/#BASEDIR#/' || version)::VARCHAR basedir, 
+      ('/#BASEDIR#/' || version || '/bin')::VARCHAR bindir, 
+      ('/ORA/dbs03/' || upper(inst_name) || '/data')::VARCHAR datadir, 
+      ('/ORA/dbs02/' || upper(inst_name) || '/pg_xlog')::VARCHAR logdir, 
+      ('/tmp')::VARCHAR socket;
   END IF;
 END
 $$ LANGUAGE plpgsql;
