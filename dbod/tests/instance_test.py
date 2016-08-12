@@ -12,6 +12,7 @@ import tornado.web
 import json
 import urllib
 import logging
+import base64
 
 from tornado.testing import AsyncHTTPTestCase
 from tornado.testing import get_unused_port
@@ -23,13 +24,15 @@ logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 class InstanceTest(AsyncHTTPTestCase):
     """Class to test instances endpoint"""
+    authentication = "basic " + base64.b64encode(config.get('api','user') + ":" + config.get('api','pass'))
+    
     def get_app(self):
         return tornado.web.Application(handlers, debug=True)
 
     @timeout(5)
     def test_create_instance(self):
         """Creation of a new instance in a correct way"""
-        response = self.fetch("/api/v1/instance/testdb", method='DELETE')
+        response = self.fetch("/api/v1/instance/testdb", method='DELETE', headers={'Authorization': self.authentication})
         
         instance = """{
         "username": "testuser", "category": "TEST", "creation_date":"2016-07-20", 
@@ -42,7 +45,7 @@ class InstanceTest(AsyncHTTPTestCase):
         ]}"""
         
         # Create the instance
-        response = self.fetch("/api/v1/instance/create", method='POST', body=instance)
+        response = self.fetch("/api/v1/instance/create", method='POST', headers={'Authorization': self.authentication}, body=instance)
         self.assertEquals(response.code, 201)
         
         # Check the metadata for this new instance
@@ -54,7 +57,7 @@ class InstanceTest(AsyncHTTPTestCase):
         self.assertEquals(data[0]["port"], "5505")  # Reminder: the port is saved as a String in DB
         
         # Delete the created instance
-        response = self.fetch("/api/v1/instance/testdb", method='DELETE')
+        response = self.fetch("/api/v1/instance/testdb", method='DELETE', headers={'Authorization': self.authentication})
         self.assertEquals(response.code, 204)
         
         # Check again, the metadata should be empty
@@ -75,7 +78,7 @@ class InstanceTest(AsyncHTTPTestCase):
         ]}"""
         
         # Create the instance
-        response = self.fetch("/api/v1/instance/create", method='POST', body=instance)
+        response = self.fetch("/api/v1/instance/create", method='POST', headers={'Authorization': self.authentication}, body=instance)
         self.assertEquals(response.code, 409)
     
     @timeout(5)
@@ -92,7 +95,7 @@ class InstanceTest(AsyncHTTPTestCase):
         ]}"""
         
         # Create the instance
-        response = self.fetch("/api/v1/instance/create", method='POST', body=instance)
+        response = self.fetch("/api/v1/instance/create", method='POST', headers={'Authorization': self.authentication}, body=instance)
         self.assertEquals(response.code, 400)
         
     @timeout(5)
@@ -109,7 +112,7 @@ class InstanceTest(AsyncHTTPTestCase):
         ]}"""
         
         # Create the instance
-        response = self.fetch("/api/v1/instance/create", method='POST', body=instance)
+        response = self.fetch("/api/v1/instance/create", method='POST', headers={'Authorization': self.authentication}, body=instance)
         self.assertEquals(response.code, 400)
     
     @timeout(5)
@@ -120,7 +123,7 @@ class InstanceTest(AsyncHTTPTestCase):
         "version": "5.6.17", "db_type": "MYSQL", "port": "5505", "host": "testhost", "db_name": "very_long_name"}"""
         
         # Create the instance
-        response = self.fetch("/api/v1/instance/create", method='POST', body=instance)
+        response = self.fetch("/api/v1/instance/create", method='POST', headers={'Authorization': self.authentication}, body=instance)
         self.assertEquals(response.code, 400)
         
     @timeout(5)
@@ -130,7 +133,7 @@ class InstanceTest(AsyncHTTPTestCase):
         restore = """{"username": "user01"}"""
         
         # Edit the instance
-        response = self.fetch("/api/v1/instance/dbod01", method='PUT', body=instance)
+        response = self.fetch("/api/v1/instance/dbod01", method='PUT', headers={'Authorization': self.authentication}, body=instance)
         self.assertEquals(response.code, 204)
         
         # Check the metadata for this instance
@@ -140,7 +143,7 @@ class InstanceTest(AsyncHTTPTestCase):
         self.assertEquals(data[0]["username"], "newuser")
         
         # Restore the instance
-        response = self.fetch("/api/v1/instance/dbod01", method='PUT', body=restore)
+        response = self.fetch("/api/v1/instance/dbod01", method='PUT', headers={'Authorization': self.authentication}, body=restore)
         self.assertEquals(response.code, 204)
         
     @timeout(5)
@@ -150,7 +153,7 @@ class InstanceTest(AsyncHTTPTestCase):
         restore = """{"db_name": "dbod01"}"""
         
         # Edit the instance
-        response = self.fetch("/api/v1/instance/dbod01", method='PUT', body=instance)
+        response = self.fetch("/api/v1/instance/dbod01", method='PUT', headers={'Authorization': self.authentication}, body=instance)
         self.assertEquals(response.code, 204)
         
         # Check the metadata for this instance
@@ -160,7 +163,7 @@ class InstanceTest(AsyncHTTPTestCase):
         self.assertEquals(data[0]["db_name"], "newdb01")
         
         # Restore the instance
-        response = self.fetch("/api/v1/instance/newdb01", method='PUT', body=restore)
+        response = self.fetch("/api/v1/instance/newdb01", method='PUT', headers={'Authorization': self.authentication}, body=restore)
         self.assertEquals(response.code, 204)
         
     @timeout(5)
@@ -170,7 +173,7 @@ class InstanceTest(AsyncHTTPTestCase):
         restore = """{"port": "5501"}"""
         
         # Edit the instance
-        response = self.fetch("/api/v1/instance/dbod01", method='PUT', body=instance)
+        response = self.fetch("/api/v1/instance/dbod01", method='PUT', headers={'Authorization': self.authentication}, body=instance)
         self.assertEquals(response.code, 204)
         
         # Check the metadata for this instance
@@ -180,7 +183,7 @@ class InstanceTest(AsyncHTTPTestCase):
         self.assertEquals(data[0]["port"], "3005")
         
         # Restore the instance
-        response = self.fetch("/api/v1/instance/dbod01", method='PUT', body=restore)
+        response = self.fetch("/api/v1/instance/dbod01", method='PUT', headers={'Authorization': self.authentication}, body=restore)
         self.assertEquals(response.code, 204)
         
     @timeout(5)
@@ -190,7 +193,7 @@ class InstanceTest(AsyncHTTPTestCase):
         restore = """{"port": "5501", "host": "host01"}"""
 
         # Edit the instance
-        response = self.fetch("/api/v1/instance/dbod01", method='PUT', body=instance)
+        response = self.fetch("/api/v1/instance/dbod01", method='PUT', headers={'Authorization': self.authentication}, body=instance)
         self.assertEquals(response.code, 204)
         
         # Check the metadata for this instance
@@ -201,7 +204,7 @@ class InstanceTest(AsyncHTTPTestCase):
         self.assertEquals(data[0]["host"], "newhost")
         
         # Restore the instance
-        response = self.fetch("/api/v1/instance/dbod01", method='PUT', body=restore)
+        response = self.fetch("/api/v1/instance/dbod01", method='PUT', headers={'Authorization': self.authentication}, body=restore)
         self.assertEquals(response.code, 204)
         
     @timeout(5)
@@ -223,7 +226,7 @@ class InstanceTest(AsyncHTTPTestCase):
         ]}"""
         
         # Edit the instance
-        response = self.fetch("/api/v1/instance/dbod01", method='PUT', body=instance)
+        response = self.fetch("/api/v1/instance/dbod01", method='PUT', headers={'Authorization': self.authentication}, body=instance)
         self.assertEquals(response.code, 204)
         
         # Check the metadata for this instance
@@ -237,7 +240,7 @@ class InstanceTest(AsyncHTTPTestCase):
         self.assertEquals(data[0]["volumes"][1]["mounting_path"], "/MNT/test")
         
         # Restore the instance
-        response = self.fetch("/api/v1/instance/dbod01", method='PUT', body=restore)
+        response = self.fetch("/api/v1/instance/dbod01", method='PUT', headers={'Authorization': self.authentication}, body=restore)
         self.assertEquals(response.code, 204)
         
         

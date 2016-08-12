@@ -75,6 +75,7 @@ class RundeckJobs(tornado.web.RequestHandler):
             logging.error("Error reading job from Rundeck: " + response.text)
             raise tornado.web.HTTPError(response.status_code)
 
+    @http_basic_auth
     def post(self, **args):
         """Executes a new Rundeck job and returns the output"""
         job = args.get('job')

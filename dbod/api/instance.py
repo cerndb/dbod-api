@@ -57,7 +57,8 @@ class Instance(tornado.web.RequestHandler):
         response = requests.post(config.get('postgrest', 'instance_url'), json=instance, headers={'Prefer': 'return=representation'})
         if response.ok:
             entid = json.loads(response.text)["id"]
-            logging.debug("Created instance with id: " + str(entid))
+            logging.info("Created instance " + instance["db_name"])
+            logging.debug(response.text)
         
             # Add instance id to volumes
             for volume in volumes:
@@ -66,8 +67,13 @@ class Instance(tornado.web.RequestHandler):
             # Insert the volumes in database using PostREST
             response = requests.post(config.get('postgrest', 'volume_url'), json=volumes)
             if response.ok:
-                response = requests.post(config.get('postgrest', 'attribute_url'), json={'instance_id': entid, 'name': 'port', 'value': port})
+                logging.info("Volumes created")
+                logging.debug(json.dumps(volumes))
+                attribute = {'instance_id': entid, 'name': 'port', 'value': port}
+                response = requests.post(config.get('postgrest', 'attribute_url'), json=attribute)
                 if response.ok:
+                    logging.info("Added port to attributes")
+                    logging.debug(json.dumps(attribute))
                     self.set_status(CREATED)
                 else:
                     logging.error("Error inserting the port attribute: " + response.text)

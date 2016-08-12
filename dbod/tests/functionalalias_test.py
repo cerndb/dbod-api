@@ -11,14 +11,17 @@
 
 import json
 import unittest
-from timeout_decorator import timeout
+import requests
 import tornado.web
+import base64
 
 from mock import patch
 from mock import MagicMock
 from tornado.testing import AsyncHTTPTestCase
-import requests
+from timeout_decorator import timeout
+
 from dbod.api.api import handlers
+from dbod.config import config
 
 class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
     """Class for testing functional alias with nosetest"""
@@ -27,6 +30,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
     #           'Accept': 'text/json'}
     db_name_test = "dbod_42"
     alias_test = "dbod-dbod-42.cern.ch"
+    authentication = "basic " + base64.b64encode(config.get('api','user') + ":" + config.get('api','pass'))
 
     def get_app(self):
         return tornado.web.Application(handlers)
@@ -79,6 +83,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
         body = 'functional_alias={"%s": "%s"}' %(self.db_name_test, self.alias_test)
         response = self.fetch("/api/v1/instance/alias/", 
                               method="POST", 
+                              headers={'Authorization': self.authentication},
                               body=body)  
         self.assertEquals(response.code, 200)
         # confirm you get back the right data
@@ -97,6 +102,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
         body = 'functional_alias={"dbod_01": "dbod-dbod-01.cern.ch"}'
         response = self.fetch("/api/v1/instance/alias/", 
                               method="POST", 
+                              headers={'Authorization': self.authentication},
                               body=body)
         self.assertEquals(response.code, 409)    
 
@@ -106,14 +112,17 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
         body = 'functional_alias={"%s": "%s"}' %(self.db_name_test, self.alias_test)
         self.fetch("/api/v1/instance/alias/", 
                    method="POST", 
+                   headers={'Authorization': self.authentication},
                    body=body)
         body = 'functional_alias={"%s": "%s"}' %(self.db_name_test, self.alias_test)
         response = self.fetch("/api/v1/instance/alias/", 
                               method="POST", 
+                              headers={'Authorization': self.authentication},
                               body=body)
         self.assertEquals(response.code, 400)
         # delete what has been created
         self.fetch("/api/v1/instance/alias/%s" %(self.db_name_test), 
+                   headers={'Authorization': self.authentication},
                    method="DELETE")
 
     @timeout(5)
@@ -122,6 +131,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
         body = 'something={"%s": "%s"}' %(self.db_name_test, self.alias_test)
         response = self.fetch("/api/v1/instance/alias/", 
                               method="POST", 
+                              headers={'Authorization': self.authentication},
                               body=body)
         self.assertEquals(response.code, 404)
 
@@ -131,6 +141,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
         body = 'functional_alias={%s: %s}' %(self.db_name_test, self.alias_test)
         response = self.fetch("/api/v1/instance/alias/", 
                               method="POST", 
+                              headers={'Authorization': self.authentication},
                               body=body)
         self.assertEquals(response.code, 404)
     
@@ -146,11 +157,13 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
         body = 'functional_alias={"%s": "%s"}' %(self.db_name_test, self.alias_test)
         response = self.fetch("/api/v1/instance/alias/", 
                               method="POST", 
+                              headers={'Authorization': self.authentication},
                               body=body)  
         # tornado will still raise a Bad Request -- to be improved 
         self.assertEquals(response.code, 400)
         # delete what has maybe been created
         self.fetch("/api/v1/instance/alias/%s" %(self.db_name_test), 
+                   headers={'Authorization': self.authentication},
                    method="DELETE")   
 
     @timeout(5)
@@ -160,8 +173,10 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
         body = 'functional_alias={"%s": "%s"}' %(self.db_name_test, self.alias_test)
         response = self.fetch("/api/v1/instance/alias/", 
                               method="POST", 
+                              headers={'Authorization': self.authentication},
                               body=body)
         response = self.fetch("/api/v1/instance/alias/%s" %(self.db_name_test), 
+                              headers={'Authorization': self.authentication},
                               method="DELETE")
         self.assertEquals(response.code, 200)
 
@@ -169,6 +184,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
     def test_delete_invalid_dbname(self):
         """test when the given db_name to be deleted does not exist"""
         response = self.fetch("/api/v1/instance/alias/%s" %(self.db_name_test), 
+                              headers={'Authorization': self.authentication},
                               method="DELETE")
         self.assertEquals(response.code, 400)
 
@@ -181,6 +197,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
                                           ok=False,
                                           status_code=status_code_test)
         response = self.fetch("/api/v1/instance/alias/%s" %('dbod_01'),
+                              headers={'Authorization': self.authentication},
                               method="DELETE")
         # tornado will still give Bad Request error message -- to be improved
         self.assertEquals(response.code, 400)
@@ -194,6 +211,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
                                           ok=False,
                                           status_code=status_code_test) 
         response = self.fetch("/api/v1/instance/alias/%s" %('dbod_01'),
+                              headers={'Authorization': self.authentication},
                               method="DELETE")
         self.assertEquals(response.code, status_code_test)
 

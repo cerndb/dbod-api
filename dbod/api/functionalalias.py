@@ -19,7 +19,7 @@ from sys import exc_info
 import requests
 import tornado.web
 import tornado.escape
-from dbod.api.base import NOT_FOUND, BAD_REQUEST 
+from dbod.api.base import *
 from dbod.config import config
 
 class FunctionalAlias(tornado.web.RequestHandler):
@@ -43,6 +43,7 @@ class FunctionalAlias(tornado.web.RequestHandler):
             logging.error("Error fetching functional alias: " + response.text)
             raise tornado.web.HTTPError(response.status_code)
 
+    @http_basic_auth
     def post(self, *args):
         """Updates a row with db_name and the alias. The dns_name is already there."""
 
@@ -107,6 +108,7 @@ class FunctionalAlias(tornado.web.RequestHandler):
             logging.error("No dns_name available in the functional_aliases table")
             raise tornado.web.HTTPError(BAD_REQUEST)
 
+    @http_basic_auth
     def delete(self, db_name, *args):
         """Deletes or else asssigns to NULL the db_name and alias fields
            Removes the functional alias association for an instance.
