@@ -28,23 +28,20 @@ class FunctionalAlias(tornado.web.RequestHandler):
 
     def get(self, db_name, *args):
         """Returns db_name's alias and dns name"""
-        logging.debug(args)
         logging.debug('Arguments:' + str(self.request.arguments))
         composed_url = self.url + '?db_name=eq.' + db_name + '&select=dns_name,alias'
-        logging.debug('Requesting ' + composed_url)
+        logging.info('Requesting ' + composed_url)
         response = requests.get(composed_url)
-        if response.ok:
-            data = response.json()
-            if data:
-                self.write({'response' : data})
-                self.set_status(response.status_code)
-            else:
-                logging.error("Functional alias not found")
-                raise tornado.web.HTTPError(NOT_FOUND)
+        data = response.json()
+        if response.ok and data:
+            logging.debug("response: " + json.dumps(data))
+            self.write({'response' : data})
+        elif response.ok:
+            logging.warning("Functional alias not found for instance: " + db_name)
+            raise tornado.web.HTTPError(NOT_FOUND)
         else:
-            logging.error("Error fetching functional alias of: " + db_name)
+            logging.error("Error fetching functional alias: " + response.text)
             raise tornado.web.HTTPError(response.status_code)
-
 
     def post(self, *args):
         """Updates a row with db_name and the alias. The dns_name is already there."""
@@ -52,8 +49,6 @@ class FunctionalAlias(tornado.web.RequestHandler):
         def next_dnsname():
             """Returns the next dnsname which can be used for a newly created
         instance, if any"""
-            
-            #self.set_header('Content-Type', 'application/json')
             #LIMIT is not working in postgrest but it uses some headers for that as well
             headers = {'Range-Unit': 'items', 'Range': '0-0'}
             # select the next available dns_name with db_name and alias assigned to NULL
@@ -71,10 +66,7 @@ class FunctionalAlias(tornado.web.RequestHandler):
                 error_msg = exc_info()[0]
                 logging.error(error_msg)
                 return None
-            
 
-        self.set_header('Prefer', 'return=representation')
-        logging.debug(args)
         logging.debug('Arguments:' + str(self.request.arguments))
         try:
             functional_alias = json.loads(self.get_argument('functional_alias'))
@@ -104,16 +96,11 @@ class FunctionalAlias(tornado.web.RequestHandler):
             response = requests.patch(composed_url, json=insert_data, headers=headers)
         
             if response.ok:
-                data = response.json()
-                #if data:
-                logging.info('Success. Data inserted in the functional_aliases table:')
-                logging.info(data)
-                self.set_status(response.status_code)
-                #else:
-                #    logging.error("Empty data")
-                #    raise tornado.web.HTTPError(response.status_code)  
+                logging.info('Data inserted in the functional_aliases table')
+                logging.debug(response.text)
+                self.set_status(response.status_code) 
             else:
-                logging.error("Unsuccessful insertion")
+                logging.error("Error inserting the functional alias: " + response.text)
                 self.set_status(response.status_code)
                     
         else:
@@ -138,7 +125,6 @@ class FunctionalAlias(tornado.web.RequestHandler):
             else: 
                 return None
 
-        logging.debug(args)
         logging.debug('Arguments:' + str(self.request.arguments))
 
         dns_name = get_dns(db_name)
@@ -152,8 +138,8 @@ class FunctionalAlias(tornado.web.RequestHandler):
             response = requests.patch(composed_url, json=json.loads(delete_data), headers=headers)
 
             if response.ok:
-                data = response.json()
-                logging.info("Delete success of: " + str(data))
+                logging.info("Delete success of: " + dns_name)
+                logging.debug(response.text)
                 self.set_status(response.status_code)
             else:
                 logging.error("Unsuccessful deletion")

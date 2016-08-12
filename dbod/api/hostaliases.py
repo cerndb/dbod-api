@@ -26,13 +26,17 @@ class HostAliases(tornado.web.RequestHandler):
         url = config.get('postgrest', 'host_aliases_url')
         if url:
             composed_url = url + '?host=eq.' + host
-            logging.debug('Requesting ' + composed_url )
+            logging.info('Requesting ' + composed_url )
             response = requests.get(composed_url)
             data = response.json()
             if response.ok and data:
+                logging.debug("response: " + response.text)
                 self.write({'response' : data})
+            elif response.ok:
+                logging.warning("Host aliases not found: " + host)
+                raise tornado.web.HTTPError(NOT_FOUND)
             else: 
-                logging.error("Error fetching aliases in host: " + host)
+                logging.error("Error fetching aliases: " + response.text)
                 raise tornado.web.HTTPError(NOT_FOUND)
         else:
             logging.error("Internal host aliases endpoint not configured")

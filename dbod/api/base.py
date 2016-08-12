@@ -26,6 +26,7 @@ NO_CONTENT = 204 # Succesfull delete
 NOT_FOUND = 404
 UNAUTHORIZED = 401
 BAD_REQUEST = 400
+BAD_GATEWAY = 502
 
 # Basic HTTP Authentication decorator
 def http_basic_auth(fun):
@@ -82,4 +83,5 @@ class DocHandler(tornado.web.RequestHandler):
             <p>http://hostname:port/api/v1/metadata/host/HOSTNAME</p>
             <p>http://hostname:port/api/v1/rundeck/resources.xml</p>
             <p>http://hostname:port/api/v1/rundeck/job/JOB/NODE</p>"""
+        self.set_header("Content-Type", 'text/html')
         self.write(response)

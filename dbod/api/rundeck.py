@@ -36,11 +36,13 @@ class RundeckResources(tornado.web.RequestHandler):
                     d[entry[u'db_name']] = entry
                 self.set_header('Content-Type', 'text/xml')
                 # Page Header
-                self.write('<?xml version="1.0" encoding="UTF-8"?>\n')
-                self.write('<project>\n')
+                logging.debug('<?xml version="1.0" encoding="UTF-8"?>')
+                self.write('<?xml version="1.0" encoding="UTF-8"?>')
+                logging.debug('<project>')
+                self.write('<project>')
                 for instance in sorted(d.keys()):
                     body = d[instance]
-                    text = ('<node name="%s" description="" hostname="%s" username="%s" type="%s" subcategory="%s" port="%s" tags="%s"/>\n' % 
+                    text = ('<node name="%s" description="" hostname="%s" username="%s" type="%s" subcategory="%s" port="%s" tags="%s"/>' % 
                             ( instance, # Name
                               body.get(u'hostname'),
                               body.get(u'username'),
@@ -49,8 +51,10 @@ class RundeckResources(tornado.web.RequestHandler):
                               body.get(u'port'), 
                               body.get(u'tags')
                               ))
+                    logging.debug(text)
                     self.write(text)
-                self.write('</project>\n')
+                logging.debug('</project>')
+                self.write('</project>')
             else: 
                 logging.error("Error fetching Rundeck resources.xml")
                 raise tornado.web.HTTPError(NOT_FOUND)
@@ -65,10 +69,10 @@ class RundeckJobs(tornado.web.RequestHandler):
         job = args.get('job')
         response = self.__get_output__(job)
         if response.ok:
-            self.set_header("Content-Type", 'application/json')
+            logging.debug("response: " + response.text)
             self.write({'response' : json.loads(response.text)})
         else:
-            logging.error("Error reading the job: " + job)
+            logging.error("Error reading job from Rundeck: " + response.text)
             raise tornado.web.HTTPError(response.status_code)
 
     def post(self, **args):
@@ -84,23 +88,22 @@ class RundeckJobs(tornado.web.RequestHandler):
                 response_output = self.__get_output__(exid)
                 if response_output.ok:
                     output = json.loads(response_output.text)
-                    logging.debug(output)
                     if output["execState"] != "running":
                         if output["execState"] == "succeeded":
-                            self.set_header("Content-Type", 'application/json')
+                            logging.debug("response: " + response_output.text)
                             self.write({'response' : json.loads(response_output.text)})
                             timeout = 0
                         else:
-                            logging.error("The job completed with errors: " + exid)
-                            raise tornado.web.HTTPError(NOT_FOUND)
+                            logging.warning("The job completed with errors: " + exid)
+                            raise tornado.web.HTTPError(BAD_GATEWAY)
                     else:
                         timeout -= 1
                         time.sleep(0.500)
                 else:
-                    logging.error("Error reading the job: " + exid)
+                    logging.error("Error reading the job from Rundeck: " + response_output.text)
                     raise tornado.web.HTTPError(response_output.status_code)
         else:
-            logging.error("Error running the job: " + jobid)
+            logging.error("Error running the job: " + response_run.text)
             raise tornado.web.HTTPError(response_run.status_code)
         
     def __get_output__(self, execution):
