@@ -31,7 +31,7 @@ class Metadata(tornado.web.RequestHandler):
             if etype == u'instance':
                 composed_url = url + '?db_name=eq.' + name
             elif etype == u'host':
-                composed_url = url + '?host=eq.' + name
+                composed_url = url + '?hosts=@>.{' + name + '}'
             else:
                 logging.error("Unsupported endpoint")
                 raise tornado.web.HTTPError(BAD_REQUEST)

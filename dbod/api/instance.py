@@ -49,6 +49,14 @@ class Instance(tornado.web.RequestHandler):
         port = instance["port"]
         del instance["port"]
         
+        # Get the hosts
+        hosts = instance["hosts"][0]
+        if len(instance["hosts"]) > 1:
+            for i in range(1, len(instance["hosts"])):
+                hosts = hosts + "," + instance["hosts"][i]
+        instance["host"] = hosts
+        del instance["hosts"]
+        
         # Get the volumes
         volumes = instance["volumes"]
         del instance["volumes"]
@@ -124,11 +132,20 @@ class Instance(tornado.web.RequestHandler):
                 raise tornado.web.HTTPError(response.status_code)
         
         if instance:
+            # Check if the hosts are changed
+            if "hosts" in instance:
+                hosts = instance["hosts"][0]
+                if len(instance["hosts"]) > 1:
+                    for i in range(1, len(instance["hosts"])):
+                        hosts = hosts + "," + instance["hosts"][i]
+                instance["host"] = hosts
+                del instance["hosts"]
+        
             response = requests.patch(config.get('postgrest', 'instance_url') + "?db_name=eq." + name, json=instance)
             if response.ok:
                 self.set_status(response.status_code)
             else:
-                logging.error("Instance not found: " + name)
+                logging.error("Error editing the instance: " + response.text)
                 raise tornado.web.HTTPError(response.status_code)
         else:
             self.set_status(NO_CONTENT)
