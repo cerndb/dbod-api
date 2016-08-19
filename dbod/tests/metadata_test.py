@@ -28,8 +28,8 @@ class MetadataTest(AsyncHTTPTestCase):
         self.assertEquals(response.code, 200)
         self.assertEquals(len(data), 1)
         self.assertEquals(data[0]["db_name"], "dbod01")
+        self.assertEquals(len(data[0]["hosts"]), 1)
         self.assertTrue(data[0]["volumes"] != None)
-        self.assertTrue(data[0]["host"] != None)
     
     @timeout(5)
     def test_no_instance_by_name(self):
@@ -43,7 +43,7 @@ class MetadataTest(AsyncHTTPTestCase):
         self.assertEquals(response.code, 200)
         self.assertEquals(len(data), 1)
         self.assertTrue(data[0]["volumes"] != None)
-        self.assertEquals(data[0]["host"], "host03")
+        self.assertEquals(data[0]["hosts"][0], "host03")
     
     @timeout(5)
     def test_multiple_instances_by_host(self):
@@ -53,7 +53,7 @@ class MetadataTest(AsyncHTTPTestCase):
         self.assertEquals(len(data), 4)
         list = []
         for i in range(4):
-            self.assertEquals(data[i]["host"], "host01")
+            self.assertEquals(data[i]["hosts"][0], "host01")
             self.assertTrue(data[i]["volumes"] != None)
             self.assertNotIn(data[i]["db_name"], list)
             list.append(data[i]["db_name"])

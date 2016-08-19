@@ -102,7 +102,7 @@ CREATE TABLE public.volume (
     instance_id integer NOT NULL,
     file_mode char(4) NOT NULL,
     owner varchar(32) NOT NULL,
-    vgroup varchar(32) NOT NULL,
+    "group" varchar(32) NOT NULL,
     server varchar(63) NOT NULL,
     mount_options varchar(256) NOT NULL,
     mounting_path varchar(256) NOT NULL,
@@ -144,7 +144,7 @@ VALUES ('user01', 'dbod01', 'testgroupA', 'TEST', now(), NULL, 'MYSQL', 100, 100
        ('user04', 'dbod05', 'testgroupC', 'TEST', now(), NULL, 'MYSQL', 300, 200, 'WEB', 'Test instance 4', '5.6.17', NULL, NULL, 'host01', 'RUNNING', 1);
        
 -- Insert test data for volumes
-INSERT INTO public.volume (instance_id, file_mode, owner, vgroup, server, mount_options, mounting_path)
+INSERT INTO public.volume (instance_id, file_mode, owner, "group", server, mount_options, mounting_path)
 VALUES (1, '0755', 'TSM', 'ownergroup', 'NAS-server', 'rw,bg,hard', '/MNT/data1'),
        (1, '0755', 'TSM', 'ownergroup', 'NAS-server', 'rw', '/MNT/bin'),
        (2, '0755', 'TSM', 'ownergroup', 'NAS-server', 'rw,bg,hard', '/MNT/data2'),
@@ -226,6 +226,20 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION public.get_attributes(inst_id INTEGER)
+RETURNS JSON AS $$
+DECLARE
+  attributes JSON;
+BEGIN
+  SELECT json_object(j.body::text[]) FROM                                                                                                                                   
+    (SELECT '{' || string_agg( buf, ',' ) || '}' body                                                                                                                         
+      FROM                                                                                                                                                                  
+      (SELECT  name::text || ', ' || value::text buf                                                                                                                        
+        FROM public.attribute                                                                                                                                                    
+        WHERE instance_id = inst_id) t) j INTO attributes;
+  return attributes;
+END
+$$ LANGUAGE plpgsql;
 
 -- Get directories function
 CREATE OR REPLACE FUNCTION get_directories(inst_name VARCHAR, type VARCHAR, version VARCHAR, port VARCHAR)
@@ -249,11 +263,37 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
        
-CREATE VIEW api.instance AS
-SELECT * FROM public.dod_instances;
+CREATE OR REPLACE VIEW api.instance AS 
+SELECT dod_instances.id,
+       dod_instances.username,
+       dod_instances.db_name,
+       dod_instances.e_group,
+       dod_instances.category "class",
+       dod_instances.creation_date,
+       dod_instances.expiry_date,
+       dod_instances.db_type,
+       dod_instances.db_size,
+       dod_instances.no_connections,
+       dod_instances.project,
+       dod_instances.description,
+       dod_instances.version,
+       dod_instances.master,
+       dod_instances.slave,
+       dod_instances.host,
+       dod_instances.state,
+       dod_instances.status
+FROM dod_instances;
 
-CREATE VIEW api.volume AS
-SELECT * FROM public.volume;
+CREATE OR REPLACE VIEW api.volume AS 
+SELECT volume.id,
+       volume.instance_id,
+       volume.file_mode,
+       volume.owner,
+       volume.group,
+       volume.server,
+       volume.mount_options,
+       volume.mounting_path
+FROM volume;
 
 CREATE VIEW api.attribute AS
 SELECT * FROM public.attribute;
@@ -263,8 +303,19 @@ SELECT * FROM public.host;
 
 -- Metadata View
 CREATE OR REPLACE VIEW api.metadata AS
-SELECT id, username, db_name, category, db_type, version, string_to_array(dod_instances.host, '') AS hosts, get_attribute('port', id) port, get_volumes volumes, d.*
-FROM dod_instances, get_volumes(id), get_directories(db_name, db_type, version, get_attribute('port', id)) d;
+SELECT 
+    id, 
+    username, 
+    db_name, 
+    category, 
+    db_type, 
+    version, 
+    string_to_array(dod_instances.host::text, ','::text) AS hosts, 
+    public.get_attributes(id) attributes,
+    public.get_attribute('port', id) port, 
+    get_volumes volumes, 
+    d.*
+FROM public.dod_instances, public.get_volumes(id), public.get_directories(db_name, db_type, version, public.get_attribute('port', id)) d;
 
 -- Rundeck instances View
 CREATE OR REPLACE VIEW api.rundeck_instances AS

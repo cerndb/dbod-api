@@ -227,7 +227,7 @@ CREATE TABLE public.volume (
     instance_id integer NOT NULL,
     file_mode char(4) NOT NULL,
     owner varchar(32) NOT NULL,
-    vgroup varchar(32) NOT NULL,
+    "group" varchar(32) NOT NULL,
     server varchar(63) NOT NULL,
     mount_options varchar(256) NOT NULL,
     mounting_path varchar(256) NOT NULL
@@ -383,7 +383,7 @@ SELECT volume.id,
        volume.instance_id,
        volume.file_mode,
        volume.owner,
-       volume.vgroup "group",
+       volume.group,
        volume.server,
        volume.mount_options,
        volume.mounting_path
