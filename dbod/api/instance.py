@@ -39,15 +39,16 @@ class Instance(tornado.web.RequestHandler):
 
     def post(self, name):
         """Inserts a new instance in the database"""
+        logging.debug(self.request.body)
         instance = json.loads(self.request.body)
         
-        if not "port" in instance or not "volumes" in instance:
-            logging.error("Port or volumes not defined for instance: " + name)
+        if not "attributes" in instance or not "volumes" in instance:
+            logging.error("Attributes or volumes not defined for instance: " + name)
             raise tornado.web.HTTPError(BAD_REQUEST)
         
-        # Get the port
-        port = instance["port"]
-        del instance["port"]
+        # Get the attributes
+        attributes = instance["attributes"]
+        del instance["attributes"]
         
         # Get the hosts
         hosts = instance["hosts"][0]
@@ -75,13 +76,17 @@ class Instance(tornado.web.RequestHandler):
             # Insert the volumes in database using PostREST
             response = requests.post(config.get('postgrest', 'volume_url'), json=volumes)
             if response.ok:
-                logging.info("Volumes created")
-                logging.debug(json.dumps(volumes))
-                attribute = {'instance_id': entid, 'name': 'port', 'value': port}
-                response = requests.post(config.get('postgrest', 'attribute_url'), json=attribute)
+                logging.debug("Inserting volumes: " + json.dumps(volumes))
+                
+                # Insert the attributes
+                insert_attributes = []
+                for attribute in attributes:
+                    insert_attr = {'instance_id': entid, 'name': attribute, 'value': attributes[attribute]}
+                    logging.debug("Inserting attribute: " + json.dumps(insert_attr))
+                    insert_attributes.append(insert_attr)
+                    
+                response = requests.post(config.get('postgrest', 'attribute_url'), json=insert_attributes)
                 if response.ok:
-                    logging.info("Added port to attributes")
-                    logging.debug(json.dumps(attribute))
                     self.set_status(CREATED)
                 else:
                     logging.error("Error inserting the port attribute: " + response.text)
@@ -97,19 +102,12 @@ class Instance(tornado.web.RequestHandler):
             
     def put(self, name):
         """Updates an instance"""
+        logging.debug(self.request.body)
         instance = json.loads(self.request.body)
         entid = self.__get_instance_id__(name)
-        
-        # Check if the port is changed
-        if "port" in instance:
-            port = {"value":instance["port"]}
-            del instance["port"]
-            response = requests.patch(config.get('postgrest', 'attribute_url') + "?instance_id=eq." + str(entid) + "&name=eq.port", json=port)
-            if response.ok:
-                self.set_status(response.status_code)
-            else:
-                logging.error("Error updating port on instance: " + name)
-                raise tornado.web.HTTPError(response.status_code)
+        if not entid:
+            logging.error("Instance '" + name + "' doest not exist.")
+            raise tornado.web.HTTPError(NOT_FOUND)
         
         # Check if the volumes are changed
         if "volumes" in instance:
@@ -123,13 +121,35 @@ class Instance(tornado.web.RequestHandler):
             if response.ok:
                 response = requests.post(config.get('postgrest', 'volume_url'), json=volumes)
                 if response.ok:
+                    logging.debug("Inserting volumes: " + json.dumps(volumes))
                     self.set_status(response.status_code)
                 else:
-                    logging.error("Error adding volumes for instance: " + str(entid))
+                    logging.error("Error adding volumes for instance: " + response.text)
                     raise tornado.web.HTTPError(response.status_code)
             else:
-                logging.error("Error deleting old volumes for instance: " + str(entid))
+                logging.error("Error deleting old volumes for instance: " + response.text)
                 raise tornado.web.HTTPError(response.status_code)
+                
+        # Check if the attributes are changed
+        if "attributes" in instance:
+            attributes = instance["attributes"]
+            response = requests.delete(config.get('postgrest', 'attribute_url') + "?instance_id=eq." + str(entid))
+            if response.ok:
+                # Insert the attributes
+                insert_attributes = []
+                for attribute in attributes:
+                    insert_attr = {'instance_id': entid, 'name': attribute, 'value': attributes[attribute]}
+                    logging.debug("Inserting attribute: " + json.dumps(insert_attr))
+                    insert_attributes.append(insert_attr)
+                    
+                response = requests.post(config.get('postgrest', 'attribute_url'), json=insert_attributes)
+                if not response.ok:
+                    logging.error("Error inserting attributes: " + response.text)
+                    raise tornado.web.HTTPError(response.status_code)
+            else:
+                logging.error("Error deleting attributes: " + response.text)
+                raise tornado.web.HTTPError(response.status_code)
+            del instance["attributes"]
         
         if instance:
             # Check if the hosts are changed
