@@ -142,7 +142,7 @@ class FunctionalAlias(tornado.web.RequestHandler):
             if response.ok:
                 logging.info("Delete success of: " + dns_name)
                 logging.debug(response.text)
-                self.set_status(response.status_code)
+                self.set_status(NO_CONTENT)
             else:
                 logging.error("Unsuccessful deletion")
                 raise tornado.web.HTTPError(response.status_code)
