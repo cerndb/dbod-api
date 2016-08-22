@@ -44,7 +44,7 @@ class FunctionalAlias(tornado.web.RequestHandler):
             raise tornado.web.HTTPError(response.status_code)
 
     @http_basic_auth
-    def post(self, *args):
+    def post(self, db_name, *args):
         """Updates a row with db_name and the alias. The dns_name is already there."""
 
         def next_dnsname():
@@ -70,43 +70,41 @@ class FunctionalAlias(tornado.web.RequestHandler):
 
         logging.debug('Arguments:' + str(self.request.arguments))
         try:
-            functional_alias = json.loads(self.get_argument('functional_alias'))
-            logging.debug(str(len(functional_alias)) + " Argument(s) given:")
-            logging.debug(functional_alias)
+            alias = self.get_argument('alias')
+            logging.debug("alias: %s" % (alias))
+            
+            dns_name = next_dnsname()
+            logging.info("dns_name picked: " + str(dns_name))
+
+            if dns_name:
+                logging.debug("dns_name picked: " + str(dns_name))
+                headers = {'Prefer': 'return=representation'}
+                insert_data = {"db_name": db_name, 
+                               "alias": alias}
+                logging.debug("Data to insert: " + str(insert_data))
+
+                composed_url = self.url + '?dns_name=eq.' + dns_name
+                logging.debug('Requesting insertion: ' + composed_url)
+                
+                response = requests.patch(composed_url, json=insert_data, headers=headers)
+            
+                if response.ok:
+                    logging.info('Data inserted in the functional_aliases table')
+                    logging.debug(response.text)
+                    self.set_status(CREATED)
+                else:
+                    logging.error("Error inserting the functional alias: " + response.text)
+                    self.set_status(response.status_code)
+                        
+            else:
+                logging.error("No dns_name available in the functional_aliases table")
+                raise tornado.web.HTTPError(SERVICE_UNAVAILABLE)
         except:
             logging.error("Argument not recognized or not defined.")
             logging.error("Try adding header 'Content-Type:application/x-www-form-urlencoded'")
-            logging.error("The right format should be: functional_alias={'<db_name>':'<alias>'}")
-            raise tornado.web.HTTPError(NOT_FOUND)
-
-        dns_name = next_dnsname()
-        logging.info("dns_name picked: " + str(dns_name))
-
-        if dns_name:
-            logging.debug("dns_name picked: " + str(dns_name))
-            headers = {'Prefer': 'return=representation'}
-            db_name = str(functional_alias.keys()[0])
-            alias = str(functional_alias.values()[0])
-            insert_data = {"db_name": db_name, 
-                           "alias": alias}
-            logging.debug("Data to insert: " + str(insert_data))
-
-            composed_url = self.url + '?dns_name=eq.' + dns_name
-            logging.debug('Requesting insertion: ' + composed_url)
-            
-            response = requests.patch(composed_url, json=insert_data, headers=headers)
-        
-            if response.ok:
-                logging.info('Data inserted in the functional_aliases table')
-                logging.debug(response.text)
-                self.set_status(response.status_code) 
-            else:
-                logging.error("Error inserting the functional alias: " + response.text)
-                self.set_status(response.status_code)
-                    
-        else:
-            logging.error("No dns_name available in the functional_aliases table")
+            logging.error("The right format should be: alias=<alias>")
             raise tornado.web.HTTPError(BAD_REQUEST)
+
 
     @http_basic_auth
     def delete(self, db_name, *args):
