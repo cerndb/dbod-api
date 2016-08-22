@@ -17,6 +17,7 @@ DROP VIEW IF EXISTS api.attribute;
 DROP VIEW IF EXISTS api.instance;
 
 DROP FUNCTION IF EXISTS public.get_directories(inst_name VARCHAR, type VARCHAR, version VARCHAR, port VARCHAR);
+DROP FUNCTION IF EXISTS public.get_attributes(inst_id INTEGER);
 DROP FUNCTION IF EXISTS public.get_attribute(attr_name VARCHAR, inst_id INTEGER);
 DROP FUNCTION IF EXISTS public.get_volumes(pid INTEGER);
 DROP FUNCTION IF EXISTS public.get_hosts(host_ids INTEGER[]);
@@ -283,17 +284,6 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 
--- Get attributes function
-CREATE OR REPLACE FUNCTION public.get_attributes(inst_id INTEGER)
-RETURNS JSON[] AS $$
-DECLARE
-  attributes JSON[];
-BEGIN
-  SELECT ARRAY (SELECT row_to_json(t) FROM (SELECT name, value FROM public.attribute WHERE instance_id = inst_id) t) INTO attributes;
-  return attributes;
-END
-$$ LANGUAGE plpgsql;
-
 -- Get attribute function
 CREATE OR REPLACE FUNCTION public.get_attribute(attr_name VARCHAR, inst_id INTEGER)
 RETURNS VARCHAR AS $$
@@ -409,7 +399,7 @@ SELECT
     id, 
     username, 
     db_name, 
-    category, 
+    category "class", 
     db_type, 
     version, 
     string_to_array(dod_instances.host::text, ','::text) AS hosts, 
