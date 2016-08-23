@@ -316,22 +316,40 @@ CREATE OR REPLACE FUNCTION public.get_directories(inst_name VARCHAR, type VARCHA
 RETURNS TABLE (basedir VARCHAR, bindir VARCHAR, datadir VARCHAR, logdir VARCHAR, socket VARCHAR) AS $$
 BEGIN
   IF type = 'MYSQL' THEN
-    RETURN QUERY SELECT 
-      ('/usr/local/mysql/mysql-' || version)::VARCHAR basedir, 
-      ('/usr/local/mysql/mysql-' || version || '/bin')::VARCHAR bindir, 
-      ('/ORA/dbs03/' || upper(inst_name) || '/mysql')::VARCHAR datadir, 
-      ('/ORA/dbs02/' || upper(inst_name) || '/mysql')::VARCHAR logdir, 
+    RETURN QUERY SELECT
+      ('/usr/local/mysql/mysql-' || version)::VARCHAR basedir,
+      ('/usr/local/mysql/mysql-' || version || '/bin')::VARCHAR bindir,
+      ('/ORA/dbs03/' || upper(inst_name) || '/mysql')::VARCHAR datadir,
+      ('/ORA/dbs02/' || upper(inst_name) || '/mysql')::VARCHAR logdir,
       ('/var/lib/mysql/mysql.sock.' || lower(inst_name) || '.' || port)::VARCHAR socket;
   ELSIF type = 'PG' THEN
-    RETURN QUERY SELECT 
-      ('/usr/local/pgsql/pgsql-' || version)::VARCHAR basedir, 
-      ('/usr/local/mysql/mysql-' || version || '/bin')::VARCHAR bindir, 
-      ('/ORA/dbs03/' || upper(inst_name) || '/data')::VARCHAR datadir, 
-      ('/ORA/dbs02/' || upper(inst_name) || '/pg_xlog')::VARCHAR logdir, 
+    RETURN QUERY SELECT
+      ('/usr/local/pgsql/pgsql-' || version)::VARCHAR basedir,
+      ('/usr/local/pgsql/pgsql-' || version || '/bin')::VARCHAR bindir,
+      ('/ORA/dbs03/' || upper(inst_name) || '/data')::VARCHAR datadir,
+      ('/ORA/dbs02/' || upper(inst_name) || '/pg_xlog')::VARCHAR logdir,
       ('/var/lib/pgsql/')::VARCHAR socket;
+  ELSIF type = 'InfluxDB' THEN
+    RETURN QUERY SELECT
+      ('/usr/local/influx/influx-' || version)::VARCHAR basedir,
+      ('/usr/local/influx/influx-' || version || '/bin')::VARCHAR bindir,
+      ('/ORA/dbs03/' || upper(inst_name) || '/data')::VARCHAR datadir,
+      ('/ORA/dbs02/' || upper(inst_name) )::VARCHAR logdir,
+      ('/var/lib/pgsql/')::VARCHAR socket;
+  ELSIF type = 'ORACLE' or type = 'ORA' THEN
+    RETURN QUERY SELECT
+      ('/ORA/dbs01/oracle/product/rdbms')::VARCHAR basedir, -- home
+      ('/ORA/dbs01/oracle/product/rdbms')::VARCHAR bindir, -- home
+      ('/ORA/dbs03/' || upper(inst_name) )::VARCHAR datadir,
+      ('/ORA/dbs02/' || upper(inst_name) )::VARCHAR logdir,
+      ('/ORA/dbs01/oracle/product/rdbms/network/admin')::VARCHAR socket; -- tnsnames
   END IF;
 END
 $$ LANGUAGE plpgsql;
+
+
+
+
 
 ------------------------------
 -- VIEWS FOR DBOD-API
