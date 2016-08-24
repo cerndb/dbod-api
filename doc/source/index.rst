@@ -6,21 +6,13 @@
 Welcome to DB On Demand API's documentation!
 ============================================
 
-Modules
+Contents
 
 .. toctree::
-   :maxdepth: 2
+    :maxdepth: 3
 
-   dbod
-   dbod.api
-   dbod.api.api
-   dbod.api.base
-   dbod.api.instance
-   dbod.api.functionalalias
-   dbod.api.hostaliases
-   dbod.api.metadata
-   dbod.api.rundeck
-   dbod.config
+    endpoints
+    modules
 
 Indices and tables
 ==================
