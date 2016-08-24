@@ -14,7 +14,6 @@ Functional alias module
 
 import logging
 import json
-from ast import literal_eval
 from sys import exc_info
 import requests
 import tornado.web
@@ -59,7 +58,7 @@ class FunctionalAlias(tornado.web.RequestHandler):
             try:
                 response_dns = requests.get(composed_url, headers=headers)
                 if response_dns.ok:
-                    response_dns_dict = literal_eval(response_dns.text)[0]
+                    response_dns_dict = json.loads(response_dns.text)[0]
                     return response_dns_dict['dns_name']
                 else:
                     return None
@@ -74,7 +73,6 @@ class FunctionalAlias(tornado.web.RequestHandler):
             logging.debug("alias: %s" % (alias))
             
             dns_name = next_dnsname()
-            logging.info("dns_name picked: " + str(dns_name))
 
             if dns_name:
                 logging.debug("dns_name picked: " + str(dns_name))
@@ -98,7 +96,7 @@ class FunctionalAlias(tornado.web.RequestHandler):
                         
             else:
                 logging.error("No dns_name available in the functional_aliases table")
-                raise tornado.web.HTTPError(SERVICE_UNAVAILABLE)
+                self.set_status(SERVICE_UNAVAILABLE)
         except:
             logging.error("Argument not recognized or not defined.")
             logging.error("Try adding header 'Content-Type:application/x-www-form-urlencoded'")
@@ -118,11 +116,13 @@ class FunctionalAlias(tornado.web.RequestHandler):
             response = requests.get(composed_url)
             if response.ok:
                 try:
-                    dns_name_dict = literal_eval(response.text)[0]
+                    dns_name_dict = json.loads(response.text)[0]
                     return dns_name_dict['dns_name']
                 except IndexError:
+                    self.set_status(BAD_REQUEST)
                     return None
-            else: 
+            else:
+                self.set_status(SERVICE_UNAVAILABLE) 
                 return None
 
         logging.debug('Arguments:' + str(self.request.arguments))
@@ -147,4 +147,3 @@ class FunctionalAlias(tornado.web.RequestHandler):
 
         else:
             logging.info("db_name not found. Nothing to do")
-            self.set_status(BAD_REQUEST)
