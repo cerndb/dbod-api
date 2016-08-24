@@ -6,3 +6,5 @@ virtualenv
 requests
 timeout-decorator
 mock
+sphinx
+sphinxcontrib-httpdomain
