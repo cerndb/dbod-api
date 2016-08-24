@@ -1,5 +1,5 @@
-/ API documentation
-===================
+/api/v1/rundeck/resources.xml
+==============================
 
 .. http:get:: /users/(int:user_id)/posts/(tag)
 
