@@ -125,34 +125,38 @@ class Instance(tornado.web.RequestHandler):
             
             # Delete current volumes
             response = requests.delete(config.get('postgrest', 'volume_url') + "?instance_id=eq." + str(entid))
-            if response.ok:
-                response = requests.post(config.get('postgrest', 'volume_url'), json=volumes)
-                if response.ok:
-                    logging.debug("Inserting volumes: " + json.dumps(volumes))
-                    self.set_status(response.status_code)
-                else:
-                    logging.error("Error adding volumes for instance: " + response.text)
-                    raise tornado.web.HTTPError(response.status_code)
+            logging.debug("Volumes to insert: " + json.dumps(volumes))
+            if response.ok or response.status_code == 404:
+                if len(volumes) > 0:
+                    response = requests.post(config.get('postgrest', 'volume_url'), json=volumes)
+                    if response.ok:
+                        self.set_status(NO_CONTENT)
+                    else:
+                        logging.error("Error adding volumes: " + response.text)
+                        raise tornado.web.HTTPError(response.status_code)
             else:
-                logging.error("Error deleting old volumes for instance: " + response.text)
+                logging.error("Error deleting old volumes: " + response.text)
                 raise tornado.web.HTTPError(response.status_code)
                 
         # Check if the attributes are changed
         if "attributes" in instance:
             attributes = instance["attributes"]
             response = requests.delete(config.get('postgrest', 'attribute_url') + "?instance_id=eq." + str(entid))
-            if response.ok:
-                # Insert the attributes
-                insert_attributes = []
-                for attribute in attributes:
-                    insert_attr = {'instance_id': entid, 'name': attribute, 'value': attributes[attribute]}
-                    logging.debug("Inserting attribute: " + json.dumps(insert_attr))
-                    insert_attributes.append(insert_attr)
-                    
-                response = requests.post(config.get('postgrest', 'attribute_url'), json=insert_attributes)
-                if not response.ok:
-                    logging.error("Error inserting attributes: " + response.text)
-                    raise tornado.web.HTTPError(response.status_code)
+            if response.ok or response.status_code == 404:
+                if len(attributes) > 0:
+                    # Insert the attributes
+                    insert_attributes = []
+                    for attribute in attributes:
+                        insert_attr = {'instance_id': entid, 'name': attribute, 'value': attributes[attribute]}
+                        logging.debug("Inserting attribute: " + json.dumps(insert_attr))
+                        insert_attributes.append(insert_attr)
+                        
+                    response = requests.post(config.get('postgrest', 'attribute_url'), json=insert_attributes)
+                    if response.ok:
+                        self.set_status(NO_CONTENT)
+                    else:
+                        logging.error("Error inserting attributes: " + response.text)
+                        raise tornado.web.HTTPError(response.status_code)
             else:
                 logging.error("Error deleting attributes: " + response.text)
                 raise tornado.web.HTTPError(response.status_code)
@@ -170,7 +174,7 @@ class Instance(tornado.web.RequestHandler):
         
             response = requests.patch(config.get('postgrest', 'instance_url') + "?db_name=eq." + name, json=instance)
             if response.ok:
-                self.set_status(response.status_code)
+                self.set_status(NO_CONTENT)
             else:
                 logging.error("Error editing the instance: " + response.text)
                 raise tornado.web.HTTPError(response.status_code)

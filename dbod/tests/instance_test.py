@@ -177,6 +177,121 @@ class InstanceTest(AsyncHTTPTestCase):
         self.assertEquals(response.code, 204)
         
     @timeout(5)
+    def test_edit_instance_no_volumes(self):
+        """Edit an instance class without volumes"""
+        response = self.fetch("/api/v1/instance/testdb", method='DELETE', headers={'Authorization': self.authentication})
+        
+        instance = """{
+        "username": "testuser", "class": "TEST", "creation_date":"2016-07-20", 
+        "version": "5.6.17", "db_type": "MYSQL", "db_size": "100", "hosts": ["testhost"], "db_name": "testdb"
+        }"""
+        editinstance = """{"class": "PROD"}"""
+        
+        # Create the instance
+        response = self.fetch("/api/v1/instance/create", method='POST', headers={'Authorization': self.authentication}, body=instance)
+        self.assertEquals(response.code, 201)
+        
+        # Edit the instance
+        response = self.fetch("/api/v1/instance/testdb", method='PUT', headers={'Authorization': self.authentication}, body=editinstance)
+        self.assertEquals(response.code, 204)
+        
+        # Check the metadata for this instance
+        response = self.fetch("/api/v1/metadata/instance/testdb")
+        self.assertEquals(response.code, 200)
+        data = json.loads(response.body)["response"]
+        self.assertEquals(data[0]["class"], "PROD")
+        
+        # Delete the created instance
+        response = self.fetch("/api/v1/instance/testdb", method='DELETE', headers={'Authorization': self.authentication})
+        self.assertEquals(response.code, 204)
+        
+        # Check again, the metadata should be empty
+        response = self.fetch("/api/v1/metadata/instance/testdb")
+        self.assertEquals(response.code, 404)
+        
+    @timeout(5)
+    def test_edit_instance_add_volumes(self):
+        """Edit an instance to add the volumes"""
+        response = self.fetch("/api/v1/instance/testdb", method='DELETE', headers={'Authorization': self.authentication})
+        
+        instance = """{
+            "username": "testuser", "class": "TEST", "creation_date":"2016-07-20", 
+            "version": "5.6.17", "db_type": "MYSQL", "db_size": "100", "hosts": ["testhost"], "db_name": "testdb"
+            }"""
+        editinstance = """{
+            "volumes": [
+                {"group": "ownergroup", "file_mode": "0755", "server": "NAS-server", "mount_options": "rw,bg,hard", 
+                "owner": "TSM", "mounting_path": "/MNT/data1"}, 
+                {"group": "ownergroup", "file_mode": "0755", "server": "NAS-server", "mount_options": "rw,bg,hard", 
+                "owner": "TSM", "mounting_path": "/MNT/bin"}
+            ]}"""
+        
+        # Create the instance
+        response = self.fetch("/api/v1/instance/create", method='POST', headers={'Authorization': self.authentication}, body=instance)
+        self.assertEquals(response.code, 201)
+        
+        # Edit the instance
+        response = self.fetch("/api/v1/instance/testdb", method='PUT', headers={'Authorization': self.authentication}, body=editinstance)
+        self.assertEquals(response.code, 204)
+        
+        # Check the metadata for this instance
+        response = self.fetch("/api/v1/metadata/instance/testdb")
+        self.assertEquals(response.code, 200)
+        data = json.loads(response.body)["response"]
+        self.assertEquals(len(data[0]["volumes"]), 2)
+        self.assertEquals(data[0]["volumes"][0]["mounting_path"], "/MNT/data1")
+        self.assertEquals(data[0]["volumes"][1]["mounting_path"], "/MNT/bin")
+        
+        # Delete the created instance
+        response = self.fetch("/api/v1/instance/testdb", method='DELETE', headers={'Authorization': self.authentication})
+        self.assertEquals(response.code, 204)
+        
+        # Check again, the metadata should be empty
+        response = self.fetch("/api/v1/metadata/instance/testdb")
+        self.assertEquals(response.code, 404)
+        
+    @timeout(5)
+    def test_edit_instance_remove_volumes(self):
+        """Edit an instance to remove the volumes"""
+        response = self.fetch("/api/v1/instance/testdb", method='DELETE', headers={'Authorization': self.authentication})
+        
+        instance = """{
+        "username": "testuser", "class": "TEST", "creation_date":"2016-07-20", 
+        "version": "5.6.17", "db_type": "MYSQL", "hosts": ["testhost"], "db_name": "testdb", 
+        "volumes": [
+            {"group": "ownergroup", "file_mode": "0755", "server": "NAS-server", "mount_options": "rw,bg,hard", 
+            "owner": "TSM", "mounting_path": "/MNT/data1"}, 
+            {"group": "ownergroup", "file_mode": "0755", "server": "NAS-server", "mount_options": "rw,bg,hard", 
+            "owner": "TSM", "mounting_path": "/MNT/bin"}
+        ],
+        "attributes": {
+            "port": "5505"
+        }}"""
+        editinstance = """{"volumes": []}"""
+        
+        # Create the instance
+        response = self.fetch("/api/v1/instance/create", method='POST', headers={'Authorization': self.authentication}, body=instance)
+        self.assertEquals(response.code, 201)
+        
+        # Edit the instance
+        response = self.fetch("/api/v1/instance/testdb", method='PUT', headers={'Authorization': self.authentication}, body=editinstance)
+        self.assertEquals(response.code, 204)
+        
+        # Check the metadata for this instance
+        response = self.fetch("/api/v1/metadata/instance/testdb")
+        self.assertEquals(response.code, 200)
+        data = json.loads(response.body)["response"]
+        self.assertEquals(len(data[0]["volumes"]), 0)
+        
+        # Delete the created instance
+        response = self.fetch("/api/v1/instance/testdb", method='DELETE', headers={'Authorization': self.authentication})
+        self.assertEquals(response.code, 204)
+        
+        # Check again, the metadata should be empty
+        response = self.fetch("/api/v1/metadata/instance/testdb")
+        self.assertEquals(response.code, 404)
+        
+    @timeout(5)
     def test_edit_instance_port(self):
         """Edit the port correctly"""
         instance = """{"attributes": {"port":"3005"}}"""
