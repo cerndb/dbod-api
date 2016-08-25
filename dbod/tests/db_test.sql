@@ -307,7 +307,7 @@ SELECT
     id, 
     username, 
     db_name, 
-    category, 
+    category "class", 
     db_type, 
     version, 
     string_to_array(dod_instances.host::text, ','::text) AS hosts, 
