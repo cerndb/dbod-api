@@ -1,48 +1,26 @@
 /api/v1/rundeck/resources.xml
-==============================
+=============================
 
-.. http:get:: /users/(int:user_id)/posts/(tag)
+.. http:get:: /api/v1/instance/alias/(db_name)
 
-   The posts tagged with `tag` that the user (`user_id`) wrote.
+	This URI returns an XML document ready to be used as a source of information
+	for the node list on a Rundeck setup.
 
-   **Example request**:
+    **Example request**:
 
-   .. sourcecode:: http
+    ``curl -X GET -i https://<domain>:<port>/api/v1/rundeck/resources.xml``
 
-      GET /users/123/posts/web HTTP/1.1
-      Host: example.com
-      Accept: application/json, text/javascript
+    .. sourcecode:: http
 
-   **Example response**:
+		HTTP/1.1 200 OK
+		Date: Fri, 26 Aug 2016 09:45:42 GMT
+		Content-Length: 52661
+		Etag: "5d553d39cf0f3422569d19549627c8e9c615732e"
+		Content-Type: text/xml
+		Server: TornadoServer/4.2
 
-   .. sourcecode:: http
+    .. sourcecode:: xml
 
-      HTTP/1.1 200 OK
-      Vary: Accept
-      Content-Type: text/javascript
+		<?xml version="1.0" encoding="UTF-8"?><project><node name="db1" hostname="dbod-db1.domain" ...
 
-      [
-        {
-          "post_id": 12345,
-          "author_id": 123,
-          "tags": ["server", "web"],
-          "subject": "I tried Nginx"
-        },
-        {
-          "post_id": 12346,
-          "author_id": 123,
-          "tags": ["html5", "standards", "web"],
-          "subject": "We go to HTML 5"
-        }
-      ]
-
-   :query sort: one of ``hit``, ``created-at``
-   :query offset: offset number. default is 0
-   :query limit: limit number. default is 30
-   :reqheader Accept: the response content type depends on
-                      :mailheader:`Accept` header
-   :reqheader Authorization: optional OAuth token to authenticate
-   :resheader Content-Type: this depends on :mailheader:`Accept`
-                            header of request
-   :statuscode 200: no error
-   :statuscode 404: there's no user
+    :resheader Content-Type: text/xml
