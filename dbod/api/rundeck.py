@@ -64,6 +64,7 @@ class RundeckResources(tornado.web.RequestHandler):
 class RundeckJobs(tornado.web.RequestHandler):
     """Class to manage the endpoints used to execute and visualize jobs execution in Rundeck
        /rundeck/jobs/<job>/<node>"""
+    @http_basic_auth
     def get(self, **args):
         """Returns the output of a job execution"""
         job = args.get('job')

@@ -37,6 +37,7 @@ class Instance(tornado.web.RequestHandler):
             logging.error("Entity metadata not found: " + name)
             raise tornado.web.HTTPError(NOT_FOUND)
 
+    @http_basic_auth
     def post(self, name):
         """Inserts a new instance in the database"""
         logging.debug(self.request.body)
@@ -107,6 +108,7 @@ class Instance(tornado.web.RequestHandler):
                 self.__delete_instance__(entid)
                 raise tornado.web.HTTPError(response.status_code)
             
+    @http_basic_auth
     def put(self, name):
         """Updates an instance"""
         logging.debug(self.request.body)
@@ -181,6 +183,7 @@ class Instance(tornado.web.RequestHandler):
         else:
             self.set_status(NO_CONTENT)
             
+    @http_basic_auth
     def delete(self, name):
         """Deletes an instance by name"""
         entid = self.__get_instance_id__(name)
