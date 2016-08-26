@@ -1,48 +1,30 @@
 /
 ===================
 
-.. http:get:: /users/(int:user_id)/posts/(tag)
+.. http:get:: /
 
-   The posts tagged with `tag` that the user (`user_id`) wrote.
-
-   **Example request**:
-
-   .. sourcecode:: http
-
-      GET /users/123/posts/web HTTP/1.1
-      Host: example.com
-      Accept: application/json, text/javascript
+   Returns the list of endpoints currently being served by the API Server
 
    **Example response**:
 
    .. sourcecode:: http
 
-      HTTP/1.1 200 OK
-      Vary: Accept
-      Content-Type: text/javascript
+      GET / HTTP/1.1
+      Host: example.com
+      Accept: applicaHTTP/1.1 200 OK
+	Date: Fri, 26 Aug 2016 09:39:58 GMT
+	Content-Length: 486
+	Etag: "b4b039b348035550c569a378d2d0e8ab4f9dd0cf"
+	Content-Type: text/html
+	Server: TornadoServer/4.2
 
-      [
-        {
-          "post_id": 12345,
-          "author_id": 123,
-          "tags": ["server", "web"],
-          "subject": "I tried Nginx"
-        },
-        {
-          "post_id": 12346,
-          "author_id": 123,
-          "tags": ["html5", "standards", "web"],
-          "subject": "We go to HTML 5"
-        }
-      ]
+	Please use :
+		<p>http://hostname:port/api/v1/instance/NAME</p>
+		<p>http://hostname:port/api/v1/instance/alias/NAME</p>
+		<p>http://hostname:port/api/v1/host/aliases/HOSTNAME</p>
+		<p>http://hostname:port/api/v1/metadata/instance/NAME</p>
+		<p>http://hostname:port/api/v1/metadata/host/HOSTNAME</p>
+		<p>http://hostname:port/api/v1/rundeck/resources.xml</p>
+		<p>http://hostname:port/api/v1/rundeck/job/JOB/NODE</p>
 
-   :query sort: one of ``hit``, ``created-at``
-   :query offset: offset number. default is 0
-   :query limit: limit number. default is 30
-   :reqheader Accept: the response content type depends on
-                      :mailheader:`Accept` header
-   :reqheader Authorization: optional OAuth token to authenticate
-   :resheader Content-Type: this depends on :mailheader:`Accept`
-                            header of request
-   :statuscode 200: no error
-   :statuscode 404: there's no user
+   :resheader Content-Type: text/html 
