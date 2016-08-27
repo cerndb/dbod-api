@@ -69,6 +69,48 @@ class InstanceTest(AsyncHTTPTestCase):
         self.assertEquals(response.code, 404)
         
     @timeout(5)
+    def test_create_instance_multiple_hosts(self):
+        """Creation of a new instance with multiple hosts in a correct way"""
+        response = self.fetch("/api/v1/instance/testdb", method='DELETE', headers={'Authorization': self.authentication})
+        
+        instance = """{
+        "username": "testuser", "class": "TEST", "creation_date":"2016-07-20", 
+        "version": "5.6.17", "db_type": "MYSQL", "hosts": ["testhost1", "testhost2"], "db_name": "testdb", 
+        "volumes": [
+            {"group": "ownergroup", "file_mode": "0755", "server": "NAS-server", "mount_options": "rw,bg,hard", 
+            "owner": "TSM", "mounting_path": "/MNT/data1"}, 
+            {"group": "ownergroup", "file_mode": "0755", "server": "NAS-server", "mount_options": "rw,bg,hard", 
+            "owner": "TSM", "mounting_path": "/MNT/bin"}
+        ],
+        "attributes": {
+            "port": "5505"
+        }}"""
+        
+        # Create the instance
+        response = self.fetch("/api/v1/instance/create", method='POST', headers={'Authorization': self.authentication}, body=instance)
+        self.assertEquals(response.code, 201)
+        
+        # Check the metadata for this new instance
+        response = self.fetch("/api/v1/metadata/instance/testdb")
+        self.assertEquals(response.code, 200)
+        data = json.loads(response.body)["response"]
+        self.assertEquals(data[0]["db_name"], "testdb")
+        self.assertEquals(len(data[0]["volumes"]), 2)
+        self.assertEquals(len(data[0]["attributes"]), 1)
+        self.assertEquals(len(data[0]["hosts"]), 2)
+        self.assertEquals(data[0]["hosts"][0], "testhost1")
+        self.assertEquals(data[0]["hosts"][1], "testhost2")
+        self.assertEquals(data[0]["attributes"]["port"], "5505")  # Reminder: the port is saved as a String in DB
+        
+        # Delete the created instance
+        response = self.fetch("/api/v1/instance/testdb", method='DELETE', headers={'Authorization': self.authentication})
+        self.assertEquals(response.code, 204)
+        
+        # Check again, the metadata should be empty
+        response = self.fetch("/api/v1/metadata/instance/testdb")
+        self.assertEquals(response.code, 404)
+        
+    @timeout(5)
     def test_create_basic_instance(self):
         """Creation of an instance with only basic (required) data"""
         response = self.fetch("/api/v1/instance/testdb", method='DELETE', headers={'Authorization': self.authentication})
@@ -400,4 +442,14 @@ class InstanceTest(AsyncHTTPTestCase):
         # Restore the instance
         response = self.fetch("/api/v1/instance/dbod01", method='PUT', headers={'Authorization': self.authentication}, body=restore)
         self.assertEquals(response.code, 204)
+        
+    @timeout(5)
+    def test_edit_instance_no_exist(self):
+        """Edit a non existing instance"""
+        instance = """{"hosts": ["newhost01", "newhost02"]}"""
+        
+        # Edit the instance
+        response = self.fetch("/api/v1/instance/invalid", method='PUT', headers={'Authorization': self.authentication}, body=instance)
+        self.assertEquals(response.code, 404)
+
         

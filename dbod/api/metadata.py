@@ -24,14 +24,13 @@ class Metadata(tornado.web.RequestHandler):
     """The handler of /metadata/<class>/<name>"""
     def get(self, **args):
         """Returns the metadata of a host or an instance"""
-        url = config.get('postgrest', 'metadata_url')
         name = args.get('name')
         etype = args.get('class')
-        if url and name:
+        if name:
             if etype == u'instance':
-                composed_url = url + '?db_name=eq.' + name
+                composed_url = config.get('postgrest', 'metadata_url') + '?db_name=eq.' + name
             elif etype == u'host':
-                composed_url = url + '?hosts=@>.{' + name + '}'
+                composed_url = config.get('postgrest', 'metadata_url') + '?hosts=@>.{' + name + '}'
             else:
                 logging.error("Unsupported endpoint")
                 raise tornado.web.HTTPError(BAD_REQUEST)
@@ -48,5 +47,5 @@ class Metadata(tornado.web.RequestHandler):
                 logging.error("Error fetching instance metadata: " + response.text)
                 raise tornado.web.HTTPError(response.status_code)
         else:
-            logging.error("Internal instance metadata endpoint not configured")
-            raise tornado.web.HTTPError(NOT_FOUND)
+            logging.error("Unsupported endpoint")
+            raise tornado.web.HTTPError(BAD_REQUEST)

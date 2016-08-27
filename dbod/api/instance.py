@@ -104,7 +104,7 @@ class Instance(tornado.web.RequestHandler):
             if response.ok:
                 self.set_status(CREATED)
             else:
-                logging.error("Error inserting the port attribute: " + response.text)
+                logging.error("Error inserting attributes: " + response.text)
                 self.__delete_instance__(entid)
                 raise tornado.web.HTTPError(response.status_code)
             

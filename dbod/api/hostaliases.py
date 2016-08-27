@@ -23,20 +23,16 @@ class HostAliases(tornado.web.RequestHandler):
     """The handler of /host/aliases/<host>"""
     def get(self, host):
         """Returns the list of ip-aliases registered in a host"""
-        url = config.get('postgrest', 'host_aliases_url')
-        if url:
-            composed_url = url + '?host=eq.' + host
-            logging.info('Requesting ' + composed_url )
-            response = requests.get(composed_url)
-            data = response.json()
-            if response.ok and data:
-                logging.debug("response: " + response.text)
-                self.write({'response' : data})
-            elif response.ok:
-                logging.warning("Host aliases not found: " + host)
-                raise tornado.web.HTTPError(NOT_FOUND)
-            else: 
-                logging.error("Error fetching aliases: " + response.text)
-                raise tornado.web.HTTPError(NOT_FOUND)
-        else:
-            logging.error("Internal host aliases endpoint not configured")
+        composed_url = config.get('postgrest', 'host_aliases_url') + '?host=eq.' + host
+        logging.info('Requesting ' + composed_url )
+        response = requests.get(composed_url)
+        data = response.json()
+        if response.ok and data:
+            logging.debug("response: " + response.text)
+            self.write({'response' : data})
+        elif response.ok:
+            logging.warning("Host aliases not found: " + host)
+            raise tornado.web.HTTPError(NOT_FOUND)
+        else: 
+            logging.error("Error fetching aliases: " + response.text)
+            raise tornado.web.HTTPError(NOT_FOUND)

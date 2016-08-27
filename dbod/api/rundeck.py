@@ -26,40 +26,36 @@ class RundeckResources(tornado.web.RequestHandler):
     def get(self):
         """Returns a valid resources.xml file to import target entities in 
             Rundeck"""
-        url = config.get('postgrest', 'rundeck_resources_url')
-        if url:
-            response = requests.get(url)
-            if response.ok:
-                data = json.loads(response.text)
-                d = {}
-                for entry in data:
-                    d[entry[u'db_name']] = entry
-                self.set_header('Content-Type', 'text/xml')
-                # Page Header
-                logging.debug('<?xml version="1.0" encoding="UTF-8"?>')
-                self.write('<?xml version="1.0" encoding="UTF-8"?>')
-                logging.debug('<project>')
-                self.write('<project>')
-                for instance in sorted(d.keys()):
-                    body = d[instance]
-                    text = ('<node name="%s" description="" hostname="%s" username="%s" type="%s" subcategory="%s" port="%s" tags="%s"/>' % 
-                            ( instance, # Name
-                              body.get(u'hostname'),
-                              body.get(u'username'),
-                              body.get(u'category'), 
-                              body.get(u'db_type'), 
-                              body.get(u'port'), 
-                              body.get(u'tags')
-                              ))
-                    logging.debug(text)
-                    self.write(text)
-                logging.debug('</project>')
-                self.write('</project>')
-            else: 
-                logging.error("Error fetching Rundeck resources.xml")
-                raise tornado.web.HTTPError(NOT_FOUND)
-        else:
-            logging.error("Internal Rundeck resources endpoint not configured")
+        response = requests.get(config.get('postgrest', 'rundeck_resources_url'))
+        if response.ok:
+            data = json.loads(response.text)
+            d = {}
+            for entry in data:
+                d[entry[u'db_name']] = entry
+            self.set_header('Content-Type', 'text/xml')
+            # Page Header
+            logging.debug('<?xml version="1.0" encoding="UTF-8"?>')
+            self.write('<?xml version="1.0" encoding="UTF-8"?>')
+            logging.debug('<project>')
+            self.write('<project>')
+            for instance in sorted(d.keys()):
+                body = d[instance]
+                text = ('<node name="%s" description="" hostname="%s" username="%s" type="%s" subcategory="%s" port="%s" tags="%s"/>' % 
+                        ( instance, # Name
+                          body.get(u'hostname'),
+                          body.get(u'username'),
+                          body.get(u'category'), 
+                          body.get(u'db_type'), 
+                          body.get(u'port'), 
+                          body.get(u'tags')
+                          ))
+                logging.debug(text)
+                self.write(text)
+            logging.debug('</project>')
+            self.write('</project>')
+        else: 
+            logging.error("Error fetching Rundeck resources.xml")
+            raise tornado.web.HTTPError(NOT_FOUND)
             
 class RundeckJobs(tornado.web.RequestHandler):
     """Class to manage the endpoints used to execute and visualize jobs execution in Rundeck
