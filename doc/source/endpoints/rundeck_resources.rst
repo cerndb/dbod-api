@@ -19,8 +19,12 @@
 		Content-Type: text/xml
 		Server: TornadoServer/4.2
 
-    .. sourcecode:: xml
+    .. sourcecode:: xml 
 
-		<?xml version="1.0" encoding="UTF-8"?><project><node name="db1" hostname="dbod-db1.domain" ...
+        <?xml version="1.0" encoding="UTF-8"?>
+        <project>
+            <node name="db1" hostname="dbod-db1.domain" ... />
+            <node name="db2" hostname="dbod-db2.domain" ... />
+        </project>    
 
     :resheader Content-Type: text/xml
