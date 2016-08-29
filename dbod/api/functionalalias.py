@@ -22,9 +22,28 @@ from dbod.config import config
 
 class FunctionalAlias(tornado.web.RequestHandler):
 
-    """This is the handler of **/instance/alias/<database name>** endpoint.
+    """
+    This is the handler of **/instance/alias/<database name>** endpoint.
 
-    The request methods implemented for this endpoint are
+    Things that are given for the development of this endpoint:
+
+    * We request indirectly a `Postgres <https://www.postgresql.org/>`_ database through `PostgREST <http://postgrest.com/>`_ which returns a response in JSON format
+    * The database's table that is used for this endpoint is called *functional_aliases* and provides information for the functional alias association with an instance.
+    * The columns of this table are like that:
+
+    +------------+------------+----------------------+
+    |  dns_name  |  db_name   |         alias        |
+    +============+============+======================+
+    | dbod-dns42 | dbod-db42  | dbod-alias42.cern.ch |
+    +------------+------------+----------------------+
+
+        * The *dns_name* is used internally. They point to a list of virtual IP addresses and each bound to a host
+        * The *db_name* is the name of the database instance
+        * The *alias* is the alias given in order the database to be accessed with that name
+
+    * There is a pool of *dns_names* in this table and the other 2 columns are *NULL* in the begining
+
+    The request methods implemented for this endpoint are:
 
     * :func:`get`
     * :func:`post`
@@ -33,46 +52,23 @@ class FunctionalAlias(tornado.web.RequestHandler):
     .. note::
 
       You need to provide a <*username*> and a <*password*> to use
-      :func:`post` and :func:`delete` methods.
+      :func:`post` and :func:`delete` methods or to provide manually the *Authorization* header.
+
     """
+
     url = config.get('postgrest', 'functional_alias_url')
 
     def get(self, db_name, *args):
 
-        """The *GET* method returns the database name's *alias* and *dns name*.
+        """
+        The *GET* method returns the database name's *alias* and *dns name*.
         (No any special headers for this request)
 
         :param db_name: the database name which is given in the url
         :type db_name: str
-        :returns: json -- the response of the request
-        :raises: HTTPError - when the requested database name does not exist
-    
-        .. http:get:: /api/v1/instance/alias/(db_name)
-
-        **Example request**:
-            
-        ``curl -i http://<domain>:<port>/api/v1/instance/alias/dbod_42``
-
-        .. sourcecode:: http
-
-            GET /api/v1/instance/dbod_db42 HTTP/1.1
-            Host: <domain>
-            Accept: */*
-
-        **Example response**:
-
-        .. sourcecode:: http
-
-           HTTP/1.1 200 OK
-           Content-Type: application/json; charset=UTF-8
-           Server: TornadoServer/4.2
-
-            {
-                "response": [{
-                                "dns_name": dbod_dns42, 
-                                "alias": dbod_alias42.cern.ch
-                            }]
-            }
+        :rtype: json -- the response of the request
+        :raises: HTTPError - when the requested database name does not exist or if there is an internal error 
+        
         """
         logging.debug('Arguments:' + str(self.request.arguments))
         composed_url = self.url + '?db_name=eq.' + db_name + '&select=dns_name,alias'
@@ -92,7 +88,8 @@ class FunctionalAlias(tornado.web.RequestHandler):
     @http_basic_auth
     def post(self, db_name, *args):
 
-        """The *POST* method inserts a new *database name* and its *alias* into the database. It
+        """
+        The *POST* method inserts a new *database name* and its *alias* into the database. It
         adds the functional alias association for an instance.
 
         The *dns name* is chosen automatically from a pool; so, in the background this method 
@@ -101,7 +98,7 @@ class FunctionalAlias(tornado.web.RequestHandler):
 
         .. note::
 
-            This method is not successful
+            This method is not successful:
 
             * if the *database name* already exists
             * if there are no any *dns names* available
@@ -114,33 +111,17 @@ class FunctionalAlias(tornado.web.RequestHandler):
         :raises: HTTPError - when the *url* or the *request body* format or the *headers* are not right
         :request body: alias=<alias> - the alias to be inserted for the given *database name* which is given in the *body* of the request
 
-        .. http:post:: /api/v1/instance/alias/(db_name)
-
-        **Example request**:
-            
-        ``curl -i -u <username> -d 'alias=alias42'  -X POST http://<domain>:<port>/api/v1/instance/alias/dbod_42``
-
-        ``Enter host password for user '<username>':``
-
-        .. sourcecode:: http
-
-            POST /api/v1/instance/alias/dbod_42 HTTP/1.1    
-            Host: <domain>
-            Authorization: Basic <authorization hash>
-            Accept: */*
-            Content-Type: application/x-www-form-urlencoded
-
-        **Example response**:
-
-        .. sourcecode:: http
-
-           HTTP/1.1 201 Created
-           Content-Type: text/html; charset=UTF-8
         """
 
         def next_dnsname():
-            """Returns the next dnsname which can be used for a newly created
-        instance, if any"""
+            """
+            This is a private function which is used by :func:`post` method.
+            Returns the next dnsname which can be used for a newly created instance.  
+            If there is no available *dns name* in the pool or if there is any internal error it returns *None*.
+
+            :rtype: str or None
+
+            """
             #LIMIT is not working in postgrest but it uses some headers for that as well
             headers = {'Range-Unit': 'items', 'Range': '0-0'}
             # select the next available dns_name with db_name and alias assigned to NULL
@@ -198,7 +179,8 @@ class FunctionalAlias(tornado.web.RequestHandler):
 
     @http_basic_auth
     def delete(self, db_name, *args):
-        """The *DELETE* method deletes or else asssigns to *NULL* the *database name* and 
+        """
+        The *DELETE* method deletes or else asssigns to *NULL* the *database name* and 
         *alias* fields. It removes the functional alias association for an instance.
 
         .. note::
@@ -209,32 +191,19 @@ class FunctionalAlias(tornado.web.RequestHandler):
         :param db_name: the new database name which is given in the url
         :type db_name: str
         :raises: HTTPError - when the deletion is not successful
-        
-        .. http:delete:: /api/v1/instance/alias/(db_name)
 
-        **Example request**:
-        
-        ``curl -i -u <username> -X DELETE http://<domain>:<port>/api/v1/instance/alias/dbod_42``
-
-        ``Enter host password for user '<username>':``
-
-        .. sourcecode:: http
-            
-            DELETE /api/v1/instance/alias/dbod_42 HTTP/1.1
-            Host: <domain>
-            Authorization: Basic <authorization hash>
-            Accept: */*
-
-        **Example response**:
-
-        .. sourcecode:: http
-
-           HTTP/1.1 204 Created
-           Content-Type: text/html; charset=UTF-8
         """
-
         def get_dns(db_name):
-            """Get the dns_name given the db_name"""
+            """
+            This is a private function which is used by :func:`delete` mehtod.
+            Returns the *dns name* which is needed in order to set the *db_name* and *alias* to *NULL* (deletion). If the given *database name* which is passed as an argument does not exist then it returns None. 
+
+            :param db_name: the new database name which is given in the url
+            :type db_name: str
+            :raises: IndexError - when the database name does not exist
+            :rtype: str or None
+
+            """
             composed_url = self.url + '?db_name=eq.' + db_name + '&select=dns_name'
             response = requests.get(composed_url)
             if response.ok:
