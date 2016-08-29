@@ -8,9 +8,7 @@
 # granted to it by virtue of its status as Intergovernmental Organization
 # or submit itself to any jurisdiction.
 
-"""
-Host Aliases module
-"""
+#Host Aliases module
 
 import tornado.web
 import logging
@@ -20,9 +18,40 @@ from dbod.api.base import *
 from dbod.config import config
 
 class HostAliases(tornado.web.RequestHandler):
-    """The handler of /host/aliases/<host>"""
+    """
+    This the handler of /host/aliases/<host>
+    
+    Things that are given for the development of this endpoint:
+
+    * We request indirectly a `Postgres <https://www.postgresql.org/>`_ database through `PostgREST <http://postgrest.com/>`_ which returns a response in JSON format
+    * The database's table that is used for this endpoint is called *host_aliases* and provides information for the instance aliases association with a host.
+    * The columns of this table are like that:
+
+    +-------------+----------------------------------------------------------+
+    |    host     |                         aliases                          |
+    +=============+==========================================================+
+    | dbod-host42 | dbod-alias42-user1.cern.ch, dbod-alias42-user2.cern.ch   |
+    +-------------+----------------------------------------------------------+
+
+        * The *host* is the hostname of the machine that the database instances has been created
+        * The *aliases* are the aliases of the databases that exist in this host/machine 
+
+    The request method implemented for this endpoint is just the :func:`get`.
+
+    """
     def get(self, host):
-        """Returns the list of ip-aliases registered in a host"""
+
+        """ 
+        The *GET* method returns the list of ip-aliases registered in a host.
+        (No any special headers for this request)
+
+        :param host: the host name which is given in the url
+        :type host: str
+        :rtype: json -- the response of the request
+        :raises: HTTPError - when the requested host or the requested url does not exist
+
+        """
+
         composed_url = config.get('postgrest', 'host_aliases_url') + '?host=eq.' + host
         logging.info('Requesting ' + composed_url )
         response = requests.get(composed_url)
