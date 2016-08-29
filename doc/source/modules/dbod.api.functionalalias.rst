@@ -2,4 +2,5 @@ dbod.api.functionalalias
 ==========================
 
 .. automodule:: dbod.api.functionalalias
-   :members:
+   :members: 
+   :private-members:
