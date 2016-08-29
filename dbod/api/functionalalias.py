@@ -113,39 +113,12 @@ class FunctionalAlias(tornado.web.RequestHandler):
 
         """
 
-        def next_dnsname():
-            """
-            This is a private function which is used by :func:`post` method.
-            Returns the next dnsname which can be used for a newly created instance.  
-            If there is no available *dns name* in the pool or if there is any internal error it returns *None*.
-
-            :rtype: str or None
-
-            """
-            #LIMIT is not working in postgrest but it uses some headers for that as well
-            headers = {'Range-Unit': 'items', 'Range': '0-0'}
-            # select the next available dns_name with db_name and alias assigned to NULL
-            query_select = '?select=dns_name&order=dns_name.asc&'
-            query_filter = 'db_name=is.null&alias=is.null&dns_name=isnot.null'
-            composed_url = self.url + query_select + query_filter
-            try:
-                response_dns = requests.get(composed_url, headers=headers)
-                if response_dns.ok:
-                    response_dns_dict = json.loads(response_dns.text)[0]
-                    return response_dns_dict['dns_name']
-                else:
-                    return None
-            except:
-                error_msg = exc_info()[0]
-                logging.error(error_msg)
-                return None
-
         logging.debug('Arguments:' + str(self.request.arguments))
         try:
             alias = self.get_argument('alias')
             logging.debug("alias: %s" % (alias))
             
-            dns_name = next_dnsname()
+            dns_name = self._next_dnsname()
 
             if dns_name:
                 logging.debug("dns_name picked: " + str(dns_name))
@@ -193,33 +166,10 @@ class FunctionalAlias(tornado.web.RequestHandler):
         :raises: HTTPError - when the deletion is not successful
 
         """
-        def get_dns(db_name):
-            """
-            This is a private function which is used by :func:`delete` mehtod.
-            Returns the *dns name* which is needed in order to set the *db_name* and *alias* to *NULL* (deletion). If the given *database name* which is passed as an argument does not exist then it returns None. 
-
-            :param db_name: the new database name which is given in the url
-            :type db_name: str
-            :raises: IndexError - when the database name does not exist
-            :rtype: str or None
-
-            """
-            composed_url = self.url + '?db_name=eq.' + db_name + '&select=dns_name'
-            response = requests.get(composed_url)
-            if response.ok:
-                try:
-                    dns_name_dict = json.loads(response.text)[0]
-                    return dns_name_dict['dns_name']
-                except IndexError:
-                    self.set_status(BAD_REQUEST)
-                    return None
-            else:
-                self.set_status(SERVICE_UNAVAILABLE) 
-                return None
 
         logging.debug('Arguments:' + str(self.request.arguments))
 
-        dns_name = get_dns(db_name)
+        dns_name = self._get_dns(db_name)
         logging.debug(dns_name)
         if dns_name:
             headers = {'Prefer': 'return=representation', 'Content-Type': 'application/json'}
@@ -239,3 +189,54 @@ class FunctionalAlias(tornado.web.RequestHandler):
 
         else:
             logging.info("db_name not found. Nothing to do")
+
+    def _next_dnsname(self):
+        """
+        This is a private function which is used by :func:`post` method.
+        Returns the next dnsname which can be used for a newly created instance.  
+        If there is no available *dns name* in the pool or if there is any internal error it returns *None*.
+
+        :rtype: str or None
+
+        """
+        #LIMIT is not working in postgrest but it uses some headers for that as well
+        headers = {'Range-Unit': 'items', 'Range': '0-0'}
+        # select the next available dns_name with db_name and alias assigned to NULL
+        query_select = '?select=dns_name&order=dns_name.asc&'
+        query_filter = 'db_name=is.null&alias=is.null&dns_name=isnot.null'
+        composed_url = self.url + query_select + query_filter
+        try:
+            response_dns = requests.get(composed_url, headers=headers)
+            if response_dns.ok:
+                response_dns_dict = json.loads(response_dns.text)[0]
+                return response_dns_dict['dns_name']
+            else:
+                return None
+        except:
+            error_msg = exc_info()[0]
+            logging.error(error_msg)
+            return None
+
+    def _get_dns(self, db_name):
+        """
+        This is a private function which is used by :func:`delete` mehtod.
+        Returns the *dns name* which is needed in order to set the *db_name* and *alias* to *NULL* (deletion). If the given *database name* which is passed as an argument does not exist then it returns None. 
+
+        :param db_name: the new database name which is given in the url
+        :type db_name: str
+        :raises: IndexError - when the database name does not exist
+        :rtype: str or None
+
+        """
+        composed_url = self.url + '?db_name=eq.' + db_name + '&select=dns_name'
+        response = requests.get(composed_url)
+        if response.ok:
+            try:
+                dns_name_dict = json.loads(response.text)[0]
+                return dns_name_dict['dns_name']
+            except IndexError:
+                self.set_status(BAD_REQUEST)
+                return None
+        else:
+            self.set_status(SERVICE_UNAVAILABLE) 
+            return None
