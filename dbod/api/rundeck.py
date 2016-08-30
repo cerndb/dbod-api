@@ -58,11 +58,19 @@ class RundeckResources(tornado.web.RequestHandler):
             raise tornado.web.HTTPError(NOT_FOUND)
             
 class RundeckJobs(tornado.web.RequestHandler):
-    """Class to manage the endpoints used to execute and visualize jobs execution in Rundeck
-       /rundeck/jobs/<job>/<node>"""
+    """
+    This is the handler of **/rundeck/jobs/<job>/<node>** endpoint.
+
+    The class manages the endpoints used to execute and visualize jobs execution in Rundeck.
+
+    .. note::
+
+        You need to be authenticated in order to execute a job.
+    """
     @http_basic_auth
     def get(self, **args):
-        """Returns the output of a job execution"""
+        """
+        The *GET* method returns the output of a job execution"""
         job = args.get('job')
         response = self.__get_output__(job)
         if response.ok:
@@ -74,7 +82,19 @@ class RundeckJobs(tornado.web.RequestHandler):
 
     @http_basic_auth
     def post(self, **args):
-        """Executes a new Rundeck job and returns the output"""
+        """
+        The *POST* method executes a new Rundeck job and returns the output.
+        
+        The job and its hash has to be defined in the *api.cfg* configuration file in order to a specific job to be able to be executed.
+        
+        :param job: the name of the job to be executed which is listed in the configuration file
+        :type job: str
+        :param node: the name of the node you want the job to be executed
+        :type node: str
+        :raises: HTTPError - if the job didn't succeed or if the timeout has exceeded or in case of an internal error
+
+        When a job is executed the request call hangs and waits for a response for a maximum time of 10 seconds. The api constantly calls rundeck's api to check if the job has finished. When it finishes it prints out the response or raises an error if it didn't succeed.
+        """
         job = args.get('job')
         node = args.get('node')
         response_run = self.__run_job__(job, node)
