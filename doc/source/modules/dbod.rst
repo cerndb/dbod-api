@@ -1,6 +1,0 @@
-dbod
-====
-
-.. automodule:: dbod
-   :members:
-
