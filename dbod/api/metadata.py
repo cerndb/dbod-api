@@ -21,9 +21,46 @@ from dbod.api.base import *
 from dbod.config import config
 
 class Metadata(tornado.web.RequestHandler):
-    """The handler of /metadata/<class>/<name>"""
+    """
+    This is the handler of **/metadata/<class>/<name>** endpoint.
+
+    This endpoint takes 2 arguments:
+
+    * *<class>* - "*host*" or "*instance*" 
+    * *<name>* - the name of a *host* or of a *database* 
+
+    Things that are given for the development of this endpoint:
+    
+    * We request indirectly a `Postgres <https://www.postgresql.org/>`_ database through `PostgREST <http://postgrest.com/>`_ which returns a response in JSON format
+    * The database's table/view that is used for this endpoint is called *metadata* and provides information about the metadata of a database instance(s).
+    * Here is an example of this table:
+
+    +--+--------+---------+-------------+---------------------------------------+
+    |id|username| db_name |    hosts    |               attributes              |
+    +==+========+=========+=============+=======================================+
+    |42|  dbod  |dbod-db42|{dbod-host42}|{"port": "5432", "shared_buffers": "1"}|
+    +--+--------+---------+-------------+---------------------------------------+
+
+    The request method implemented for this endpoint is just the :func:`get`.
+
+    """
     def get(self, **args):
-        """Returns the metadata of a host or an instance"""
+        """Returns the metadata of a host or an instance
+        The *GET* method returns the instance(s)' metadata given the *host* or the *database name*. 
+        (No any special headers for this request)
+
+        :param class: "host" or "instance"
+        :type class: str
+        :param name: the host or database name which is given in the url
+        :type name: str
+        :rtype: json - the response of the request 
+
+                * in case of "*host*" it returns all the instances' metadata that are hosted in the specified host
+                * in casse of "*instance*" it returns the metadata of just the given database
+
+        :raises: HTTPError - when the <class> argument is not valid ("host" or "instance") or the given host or database name does not exist or in case of an internal error
+
+        """
         name = args.get('name')
         etype = args.get('class')
         if name:
