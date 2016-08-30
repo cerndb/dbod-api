@@ -32,24 +32,31 @@ class Instance(tornado.web.RequestHandler):
     * The database's tables/views that are used for this endpoint are 
 
         * *instance* - an example of this could look like this:
+
             +---+----------+---------++--------+-------+-----------+
             |id | username | db_name | db_type |version|    host   |
             +===+==========+=========+=========+=======+===========+
-            |42 |dbod-usr42|dbod-db42| PG/MYSQL| 9.5.4 |dbod-host42|
+            |42 |dbod-usr42|dbod-db42| MYSQL   | 5.6.x |dbod-host42|
             +---+----------+---------+---------+-------+-----------+
-        * *attribute* 
+
+        * *attribute*
+
             +--+------------+-------------------------+------------+
             |id| instance_id|           name          |  value     |
             +==+============+=========================+============+
-            |24|     42     |port/buffer_pool_size/etc| 5432/1G/etc|
+            |24|     42     |port                     | 5432       |
             +--+------------+-------------------------+------------+
+            |25|     42     |buffer_pool_size         | 1G         |
+            +--+------------+-------------------------+------------+
+
         * *volume* - an example of this is like the following:
+
             +--+-------------+---------+-----------+-------------+
             |id| instance_id |file_mode|  server   |mounting_path|
             +==+=============+=========+===========+=============+
             |24|      42     |   0755  | NAS-server|  /MNT/data  |
             +--+-------------+---------+-----------+-------------+
-            
+
         \* *(instance)id == (attribute/volume)instance_id*
         
         \*\* the id s are autoincremented (type serial)
@@ -65,7 +72,10 @@ class Instance(tornado.web.RequestHandler):
 
     .. note::
 
-      You need to provide a <*username*> and a <*password*> or to provide manually the *Authorization* header in order to alter the database's content and specifically for :func:`post`, :func:`put` and :func:`delete` methods 
+      You need to provide a <*username*> and a <*password*> or to provide
+      manually the *Authorization* header in order to alter the database's
+      content and specifically for :func:`post`, :func:`put` and :func:`delete`
+      methods 
 
     """
 
@@ -97,18 +107,24 @@ class Instance(tornado.web.RequestHandler):
     @http_basic_auth
     def post(self, name):
         """
-        The *POST* method inserts a new instance into the database wih all the information that is needed for the creation of it.
+        The *POST* method inserts a new instance into the database wih all the
+        information that is needed for the creation of it.
 
-        In the request body we specify all the information of the *instance* table along with the *attribute* and *volume* tables. We extract and separate the information of each table. After inserting the information in the *instance* table we use its *id* to relate the specific instance with the *attribute* and *volume* table.
+        In the request body we specify all the information of the *instance*
+        table along with the *attribute* and *volume* tables. We extract and
+        separate the information of each table. After inserting the information
+        in the *instance* table we use its *id* to relate the specific instance
+        with the *attribute* and *volume* table.
         
         .. note::
             
+            
             * It's possible to insert more than one *hosts* or *volumes* in one instance.
-            * The database names have to be uniique
-            * If any of the 3 insertions (in *instance*, *attribute*, *volume* table) is not successful then an *Exception* is raised and the private function :func:`__delete_instance__` is used in order to delete what may has been created.
+            * The database names have to be unique
+            * If any of the 3 insertions (in *instance*, *attribute*, *volume* table) is not successful then an *Exception* is raised and the private function :func:`__delete_instance__` is used in order to delete what may has been created.  
             * Also, the creation is not successful 
 
-                * if the client is not authotized or
+                * if the client is not authorized or
                 * if there is any internal error
                 * if the format of the request body is not right or if there is no *database name* field
 
@@ -195,7 +211,8 @@ class Instance(tornado.web.RequestHandler):
         """
         The *PUT* method updates an instance into the database wih all the information that is needed.
 
-        In the request body we specify all the information of the *instance* table along with the *attribute* and *volume* tables. 
+        In the request body we specify all the information of the *instance*
+        table along with the *attribute* and *volume* tables. 
 
         The procedure of this method is the following:
 
