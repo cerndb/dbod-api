@@ -331,8 +331,8 @@ BEGIN
       ('/var/lib/pgsql/')::VARCHAR socket;
   ELSIF type = 'InfluxDB' THEN
     RETURN QUERY SELECT
-      ('/usr/local/influx/influx-' || version)::VARCHAR basedir,
-      ('/usr/local/influx/influx-' || version || '/bin')::VARCHAR bindir,
+      ('/usr/local/influxdb/influxdb-' || version)::VARCHAR basedir,
+      ('/usr/local/influxdb/influxdb-' || version || '/bin')::VARCHAR bindir,
       ('/ORA/dbs03/' || upper(inst_name) )::VARCHAR datadir,
       ('/ORA/dbs02/' || upper(inst_name) )::VARCHAR logdir,
       ('/var/lib/pgsql/')::VARCHAR socket;
