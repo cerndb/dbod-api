@@ -40,6 +40,9 @@ handlers = [
     ]
 
 class Application():
+    """
+    This is the main entrypoint of the dbod-api where the main parameters are specified in order to start the server.
+    """
     def __init__(self):
         # Set up log file and level.
         options.log_file_prefix = config.get('logging', 'path')
