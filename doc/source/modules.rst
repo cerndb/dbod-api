@@ -4,8 +4,6 @@ Modules
 .. toctree::
     :maxdepth: 2
 
-    modules/dbod
-    modules/dbod.api
     modules/dbod.api.api
     modules/dbod.api.base
     modules/dbod.api.instance

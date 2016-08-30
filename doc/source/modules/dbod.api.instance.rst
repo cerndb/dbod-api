@@ -1,5 +1,5 @@
-dbod.api.entity
-===============
+dbod.api.instance
+==================
 
 .. automodule:: dbod.api.instance
    :members:
