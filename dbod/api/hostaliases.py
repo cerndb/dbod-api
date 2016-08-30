@@ -19,12 +19,12 @@ from dbod.config import config
 
 class HostAliases(tornado.web.RequestHandler):
     """
-    This the handler of /host/aliases/<host>
+    This the handler of **/host/aliases/<host>** endpoint.
     
     Things that are given for the development of this endpoint:
 
     * We request indirectly a `Postgres <https://www.postgresql.org/>`_ database through `PostgREST <http://postgrest.com/>`_ which returns a response in JSON format
-    * The database's table that is used for this endpoint is called *host_aliases* and provides information for the instance aliases association with a host.
+    * The database's table/view that is used for this endpoint is called *host_aliases* and provides information for the instance aliases association with a host.
     * The columns of this table are like that:
 
     +-------------+----------------------------------------------------------+
