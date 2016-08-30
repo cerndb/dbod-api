@@ -1,0 +1,381 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>dbod.api.instance &#8212; DB On Demand API 0.6.5 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.6.5',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/logo.ico"/>
+    <link rel="top" title="DB On Demand API 0.6.5 documentation" href="../index.html" />
+    <link rel="up" title="Modules" href="../modules.html" />
+    <link rel="next" title="dbod.api.functionalalias" href="dbod.api.functionalalias.html" />
+    <link rel="prev" title="dbod.api.base" href="dbod.api.base.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-dbod.api.instance">
+<span id="dbod-api-instance"></span><h1>dbod.api.instance<a class="headerlink" href="#module-dbod.api.instance" title="Permalink to this headline">¶</a></h1>
+<p>REST API Server for the DB On Demand System</p>
+<dl class="class">
+<dt id="dbod.api.instance.Instance">
+<em class="property">class </em><code class="descclassname">dbod.api.instance.</code><code class="descname">Instance</code><span class="sig-paren">(</span><em>application</em>, <em>request</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#dbod.api.instance.Instance" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the handler of <strong>/instance/&lt;database name&gt;</strong> endpoint.</p>
+<p>Things that are given for the development of this endpoint:</p>
+<ul>
+<li><p class="first">We request indirectly a <a class="reference external" href="https://www.postgresql.org/">Postgres</a> database through <a class="reference external" href="http://postgrest.com/">PostgREST</a> which returns a response in JSON format</p>
+</li>
+<li><p class="first">The database&#8217;s tables/views that are used for this endpoint are</p>
+<blockquote>
+<div><ul>
+<li><p class="first"><em>instance</em> - an example of this could look like this:</p>
+<blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="6%" />
+<col width="21%" />
+<col width="19%" />
+<col width="0%" />
+<col width="17%" />
+<col width="15%" />
+<col width="23%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">id</th>
+<th class="head">username</th>
+<th class="head">db_name</th>
+<th class="head" colspan="2">db_type</th>
+<th class="head">version</th>
+<th class="head">host</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>42</td>
+<td>dbod-usr42</td>
+<td>dbod-db42</td>
+<td colspan="2">MYSQL</td>
+<td>5.6.x</td>
+<td>dbod-host42</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</li>
+<li><p class="first"><em>attribute</em></p>
+<blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="4%" />
+<col width="24%" />
+<col width="49%" />
+<col width="24%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">id</th>
+<th class="head">instance_id</th>
+<th class="head">name</th>
+<th class="head">value</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>24</td>
+<td>42</td>
+<td>port</td>
+<td>5432</td>
+</tr>
+<tr class="row-odd"><td>25</td>
+<td>42</td>
+<td>buffer_pool_size</td>
+<td>1G</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</li>
+<li><p class="first"><em>volume</em> - an example of this is like the following:</p>
+<blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="4%" />
+<col width="27%" />
+<col width="19%" />
+<col width="23%" />
+<col width="27%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">id</th>
+<th class="head">instance_id</th>
+<th class="head">file_mode</th>
+<th class="head">server</th>
+<th class="head">mounting_path</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>24</td>
+<td>42</td>
+<td>0755</td>
+<td>NAS-server</td>
+<td>/MNT/data</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</li>
+</ul>
+<p>* <em>(instance)id == (attribute/volume)instance_id</em></p>
+<p>** the id s are autoincremented (type serial)</p>
+</div></blockquote>
+<p>All of them provide the appropriate information for the creation/update/deletion of an instance.</p>
+</li>
+</ul>
+<p>The request methods implemented for this endpoint are:</p>
+<ul class="simple">
+<li><a class="reference internal" href="#dbod.api.instance.Instance.get" title="dbod.api.instance.Instance.get"><code class="xref py py-func docutils literal"><span class="pre">get()</span></code></a></li>
+<li><a class="reference internal" href="#dbod.api.instance.Instance.post" title="dbod.api.instance.Instance.post"><code class="xref py py-func docutils literal"><span class="pre">post()</span></code></a> - (creation)</li>
+<li><a class="reference internal" href="#dbod.api.instance.Instance.put" title="dbod.api.instance.Instance.put"><code class="xref py py-func docutils literal"><span class="pre">put()</span></code></a> - (update)</li>
+<li><a class="reference internal" href="#dbod.api.instance.Instance.delete" title="dbod.api.instance.Instance.delete"><code class="xref py py-func docutils literal"><span class="pre">delete()</span></code></a> - (deletion)</li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">You need to provide a &lt;<em>username</em>&gt; and a &lt;<em>password</em>&gt; or to provide
+manually the <em>Authorization</em> header in order to alter the database&#8217;s
+content and specifically for <a class="reference internal" href="#dbod.api.instance.Instance.post" title="dbod.api.instance.Instance.post"><code class="xref py py-func docutils literal"><span class="pre">post()</span></code></a>, <a class="reference internal" href="#dbod.api.instance.Instance.put" title="dbod.api.instance.Instance.put"><code class="xref py py-func docutils literal"><span class="pre">put()</span></code></a> and <a class="reference internal" href="#dbod.api.instance.Instance.delete" title="dbod.api.instance.Instance.delete"><code class="xref py py-func docutils literal"><span class="pre">delete()</span></code></a>
+methods</p>
+</div>
+<dl class="method">
+<dt id="dbod.api.instance.Instance.__delete_instance__">
+<code class="descname">__delete_instance__</code><span class="sig-paren">(</span><em>inst_id</em><span class="sig-paren">)</span><a class="headerlink" href="#dbod.api.instance.Instance.__delete_instance__" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a private function that is used by <a class="reference internal" href="#dbod.api.instance.Instance.put" title="dbod.api.instance.Instance.put"><code class="xref py py-func docutils literal"><span class="pre">put()</span></code></a> and <a class="reference internal" href="#dbod.api.instance.Instance.delete" title="dbod.api.instance.Instance.delete"><code class="xref py py-func docutils literal"><span class="pre">delete()</span></code></a> methods.
+It deletes all the related information of an instance from the <em>instance</em>, <em>attribute</em> and <em>volume</em> table given the database&#8217;s <em>id</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>inst_id</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the id of the instance we want to delete</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="dbod.api.instance.Instance.__get_instance_id__">
+<code class="descname">__get_instance_id__</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#dbod.api.instance.Instance.__get_instance_id__" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a private function which is used by <a class="reference internal" href="#dbod.api.instance.Instance.put" title="dbod.api.instance.Instance.put"><code class="xref py py-func docutils literal"><span class="pre">put()</span></code></a> and <a class="reference internal" href="#dbod.api.instance.Instance.delete" title="dbod.api.instance.Instance.delete"><code class="xref py py-func docutils literal"><span class="pre">delete()</span></code></a> methods.
+Returns the instance <em>id</em> given the database name in order to be able to operate on the instance related tables. It returns <em>None</em> if the specified database name does not exist in the <em>instance</em> table or in case of internal error.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the database name from which we want to get the <em>id</em></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str or None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="dbod.api.instance.Instance.delete">
+<code class="descname">delete</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#dbod.api.instance.Instance.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <em>DELETE</em> method deletes an instance by <em>database name</em>.</p>
+<p>In order to delete an instance we have to delete all the related information of the specified database name in <em>instance</em>, <em>attribute</em> and <em>volume</em> tables (<a class="reference internal" href="#dbod.api.instance.Instance.__delete_instance__" title="dbod.api.instance.Instance.__delete_instance__"><code class="xref py py-func docutils literal"><span class="pre">__delete_instance__()</span></code></a>). To achieve that we have to first find the <em>id</em> of the given database name (:func:__get_instance_id__).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the database name which is given in the url</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">HTTPError - when the given database name cannot be found</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="dbod.api.instance.Instance.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#dbod.api.instance.Instance.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <em>GET</em> method returns am <em>instance</em> given a <em>database name</em>.
+(No any special headers for this request)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the database name which is given in the url</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">json - the response of the request</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body">HTTPError - when the requested database name does not exist or if in case of an internal error</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="dbod.api.instance.Instance.post">
+<code class="descname">post</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#dbod.api.instance.Instance.post" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <em>POST</em> method inserts a new instance into the database wih all the
+information that is needed for the creation of it.</p>
+<p>In the request body we specify all the information of the <em>instance</em>
+table along with the <em>attribute</em> and <em>volume</em> tables. We extract and
+separate the information of each table. After inserting the information
+in the <em>instance</em> table we use its <em>id</em> to relate the specific instance
+with the <em>attribute</em> and <em>volume</em> table.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<ul class="last">
+<li><p class="first">It&#8217;s possible to insert more than one <em>hosts</em> or <em>volumes</em> in one instance.</p>
+</li>
+<li><p class="first">The database names have to be unique</p>
+</li>
+<li><p class="first">If any of the 3 insertions (in <em>instance</em>, <em>attribute</em>, <em>volume</em> table) is not successful then an <em>Exception</em> is raised and the private function <a class="reference internal" href="#dbod.api.instance.Instance.__delete_instance__" title="dbod.api.instance.Instance.__delete_instance__"><code class="xref py py-func docutils literal"><span class="pre">__delete_instance__()</span></code></a> is used in order to delete what may has been created.</p>
+</li>
+<li><p class="first">Also, the creation is not successful</p>
+<blockquote>
+<div><ul class="simple">
+<li>if the client is not authorized or</li>
+<li>if there is any internal error</li>
+<li>if the format of the request body is not right or if there is no <em>database name</em> field</li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the new database name which is given in the url or any other string</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first">HTTPError - in case of an internal error</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Request body:</th><td class="field-body"><p class="first">json</p>
+<ul class="last simple">
+<li>for <em>instance</em>: json</li>
+<li>for <em>attribute</em>: json</li>
+<li>for <em>volume</em>: list of jsons</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="dbod.api.instance.Instance.put">
+<code class="descname">put</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#dbod.api.instance.Instance.put" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <em>PUT</em> method updates an instance into the database wih all the information that is needed.</p>
+<p>In the request body we specify all the information of the <em>instance</em>
+table along with the <em>attribute</em> and <em>volume</em> tables.</p>
+<p>The procedure of this method is the following:</p>
+<ul class="simple">
+<li>We extract and separate the information of each table.</li>
+<li>We get the <em>id</em> of the row from the given (unique) database from the url.</li>
+<li>If it exists, we delete if any information with that <em>id</em> exists in the tables.</li>
+<li>After that, we insert the information to the related table along with the instance <em>id</em>.</li>
+<li>In case of more than one attributes we insert each one separetely.</li>
+<li>Finally, we update the <em>instance</em> table&#8217;s row (which include the given database name) with the new given information.</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the database name which is given in the url</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body">HTTPError - when the <em>request body</em> format is not right or in case of internall error</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logo.png" alt="Logo"/>
+            </a></p><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../modules.html">Modules</a><ul>
+      <li>Previous: <a href="dbod.api.base.html" title="previous chapter">dbod.api.base</a></li>
+      <li>Next: <a href="dbod.api.functionalalias.html" title="next chapter">dbod.api.functionalalias</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/modules/dbod.api.instance.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, CERN DB On Demand Team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="../_sources/modules/dbod.api.instance.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

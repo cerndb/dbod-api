@@ -1,0 +1,172 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>dbod.api.rundeck &#8212; DB On Demand API 0.6.5 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.6.5',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/logo.ico"/>
+    <link rel="top" title="DB On Demand API 0.6.5 documentation" href="../index.html" />
+    <link rel="up" title="Modules" href="../modules.html" />
+    <link rel="next" title="dbod.config" href="dbod.config.html" />
+    <link rel="prev" title="dbod.api.metadata" href="dbod.api.metadata.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-dbod.api.rundeck">
+<span id="dbod-api-rundeck"></span><h1>dbod.api.rundeck<a class="headerlink" href="#module-dbod.api.rundeck" title="Permalink to this headline">¶</a></h1>
+<p>Rundeck module, which includes the rundeck classes and endpoints.</p>
+<dl class="class">
+<dt id="dbod.api.rundeck.RundeckJobs">
+<em class="property">class </em><code class="descclassname">dbod.api.rundeck.</code><code class="descname">RundeckJobs</code><span class="sig-paren">(</span><em>application</em>, <em>request</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#dbod.api.rundeck.RundeckJobs" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the handler of <strong>/rundeck/jobs/&lt;job&gt;/&lt;node&gt;</strong> endpoint.</p>
+<p>The class manages the endpoints used to execute and visualize jobs execution in Rundeck.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">You need to be authenticated in order to execute a job.</p>
+</div>
+<dl class="method">
+<dt id="dbod.api.rundeck.RundeckJobs.__get_output__">
+<code class="descname">__get_output__</code><span class="sig-paren">(</span><em>execution</em><span class="sig-paren">)</span><a class="headerlink" href="#dbod.api.rundeck.RundeckJobs.__get_output__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the output of a job execution</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dbod.api.rundeck.RundeckJobs.__run_job__">
+<code class="descname">__run_job__</code><span class="sig-paren">(</span><em>job</em>, <em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#dbod.api.rundeck.RundeckJobs.__run_job__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executes a new Rundeck job and returns the output</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dbod.api.rundeck.RundeckJobs.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#dbod.api.rundeck.RundeckJobs.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <em>GET</em> method returns the output of a job execution</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="dbod.api.rundeck.RundeckJobs.post">
+<code class="descname">post</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#dbod.api.rundeck.RundeckJobs.post" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <em>POST</em> method executes a new Rundeck job and returns the output.</p>
+<p>The job and its hash has to be defined in the <em>api.cfg</em> configuration file in order to a specific job to be able to be executed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>job</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the name of the job to be executed which is listed in the configuration file</li>
+<li><strong>node</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the name of the node you want the job to be executed</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">HTTPError - if the job didn&#8217;t succeed or if the timeout has exceeded or in case of an internal error</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>When a job is executed the request call hangs and waits for a response for a maximum time of 10 seconds. The api constantly calls rundeck&#8217;s api to check if the job has finished. When it finishes it prints out the response or raises an error if it didn&#8217;t succeed.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="dbod.api.rundeck.RundeckResources">
+<em class="property">class </em><code class="descclassname">dbod.api.rundeck.</code><code class="descname">RundeckResources</code><span class="sig-paren">(</span><em>application</em>, <em>request</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#dbod.api.rundeck.RundeckResources" title="Permalink to this definition">¶</a></dt>
+<dd><p>The class of /rundeck/resources.xml</p>
+<dl class="method">
+<dt id="dbod.api.rundeck.RundeckResources.get">
+<code class="descname">get</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#dbod.api.rundeck.RundeckResources.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a valid resources.xml file to import target entities in 
+Rundeck</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logo.png" alt="Logo"/>
+            </a></p><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../modules.html">Modules</a><ul>
+      <li>Previous: <a href="dbod.api.metadata.html" title="previous chapter">dbod.api.metadata</a></li>
+      <li>Next: <a href="dbod.config.html" title="next chapter">dbod.config</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/modules/dbod.api.rundeck.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, CERN DB On Demand Team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="../_sources/modules/dbod.api.rundeck.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,143 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>/api/v1/rundeck/resources.xml &#8212; DB On Demand API 0.6.5 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.6.5',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/logo.ico"/>
+    <link rel="top" title="DB On Demand API 0.6.5 documentation" href="../index.html" />
+    <link rel="up" title="Endpoints" href="../endpoints.html" />
+    <link rel="next" title="/api/v1/rundeck/job" href="rundeck_job.html" />
+    <link rel="prev" title="/api/v1/metadata/host" href="metadata_host.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="api-v1-rundeck-resources-xml">
+<h1>/api/v1/rundeck/resources.xml<a class="headerlink" href="#api-v1-rundeck-resources-xml" title="Permalink to this headline">¶</a></h1>
+<dl class="get">
+<dt id="get--api-v1-instance-alias-(db_name)">
+<code class="descname">GET </code><code class="descname">/api/v1/instance/alias/</code><span class="sig-paren">(</span><em>db_name</em><span class="sig-paren">)</span><a class="headerlink" href="#get--api-v1-instance-alias-(db_name)" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div>This URI returns an XML document ready to be used as a source of information
+for the node list on a Rundeck setup.</div></blockquote>
+<p><strong>Example request</strong>:</p>
+<p><code class="docutils literal"><span class="pre">curl</span> <span class="pre">-X</span> <span class="pre">GET</span> <span class="pre">-i</span> <span class="pre">https://&lt;domain&gt;:&lt;port&gt;/api/v1/rundeck/resources.xml</span></code></p>
+<div class="highlight-http"><div class="highlight"><pre><span></span><span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span> <span class="m">200</span> <span class="ne">OK</span>
+<span class="na">Date</span><span class="o">:</span> <span class="l">Fri, 26 Aug 2016 09:45:42 GMT</span>
+<span class="na">Content-Length</span><span class="o">:</span> <span class="l">52661</span>
+<span class="na">Etag</span><span class="o">:</span> <span class="l">&quot;5d553d39cf0f3422569d19549627c8e9c615732e&quot;</span>
+<span class="na">Content-Type</span><span class="o">:</span> <span class="l">text/xml</span>
+<span class="na">Server</span><span class="o">:</span> <span class="l">TornadoServer/4.2</span>
+</pre></div>
+</div>
+<div class="highlight-xml"><div class="highlight"><pre><span></span>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;project&gt;
+    &lt;node name=&quot;db1&quot; hostname=&quot;dbod-db1.domain&quot; ... /&gt;
+    &lt;node name=&quot;db2&quot; hostname=&quot;dbod-db2.domain&quot; ... /&gt;
+&lt;/project&gt;
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name" colspan="2">Response Headers:</th></tr>
+<tr class="field-odd field"><td>&nbsp;</td><td class="field-body"><ul class="first last simple">
+<li><a class="reference external" href="http://tools.ietf.org/html/rfc7231#section-3.1.1.5">Content-Type</a> &#8211; text/xml</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logo.png" alt="Logo"/>
+            </a></p><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../endpoints.html">Endpoints</a><ul>
+      <li>Previous: <a href="metadata_host.html" title="previous chapter">/api/v1/metadata/host</a></li>
+      <li>Next: <a href="rundeck_job.html" title="next chapter">/api/v1/rundeck/job</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/endpoints/rundeck_resources.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, CERN DB On Demand Team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="../_sources/endpoints/rundeck_resources.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

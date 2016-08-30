@@ -1,0 +1,181 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>dbod.api.metadata &#8212; DB On Demand API 0.6.5 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.6.5',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/logo.ico"/>
+    <link rel="top" title="DB On Demand API 0.6.5 documentation" href="../index.html" />
+    <link rel="up" title="Modules" href="../modules.html" />
+    <link rel="next" title="dbod.api.rundeck" href="dbod.api.rundeck.html" />
+    <link rel="prev" title="dbod.api.hostalaliases" href="dbod.api.hostaliases.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-dbod.api.metadata">
+<span id="dbod-api-metadata"></span><h1>dbod.api.metadata<a class="headerlink" href="#module-dbod.api.metadata" title="Permalink to this headline">¶</a></h1>
+<p>Metadata module, which includes all the classes related with metadata endpoints.</p>
+<dl class="class">
+<dt id="dbod.api.metadata.Metadata">
+<em class="property">class </em><code class="descclassname">dbod.api.metadata.</code><code class="descname">Metadata</code><span class="sig-paren">(</span><em>application</em>, <em>request</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#dbod.api.metadata.Metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the handler of <strong>/metadata/&lt;class&gt;/&lt;name&gt;</strong> endpoint.</p>
+<p>This endpoint takes 2 arguments:</p>
+<ul class="simple">
+<li><em>&lt;class&gt;</em> - &#8220;<em>host</em>&#8221; or &#8220;<em>instance</em>&#8220;</li>
+<li><em>&lt;name&gt;</em> - the name of a <em>host</em> or of a <em>database</em></li>
+</ul>
+<p>Things that are given for the development of this endpoint:</p>
+<ul class="simple">
+<li>We request indirectly a <a class="reference external" href="https://www.postgresql.org/">Postgres</a> database through <a class="reference external" href="http://postgrest.com/">PostgREST</a> which returns a response in JSON format</li>
+<li>The database&#8217;s table/view that is used for this endpoint is called <em>metadata</em> and provides information about the metadata of a database instance(s).</li>
+<li>Here is an example of this table:</li>
+</ul>
+<table border="1" class="docutils">
+<colgroup>
+<col width="3%" />
+<col width="11%" />
+<col width="13%" />
+<col width="18%" />
+<col width="55%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">id</th>
+<th class="head">username</th>
+<th class="head">db_name</th>
+<th class="head">hosts</th>
+<th class="head">attributes</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>42</td>
+<td>dbod</td>
+<td>dbod-db42</td>
+<td>{dbod-host42}</td>
+<td>{&#8220;port&#8221;: &#8220;5432&#8221;, &#8220;shared_buffers&#8221;: &#8220;1&#8221;}</td>
+</tr>
+</tbody>
+</table>
+<p>The request method implemented for this endpoint is just the <a class="reference internal" href="#dbod.api.metadata.Metadata.get" title="dbod.api.metadata.Metadata.get"><code class="xref py py-func docutils literal"><span class="pre">get()</span></code></a>.</p>
+<dl class="method">
+<dt id="dbod.api.metadata.Metadata.get">
+<code class="descname">get</code><span class="sig-paren">(</span><em>**args</em><span class="sig-paren">)</span><a class="headerlink" href="#dbod.api.metadata.Metadata.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the metadata of a host or an instance
+The <em>GET</em> method returns the instance(s)&#8217; metadata given the <em>host</em> or the <em>database name</em>. 
+(No any special headers for this request)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>class</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; &#8220;host&#8221; or &#8220;instance&#8221;</li>
+<li><strong>name</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; the host or database name which is given in the url</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><p>json - the response of the request</p>
+<ul class="simple">
+<li>in case of &#8220;<em>host</em>&#8221; it returns all the instances&#8217; metadata that are hosted in the specified host</li>
+<li>in casse of &#8220;<em>instance</em>&#8221; it returns the metadata of just the given database</li>
+</ul>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">HTTPError - when the &lt;class&gt; argument is not valid (&#8220;host&#8221; or &#8220;instance&#8221;) or the given host or database name does not exist or in case of an internal error</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logo.png" alt="Logo"/>
+            </a></p><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../modules.html">Modules</a><ul>
+      <li>Previous: <a href="dbod.api.hostaliases.html" title="previous chapter">dbod.api.hostalaliases</a></li>
+      <li>Next: <a href="dbod.api.rundeck.html" title="next chapter">dbod.api.rundeck</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/modules/dbod.api.metadata.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, CERN DB On Demand Team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="../_sources/modules/dbod.api.metadata.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

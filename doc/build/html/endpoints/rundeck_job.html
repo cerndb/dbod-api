@@ -1,0 +1,172 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>/api/v1/rundeck/job &#8212; DB On Demand API 0.6.5 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.6.5',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/logo.ico"/>
+    <link rel="top" title="DB On Demand API 0.6.5 documentation" href="../index.html" />
+    <link rel="up" title="Endpoints" href="../endpoints.html" />
+    <link rel="next" title="Modules" href="../modules.html" />
+    <link rel="prev" title="/api/v1/rundeck/resources.xml" href="rundeck_resources.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="api-v1-rundeck-job">
+<h1>/api/v1/rundeck/job<a class="headerlink" href="#api-v1-rundeck-job" title="Permalink to this headline">¶</a></h1>
+<dl class="post">
+<dt id="post--api-v1-rundeck-job-(job-name)-(instance)">
+<code class="descname">POST </code><code class="descname">/api/v1/rundeck/job/(job-name)/</code><span class="sig-paren">(</span><em>instance</em><span class="sig-paren">)</span><a class="headerlink" href="#post--api-v1-rundeck-job-(job-name)-(instance)" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div><p>Executes the Rundeck job specified by (job-name) on the target (instance).</p>
+<p>The followin example covers the execution of a job named <code class="docutils literal"><span class="pre">get-snapshots</span></code>
+which returns the list of snapshots from a certain instance which could be
+used to launch a restore.</p>
+</div></blockquote>
+<p><strong>Example request</strong>:</p>
+<blockquote>
+<div><code class="docutils literal"><span class="pre">curl</span> <span class="pre">-i</span> <span class="pre">-u</span> <span class="pre">$AUTH</span> <span class="pre">-X</span> <span class="pre">POST</span> <span class="pre">https://&lt;server&gt;:5443/api/v1/rundeck/job/get-snapshots/pinocho</span></code></div></blockquote>
+<p><strong>Example response</strong>:</p>
+<div class="highlight-http"><div class="highlight"><pre><span></span><span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span> <span class="m">200</span> <span class="ne">OK</span>
+<span class="na">Date</span><span class="o">:</span> <span class="l">Fri, 26 Aug 2016 14:55:45 GMT</span>
+<span class="na">Content-Length</span><span class="o">:</span> <span class="l">5258</span>
+<span class="na">Content-Type</span><span class="o">:</span> <span class="l">application/json; charset=UTF-8</span>
+<span class="na">Server</span><span class="o">:</span> <span class="l">TornadoServer/4.2</span>
+
+<span class="p">{</span> <span class="nt">&quot;response&quot;</span><span class="p">:</span>
+  <span class="p">{</span>
+        <span class="nt">&quot;execState&quot;</span><span class="p">:</span> <span class="s2">&quot;succeeded&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;hasFailedNodes&quot;</span><span class="p">:</span> <span class="kc">false</span><span class="p">,</span>
+        <span class="nt">&quot;lastModified&quot;</span><span class="p">:</span> <span class="s2">&quot;1472223348000&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;completed&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+        <span class="nt">&quot;totalSize&quot;</span><span class="p">:</span> <span class="mi">5260</span><span class="p">,</span>
+        <span class="nt">&quot;execCompleted&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+        <span class="nt">&quot;percentLoaded&quot;</span><span class="p">:</span> <span class="mf">99.88593155893535</span><span class="p">,</span>
+        <span class="nt">&quot;offset&quot;</span><span class="p">:</span> <span class="s2">&quot;5254&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;entries&quot;</span><span class="p">:</span> <span class="p">[</span>
+          <span class="p">{</span>
+                <span class="nt">&quot;absolute_time&quot;</span><span class="p">:</span> <span class="s2">&quot;2016-08-26T14:55:47Z&quot;</span><span class="p">,</span>
+                <span class="nt">&quot;node&quot;</span><span class="p">:</span> <span class="s2">&quot;pinocho&quot;</span><span class="p">,</span>
+                <span class="nt">&quot;log&quot;</span><span class="p">:</span> <span class="s2">&quot;[&#39;snapscript_13072015_171321_133_5617&#39;,&#39;snapscript_09072015_170607_131_5617&#39;, &#39;snapscript_13072015_171233_132_561&#39;]&quot;</span><span class="p">,</span>
+                <span class="nt">&quot;level&quot;</span><span class="p">:</span> <span class="s2">&quot;NORMAL&quot;</span><span class="p">,</span>
+                <span class="nt">&quot;command&quot;</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
+                <span class="nt">&quot;user&quot;</span><span class="p">:</span> <span class="s2">&quot;dbod&quot;</span><span class="p">,</span>
+                <span class="nt">&quot;time&quot;</span><span class="p">:</span> <span class="s2">&quot;16:55:47&quot;</span><span class="p">,</span>
+                <span class="nt">&quot;stepctx&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">}],</span>
+                <span class="nt">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;143&quot;</span><span class="p">,</span>
+                <span class="nt">&quot;execDuration&quot;</span><span class="p">:</span> <span class="mi">3000</span>
+
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name" colspan="2">Response Headers:</th></tr>
+<tr class="field-odd field"><td>&nbsp;</td><td class="field-body"><ul class="first simple">
+<li><a class="reference external" href="http://tools.ietf.org/html/rfc7231#section-3.1.1.5">Content-Type</a> &#8211; application/json; charset=UTF-8</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Status Codes:</th><td class="field-body"><ul class="first last simple">
+<li><a class="reference external" href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.2.1">200 OK</a> &#8211; No error executing job. Check log for details</li>
+<li><a class="reference external" href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.5.3">502 Bad Gateway</a> &#8211; Job not found in Rundeck</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logo.png" alt="Logo"/>
+            </a></p><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../endpoints.html">Endpoints</a><ul>
+      <li>Previous: <a href="rundeck_resources.html" title="previous chapter">/api/v1/rundeck/resources.xml</a></li>
+      <li>Next: <a href="../modules.html" title="next chapter">Modules</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/endpoints/rundeck_job.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, CERN DB On Demand Team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="../_sources/endpoints/rundeck_job.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
