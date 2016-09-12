@@ -432,7 +432,7 @@ CREATE OR REPLACE VIEW api.rundeck_instances AS
 SELECT public.dod_instances.db_name, 
        public.functional_aliases.alias hostname,
        public.get_attribute('port', public.dod_instances.id) port,
-       'dbod'::CHAR username,
+       'dbod'::CHAR(4) username,
        public.dod_instances.db_type db_type,
        public.dod_instances.category category,
        db_type || ',' || category tags
