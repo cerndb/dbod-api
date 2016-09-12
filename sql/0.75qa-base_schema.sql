@@ -441,7 +441,8 @@ public.dod_instances.db_name = public.functional_aliases.db_name;
 
 -- Host aliases View
 CREATE OR REPLACE VIEW api.host_aliases AS
-SELECT host, array_agg('dbod-' || db_name || '.cern.ch') aliases 
+SELECT host, array_agg('dbod-' || regexp_replace(db_name, '_', '-', 'g') || '.cern.ch') aliases 
 FROM fdw.dod_instances 
 GROUP BY host;
+
 
