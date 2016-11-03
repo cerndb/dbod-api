@@ -26,7 +26,7 @@ setup(name='dbod-api',
       packages=find_packages(),
       scripts=['bin/dbod-api'],
       test_suite="",
-      requires=[
+      install_requires=[
           'ConfigParser',
           'tornado',
           'nose',
