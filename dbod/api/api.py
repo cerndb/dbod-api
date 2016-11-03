@@ -15,9 +15,10 @@ Main module to initialize the Tornado Server and endpoints
 import ConfigParser
 import sys, traceback
 import tornado.web
-import logging
+#import logging
 
 from tornado.options import parse_command_line, options, define
+from tornado.log import LogFormatter, logging
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 
@@ -53,7 +54,7 @@ class Application():
     This is the main entrypoint of the dbod-api where the main parameters are specified in order to start the server.
     """
     def __init__(self):
-        # Set up log file and level.
+        # Set up log file, level and formatting
         options.log_file_prefix = config.get('logging', 'path')
         options.logging = config.get('logging', 'level')
         options.log_to_stderr = config.getboolean('logging', 'stderr')
@@ -62,7 +63,16 @@ class Application():
         port = config.get('server', 'port')
         define('port', default=port, help='Port to be used')
         parse_command_line([])
-        
+       
+        # Override default logging format and date format
+        log_format = config.get('logging', 'fmt', raw = True)
+        date_format = config.get('logging', 'datefmt', raw = True)
+        if date_format:
+            formatter = tornado.log.LogFormatter(fmt = log_format, datefmt = date_format)
+            for logger in logging.getLogger('').handlers:
+                logging.info('Overriding log format for %s' % (logger))
+                logger.setFormatter(formatter)
+
         # Defining handlers
         logging.info("Defining application (url, handler) pairs")
         application = tornado.web.Application(handlers, debug=config.getboolean('tornado', 'debug'))
