@@ -35,7 +35,12 @@ try:
     config = ConfigParser.ConfigParser()
     config.add_section('tornado')
     config.set('tornado', 'debug', 'false')
-    config.read(args.config)
+    number_read_files = config.read(args.config)
+
+    # check the config file exist and can be read
+    if len(number_read_files) != 1:
+        print "Configuration file '{0}' cannot be read or does not exist. Stopping.".format(args.config)
+        sys.exit(1)
     
     # Force load of all required fields to avoid errors in runtime
     for section, options in requiredConfig.items():
