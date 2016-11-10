@@ -124,7 +124,8 @@ CREATE TABLE public.attribute (
     instance_id integer NOT NULL,
     name varchar(32) NOT NULL,
     value varchar(250) NOT NULL,
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    UNIQUE (instance_id, name)
 );
 
 -- FUNCTIONAL ALIASES
@@ -227,7 +228,7 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION public.get_attributes(inst_id INTEGER)
+CREATE OR REPLACE FUNCTION api.get_attributes(inst_id INTEGER)
 RETURNS JSON AS $$
 DECLARE
   attributes JSON;
@@ -312,7 +313,7 @@ SELECT
     db_type, 
     version, 
     string_to_array(dod_instances.host::text, ','::text) AS hosts, 
-    public.get_attributes(id) attributes,
+    api.get_attributes(id) attributes,
     public.get_attribute('port', id) port, 
     get_volumes volumes, 
     d.*

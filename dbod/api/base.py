@@ -16,6 +16,9 @@ import tornado.web
 import base64
 import functools
 import logging
+import requests
+import json
+import urllib
 
 from dbod.config import config
 
@@ -71,6 +74,15 @@ def http_basic_auth(fun):
             raise tornado.web.HTTPError(UNAUTHORIZED)
 
     return wrapper
+    
+def get_instance_id_by_name(name):
+    """Common function to get the ID of an instance by its name."""
+    response = requests.get(config.get('postgrest', 'instance_url') + "?db_name=eq." + name)
+    if response.ok:
+        data = response.json()
+        if data:
+            return data[0]["id"]
+    return None
     
 class DocHandler(tornado.web.RequestHandler):
     """Shows the list of endpoints available in the API"""

@@ -28,10 +28,12 @@ from dbod.api.functionalalias import FunctionalAlias
 from dbod.api.hostaliases import HostAliases
 from dbod.api.host import Host
 from dbod.api.instance import Instance
+from dbod.api.attribute import Attribute
 from dbod.config import config
 
 handlers = [
     (r"/", DocHandler),
+    (r"/api/v1/instance/(?P<instance>[^\/]+)/attribute/?(?P<attribute>[^\/]+)?", Attribute),
     (r"/api/v1/instance/([^/]+)", Instance),
     (r"/api/v1/host/aliases/([^/]+)", HostAliases),
     (r"/api/v1/host/names/([^/]+)", Host),
