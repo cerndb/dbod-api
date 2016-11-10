@@ -1,4 +1,3 @@
-
 # Copyright (C) 2015, CERN
 # This software is distributed under the terms of the GNU General Public
 # Licence version 3 (GPL Version 3), copied verbatim in the file "COPYING".
@@ -12,21 +11,153 @@ import json
 import logging
 import sys
 import requests
+
+import base64
+import tornado.web
+
+from mock import patch
+from mock import MagicMock
+from tornado.testing import AsyncHTTPTestCase
+from timeout_decorator import timeout
+
+from dbod.api.api import handlers
+from dbod.config import config
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
-class Rundeck(unittest.TestCase):
-    @classmethod
-    def setUpClass(self):
-        pass
+class RundeckJobsTest(AsyncHTTPTestCase, unittest.TestCase):
+    """Class for testing Rundeck job execution with nosetest"""
+    
+    authentication = "basic " + \
+                     base64.b64encode(config.get('api', 'user') + \
+                     ":" + config.get('api', 'pass'))
 
-    @classmethod
-    def tearDownClass(self):
-        pass
-        
-    def setUp(self):
-        pass
+    def get_app(self):
+        return tornado.web.Application(handlers)
 
-    def tearDown(self):
-        pass
+    @timeout(10)
+    @patch('dbod.api.functionalalias.requests.get')
+    @patch('dbod.api.functionalalias.requests.post')
+    def test_post_job_success(self, mock_post, mock_get):
+        """test an execution of a registered job of an existing instance"""
+        print "test_post_existing_instance"
+        status_code_test = 200
+        response_output_running = '{"execState": "running"}'
+        response_output_success = '{"execState": "succeeded", "log": "[snapscript_24,snapscript_42]"}'
+        response_run = '{"id":42}'
+
+        mock_get.side_effect = [MagicMock(spec=requests.models.Response,
+                                           ok=True,
+                                           status_code=status_code_test,
+                                           text=response_output_running),
+                                MagicMock(spec=requests.models.Response,
+                                           ok=True,
+                                           status_code=status_code_test,
+                                           text=response_output_success)]
+        mock_post.return_value = MagicMock(spec=requests.models.Response,
+                                           ok=True,
+                                           status_code=status_code_test,
+                                           text=response_run)
+
+        response = self.fetch("/api/v1/rundeck/job/get-snapshots/instance42",
+                             method="POST",
+                             headers={'Authorization': self.authentication},
+                             body='')
+        self.assertEquals(response.code, 200)
         
+    @patch('dbod.api.functionalalias.requests.get')
+    @patch('dbod.api.functionalalias.requests.post')
+    def test_post_job_nosuccess(self, mock_post, mock_get):
+        """test when the job execution is not successful"""
+        print "test_post_job_nosuccess"
+        status_code_test = 200
+        response_run = '{"id":42}'
+        response_output = '{"execState": "failed", "log": "[snapscript_24,snapscript_42]"}'
+
+        mock_get.return_value = MagicMock(spec=requests.models.Response,
+                                           ok=True,
+                                           status_code=status_code_test,
+                                           text=response_output)
+        mock_post.return_value = MagicMock(spec=requests.models.Response,
+                                          ok=True,
+                                          status_code=status_code_test,
+                                          text=response_run)
         
+        response = self.fetch("/api/v1/rundeck/job/get-snapshots/instance42",
+                               method="POST",
+                               headers={'Authorization': self.authentication},
+                               body='')
+        self.assertEquals(response.code, 502)
+    
+    @patch('dbod.api.functionalalias.requests.get')
+    @patch('dbod.api.functionalalias.requests.post')
+    def test_post_jobstatus_error(self, mock_post, mock_get):
+        """test when the the get request of the job from rundeck status is not successful"""
+        print "test_post_jobstatus_error"
+        status_code_test = 200
+        status_code_test_error = 500
+        response_run = '{"id":42}'
+        response_output = '{"execState": "succeeded", "log": "[snapscript_24,snapscript_42]"}'
+
+        mock_get.return_value = MagicMock(spec=requests.models.Response,
+                                          ok=False,
+                                          status_code=status_code_test_error,
+                                          text=response_output)
+        mock_post.return_value = MagicMock(spec=requests.models.Response,
+                                           ok=True,
+                                           status_code=status_code_test,
+                                           text=response_run)
+        
+        response = self.fetch("/api/v1/rundeck/job/get-snapshots/instance42",
+                               method="POST",
+                               headers={'Authorization': self.authentication},
+                               body='')
+        self.assertEquals(response.code, status_code_test_error)
+
+    @patch('dbod.api.functionalalias.requests.get')
+    @patch('dbod.api.functionalalias.requests.post')
+    def test_post_jobrun_error(self, mock_post, mock_get):
+        """test when the the post request of the job to rundeck is not successful"""
+        status_code_test = 200
+        status_code_test_error = 400
+        response_run = '{"id":42}'
+
+        mock_get.return_value = MagicMock(spec=requests.models.Response,
+                                          status_code=status_code_test)
+        mock_post.return_value = MagicMock(spec=requests.models.Response,
+                                           ok=False,
+                                           status_code=status_code_test_error,
+                                           text=response_run)
+        
+        response = self.fetch("/api/v1/rundeck/job/get-snapshots/instance42",
+                               method="POST",
+                               headers={'Authorization': self.authentication},
+                               body='')
+
+        self.assertEquals(response.code, status_code_test_error)   
+
+    @patch('dbod.api.functionalalias.requests.get')
+    def test_get_success(self, mock_get):
+        status_code_test = 200
+        response_text = '[{"db_name":"dbod42","hostname":"dbod42.cern.ch","port":"5500","username":"dbod","db_type":"MYSQL","category":"TEST","tags":"MYSQL,TEST"}, \
+        {"db_name":"dbod24","hostname":"dbod24.cern.ch","port":"6603","username":"dbod","db_type":"PG","category":"PROD","tags":"PG,PROD"}]'
+
+        mock_get.return_value = MagicMock(spec=requests.models.Response,
+                                          ok=True,
+                                          status_code=status_code_test,
+                                          text=response_text)
+
+        response = self.fetch("/api/v1/rundeck/resources.xml")
+        
+        self.assertEquals(response.code, 200)
+
+    @patch('dbod.api.functionalalias.requests.get')
+    def test_get_nosuccess(self, mock_get):
+        status_code_test_error = 502
+
+        mock_get.return_value = MagicMock(spec=requests.models.Response,
+                                          ok=False,
+                                          status_code=status_code_test_error)
+
+        response = self.fetch("/api/v1/rundeck/resources.xml")
+        print response
+        self.assertEquals(response.code, 404)   
