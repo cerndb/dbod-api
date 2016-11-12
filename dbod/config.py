@@ -26,7 +26,7 @@ config = None
 requiredConfig = {'server': ['port'], 
                   'logging':['path', 'level', 'stderr'], 
                   'api':['user', 'pass'], 
-                  'postgrest':['rundeck_resources_url', 'host_aliases_url', 'entity_metadata_url', 'instance_url', 'volume_url', 'attribute_url', 'functional_alias_url'], 
+                  'postgrest':['rundeck_resources_url', 'host_aliases_url', 'metadata_url', 'instance_url', 'volume_url', 'attribute_url', 'functional_alias_url'], 
                   'rundeck':['api_run_job', 'api_job_output', 'api_authorization'], 
                   'rundeck-jobs':['get-snapshots']}
 
