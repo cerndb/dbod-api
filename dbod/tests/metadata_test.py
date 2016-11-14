@@ -23,7 +23,7 @@ class MetadataTest(AsyncHTTPTestCase):
 
     @timeout(5)
     def test_single_instance_by_name(self):
-        response = self.fetch("/api/v1/metadata/instance/dbod01")
+        response = self.fetch("/api/v1/instance/dbod01/metadata")
         data = json.loads(response.body)["response"]
         self.assertEquals(response.code, 200)
         self.assertEquals(len(data), 1)
@@ -33,12 +33,12 @@ class MetadataTest(AsyncHTTPTestCase):
     
     @timeout(5)
     def test_no_instance_by_name(self):
-        response = self.fetch("/api/v1/metadata/instance/invalid")
+        response = self.fetch("/api/v1/instance/invalid/metadata")
         self.assertEquals(response.code, 404)
     
     @timeout(5)
     def test_single_instance_by_host(self):
-        response = self.fetch("/api/v1/metadata/host/host03")
+        response = self.fetch("/api/v1/host/host03/metadata")
         data = json.loads(response.body)["response"]
         self.assertEquals(response.code, 200)
         self.assertEquals(len(data), 1)
@@ -47,7 +47,7 @@ class MetadataTest(AsyncHTTPTestCase):
     
     @timeout(5)
     def test_multiple_instances_by_host(self):
-        response = self.fetch("/api/v1/metadata/host/host01")
+        response = self.fetch("/api/v1/host/host01/metadata")
         data = json.loads(response.body)["response"]
         self.assertEquals(response.code, 200)
         self.assertEquals(len(data), 4)
@@ -61,11 +61,11 @@ class MetadataTest(AsyncHTTPTestCase):
     
     @timeout(5)
     def test_no_instance_by_host(self):
-        response = self.fetch("/api/v1/metadata/host/invalid")
+        response = self.fetch("/api/v1/host/invalid/metadata")
         self.assertEquals(response.code, 404)
         
     @timeout(5)
     def test_invalid_class(self):
-        response = self.fetch("/api/v1/metadata/invalid/invalid")
+        response = self.fetch("/api/v1/invalid/invalid/metadata")
         self.assertEquals(response.code, 400)
     
