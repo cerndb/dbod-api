@@ -38,9 +38,12 @@ handlers = [
     (r"/api/v1/host/aliases/([^/]+)", HostAliases),
     (r"/api/v1/host/names/([^/]+)", Host),
     (r"/api/v1/instance/alias/?(?P<db_name>[^\/]+)?", FunctionalAlias),
-    (r"/api/v1/metadata/(?P<class>[^\/]+)/?(?P<name>[^\/]+)?", Metadata),
+    (r"/api/v1/(?P<class>[^\/]+)/(?P<name>[^\/]+)/metadata", Metadata),
+    (r"/api/v1/host/aliases/([^/]+)", HostAliases),
     (r"/api/v1/rundeck/resources.xml", RundeckResources),
     (r"/api/v1/rundeck/job/(?P<job>[^\/]+)/?(?P<node>[^\/]+)?", RundeckJobs),
+    # Deprecated, will be deleted in following versions
+    (r"/api/v1/metadata/(?P<class>[^\/]+)/?(?P<name>[^\/]+)?", Metadata),  
     ]
 
 class Application():
