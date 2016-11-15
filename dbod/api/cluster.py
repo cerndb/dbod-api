@@ -52,7 +52,7 @@ class Cluster(tornado.web.RequestHandler):
         """
         name = args.get('name')
         if name:
-            composed_url = config.get('postgrest', 'metadata_url') + '?name=eq.' + name
+            composed_url = config.get('postgrest', 'cluster_url') + '?name=eq.' + name
             logging.info('Requesting ' + composed_url)
             response = requests.get(composed_url, verify=False)
             data = response.json()
