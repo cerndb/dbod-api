@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS apiato.cluster CASCADE;
 DROP TABLE IF EXISTS apiato.job CASCADE;
 DROP TABLE IF EXISTS apiato.volume_attribute CASCADE;
 DROP TABLE IF EXISTS apiato.volume CASCADE;
@@ -7,10 +8,10 @@ DROP TABLE IF EXISTS apiato.host CASCADE;
 DROP TABLE IF EXISTS apiato.instance_type CASCADE;
 DROP TABLE IF EXISTS apiato.volume_type CASCADE;
 
-DROP TYPE IF EXISTS apiato.instance_category;
-DROP TYPE IF EXISTS apiato.instance_status;
-DROP TYPE IF EXISTS apiato.instance_state;
-DROP TYPE IF EXISTS apiato.job_state;
+DROP TYPE IF EXISTS apiato.instance_category CASCADE;
+DROP TYPE IF EXISTS apiato.instance_status CASCADE;
+DROP TYPE IF EXISTS apiato.instance_state CASCADE;
+DROP TYPE IF EXISTS apiato.job_state CASCADE;
 
 
 ------------------------------------------
@@ -64,6 +65,29 @@ CREATE TABLE apiato.volume_type (
 ------------------------------------------
 -- TABLES
 ------------------------------------------
+-- CLUSTER
+CREATE TABLE apiato.cluster (
+  cluster_id           serial,
+  owner                varchar(32) NOT NULL,
+  name                 varchar(128) UNIQUE NOT NULL,
+  e_group              varchar(256),
+  category             apiato.instance_category NOT NULL,
+  creation_date        date NOT NULL,
+  expiry_date          date,
+  instance_type_id     int NOT NULL,
+  project              varchar(128),
+  description          varchar(1024),
+  version              varchar(128),
+  master_cluster_id    int,
+  state                apiato.instance_state NOT NULL,
+  status               apiato.instance_status NOT NULL,
+  CONSTRAINT cluster_pkey               PRIMARY KEY (cluster_id),
+  CONSTRAINT cluster_master_fk          FOREIGN KEY (master_cluster_id) REFERENCES apiato.cluster (cluster_id),
+  CONSTRAINT cluster_instance_type_fk   FOREIGN KEY (instance_type_id)   REFERENCES apiato.instance_type (instance_type_id)
+);
+--FK INDEXES for CLUSTER table
+CREATE INDEX cluster_master_idx ON apiato.cluster (master_cluster_id);
+CREATE INDEX cluster_type_idx   ON apiato.cluster (instance_type_id);
 
 -- HOST
 CREATE TABLE apiato.host (
@@ -72,6 +96,7 @@ CREATE TABLE apiato.host (
   memory   integer NOT NULL,
   CONSTRAINT host_pkey PRIMARY KEY (host_id)
 );
+
 
 
 -- INSTANCES
@@ -92,17 +117,20 @@ CREATE TABLE apiato.instance (
     host_id              int,
     state                apiato.instance_state NOT NULL,
     status               apiato.instance_status NOT NULL,
+    cluster_id           int,
     CONSTRAINT instance_pkey               PRIMARY KEY (instance_id),
     CONSTRAINT instance_master_fk          FOREIGN KEY (master_instance_id) REFERENCES apiato.instance (instance_id),
     CONSTRAINT instance_slave_fk           FOREIGN KEY (slave_instance_id)  REFERENCES apiato.instance (instance_id),
     CONSTRAINT instance_host_fk            FOREIGN KEY (host_id)            REFERENCES apiato.host     (host_id),
-    CONSTRAINT instance_instance_type_fk   FOREIGN KEY (instance_type_id)   REFERENCES apiato.instance_type (instance_type_id)
+    CONSTRAINT instance_instance_type_fk   FOREIGN KEY (instance_type_id)   REFERENCES apiato.instance_type (instance_type_id),
+    CONSTRAINT instance_cluster_fk         FOREIGN KEY (cluster_id)         REFERENCES apiato.cluster (cluster_id)
 );
 --FK INDEXES for INSTANCE table
-CREATE INDEX instance_host_idx   ON apiato.instance (host_id);
-CREATE INDEX instance_master_idx ON apiato.instance (master_instance_id);
-CREATE INDEX instance_slave_idx  ON apiato.instance (slave_instance_id);
-CREATE INDEX instance_type_idx   ON apiato.instance (instance_type_id);
+CREATE INDEX instance_host_idx      ON apiato.instance (host_id);
+CREATE INDEX instance_master_idx    ON apiato.instance (master_instance_id);
+CREATE INDEX instance_slave_idx     ON apiato.instance (slave_instance_id);
+CREATE INDEX instance_type_idx      ON apiato.instance (instance_type_id);
+CREATE INDEX instance_cluster_idx   ON apiato.cluster  (cluster_id);
 
 
 -- INSTANCE_ATTRIBUTES
@@ -113,45 +141,23 @@ CREATE TABLE apiato.instance_attribute (
   value        varchar(250) NOT NULL,
   CONSTRAINT instance_attribute_pkey        PRIMARY KEY (attribute_id),
   CONSTRAINT instance_attribute_instance_fk FOREIGN KEY (instance_id) REFERENCES apiato.instance (instance_id),
-  UNIQUE (instance_id,name)
+  UNIQUE (instance_id, name)
 );
 CREATE INDEX instance_attribute_instance_idx ON apiato.instance_attribute (instance_id);
 
--- CLUSTER
-CREATE TABLE apiato.cluster (
-  cluster_id           serial,
-  owner                varchar(32) NOT NULL,
-  name                 varchar(128) UNIQUE NOT NULL,
-  e_group              varchar(256),
-  category             apiato.instance_category NOT NULL,
-  creation_date        date NOT NULL,
-  expiry_date          date,
-  instance_type_id     int NOT NULL,
-  project              varchar(128),
-  description          varchar(1024),
-  version              varchar(128),
-  master_cluster_id    int,
-  state                apiato.instance_state NOT NULL,
-  status               apiato.instance_status NOT NULL,
-  CONSTRAINT cluster_pkey               PRIMARY KEY (instance_id),
-  CONSTRAINT cluster_master_fk          FOREIGN KEY (master_cluster_id) REFERENCES apiato.cluster (cluster_id),
-  CONSTRAINT cluster_instance_type_fk   FOREIGN KEY (instance_type_id)   REFERENCES apiato.instance_type (instance_type_id)
-);
---FK INDEXES for CLUSTER table
-CREATE INDEX cluster_master_idx ON apiato.cluster (master_cluster_id);
-CREATE INDEX cluster_type_idx   ON apiato.cluster (instance_type_id);
+
 
 -- CLUSTER_ATTRIBUTES
 CREATE TABLE apiato.cluster_attribute (
   attribute_id serial,
-  cluster_id  integer NOT NULL,
+  cluster_id   integer NOT NULL,
   name         varchar(32) NOT NULL,
   value        varchar(250) NOT NULL,
   CONSTRAINT cluster_attribute_pkey        PRIMARY KEY (attribute_id),
-  CONSTRAINT cluster_attribute_instance_fk FOREIGN KEY (cluster_id) REFERENCES apiato.instance (cluster_id),
-  UNIQUE (cluster_id,name)
+  CONSTRAINT cluster_attribute_cluster_fk FOREIGN KEY (cluster_id) REFERENCES apiato.cluster (cluster_id),
+  UNIQUE (cluster_id, name)
 );
-CREATE INDEX instance_attribute_instance_idx ON apiato.instance_attribute (instance_id);
+CREATE INDEX cluster_attribute_cluster_idx ON apiato.cluster_attribute (cluster_id);
 
 -- JOBS
 CREATE TABLE apiato.job (

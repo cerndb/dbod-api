@@ -61,10 +61,28 @@ CREATE OR REPLACE VIEW apiato_ro.metadata AS
     instance_type.type AS type,
     instance.version,
     string_to_array(host.name::text, ','::text) as hosts,
-    apiato.get_instance_attributes(CAST (apiato.instance.instance_id AS int)) attributes,
-    apiato.get_instance_attribute('port', CAST (apiato.instance.instance_id AS int)) port,
-    get_volumes volumes
+    apiato.get_instance_attributes(apiato.instance.instance_id) attributes,
+    apiato.get_instance_attribute('port', apiato.instance.instance_id ) port,
+    get_volumes volumes,
+    instance.cluster_id
   FROM apiato.instance
     JOIN apiato.instance_type ON apiato.instance.instance_type_id = apiato.instance_type.instance_type_id
     LEFT JOIN apiato.host ON apiato.instance.host_id = apiato.host.host_id,
     apiato.get_volumes(apiato.instance.instance_id);
+
+
+-- Metadata View
+CREATE OR REPLACE VIEW apiato_ro.cluster AS
+  SELECT
+    cluster.cluster_id AS id,
+    cluster.owner AS username,
+    cluster.name AS name,
+    cluster.category "class",
+    instance_type.type AS type,
+    cluster.version,
+    get_cluster_instances as instances,
+    apiato.get_cluster_attributes(apiato.cluster.cluster_id) as attributes,
+    apiato.get_cluster_attribute('port', apiato.cluster.cluster_id ) port
+  FROM apiato.cluster
+    JOIN apiato.instance_type ON apiato.cluster.instance_type_id = apiato.instance_type.instance_type_id,
+    apiato.get_cluster_instances(apiato.cluster.cluster_id);
