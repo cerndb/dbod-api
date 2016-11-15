@@ -35,7 +35,7 @@ handlers = [
     (r"/api/v1/host/aliases/([^/]+)", HostAliases),
     (r"/api/v1/instance/alias/?(?P<db_name>[^\/]+)?", FunctionalAlias),
     (r"/api/v1/metadata/(?P<class>[^\/]+)/?(?P<name>[^\/]+)?", Metadata),
-    (r"/api/v1/metadata/?(?P<name>[^\/]+)?", Cluster),
+    (r"/api/v1/cluster/metadata/?(?P<name>[^\/]+)?", Cluster),
     (r"/api/v1/rundeck/resources.xml", RundeckResources),
     (r"/api/v1/rundeck/job/(?P<job>[^\/]+)/?(?P<node>[^\/]+)?", RundeckJobs),
     ]

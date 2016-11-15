@@ -23,7 +23,7 @@ class ClusterTest(AsyncHTTPTestCase):
 
     @timeout(5)
     def test_clustert(self):
-        response = self.fetch("/api/v1/cluster/cluster01")
+        response = self.fetch("/api/v1/cluster/metadata/cluster01")
         data = json.loads(response.body)["response"]
         self.assertEquals(response.code, 200)
         self.assertEquals(data["name"],"cluster01")
