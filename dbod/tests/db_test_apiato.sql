@@ -423,4 +423,4 @@ INSERT INTO apiato.instance (owner, name, category, creation_date, instance_type
 
 INSERT INTO apiato.cluster_attribute (cluster_id, name, value)
     VALUES (1,'service','service01'),
-    VALUES (1,'user','user01');
+           (1,'user','user01');
