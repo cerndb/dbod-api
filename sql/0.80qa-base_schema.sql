@@ -15,6 +15,7 @@ DROP VIEW IF EXISTS api.host;
 DROP VIEW IF EXISTS api.volume;
 DROP VIEW IF EXISTS api.attribute;
 DROP VIEW IF EXISTS api.instance;
+DROP VIEW IF EXISTS api.fim_data;
 
 DROP FUNCTION IF EXISTS public.get_directories(inst_name VARCHAR, type VARCHAR, version VARCHAR, port VARCHAR);
 DROP FUNCTION IF EXISTS api.get_attributes(inst_id INTEGER);
@@ -35,6 +36,7 @@ DROP VIEW IF EXISTS public.dod_command_params;
 DROP VIEW IF EXISTS public.dod_instance_changes;
 DROP VIEW IF EXISTS public.dod_jobs;
 DROP VIEW IF EXISTS public.dod_upgrades;
+DROP VIEW IF EXISTS public.db_on_demand;
 
 DROP FOREIGN TABLE IF EXISTS fdw.dod_command_definition;
 DROP FOREIGN TABLE IF EXISTS fdw.dod_command_params;
@@ -42,6 +44,7 @@ DROP FOREIGN TABLE IF EXISTS fdw.dod_instance_changes;
 DROP FOREIGN TABLE IF EXISTS fdw.dod_instances;
 DROP FOREIGN TABLE IF EXISTS fdw.dod_jobs;
 DROP FOREIGN TABLE IF EXISTS fdw.dod_upgrades;
+DROP FOREIGN TABLE IF EXISTS fdw.db_on_demand;
 
 ------------------------------
 -- CREATION OF FOREIGN TABLES
@@ -185,6 +188,32 @@ ALTER FOREIGN TABLE fdw.dod_upgrades ALTER COLUMN version_from OPTIONS (
     key 'true'
 );
 
+-- FIM TABLE
+CREATE FOREIGN TABLE fdw.db_on_demand (
+    internal_id character varying(36) NOT NULL,
+    instance_name character varying(64),
+    description character varying(450),
+    owner_account_type character varying(20),
+    owner_first_name character varying(24),
+    owner_last_name character varying(40),
+    owner_login character varying(64),
+    owner_mail character varying(128),
+    owner_phone1 character varying(5),
+    owner_phone2 character varying(5),
+    owner_portable_phone character varying(7),
+    owner_department character varying(3),
+    owner_group character varying(3),
+    owner_section character varying(3)
+)
+SERVER oradb
+OPTIONS (
+    schema 'FIM_ORA_MA',
+    table 'DB_ON_DEMAND'
+);
+ALTER FOREIGN TABLE fdw.db_on_demand ALTER COLUMN internal_id OPTIONS (
+    key 'true'
+);
+
 ------------------------------------
 -- VIEWS FOR BACKWARD COMPATIBILITY
 ------------------------------------
@@ -206,6 +235,9 @@ SELECT * FROM fdw.dod_jobs;
 
 CREATE OR REPLACE VIEW public.dod_upgrades AS
 SELECT * FROM fdw.dod_upgrades;
+
+CREATE OR REPLACE VIEW public.db_on_demand AS
+SELECT * FROM fdw.db_on_demand;
 
 -- Job stats view
 CREATE OR REPLACE VIEW public.job_stats AS 
@@ -446,4 +478,21 @@ SELECT host, array_agg('dbod-' || regexp_replace(db_name, '_', '-', 'g') || '.ce
 FROM fdw.dod_instances 
 GROUP BY host;
 
-
+-- Fim data view
+CREATE OR REPLACE VIEW api.fim_data AS
+SELECT 
+    internal_id,
+    instance_name,
+    description,
+    owner_account_type,
+    owner_first_name,
+    owner_last_name,
+    owner_login,
+    owner_mail,
+    owner_phone1,
+    owner_phone2,
+    owner_portable_phone,
+    owner_department,
+    owner_group,
+    owner_section
+FROM public.db_on_demand;

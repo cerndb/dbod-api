@@ -137,6 +137,25 @@ CREATE TABLE public.functional_aliases (
     CONSTRAINT db_name_con UNIQUE (db_name)
 );
 
+-- FIM TABLE
+CREATE TABLE public.fim_data (
+    internal_id character varying(36) NOT NULL,
+    instance_name character varying(64),
+    description character varying(450),
+    owner_account_type character varying(20),
+    owner_first_name character varying(24),
+    owner_last_name character varying(40),
+    owner_login character varying(64),
+    owner_mail character varying(128),
+    owner_phone1 character varying(5),
+    owner_phone2 character varying(5),
+    owner_portable_phone character varying(7),
+    owner_department character varying(3),
+    owner_group character varying(3),
+    owner_section character varying(3),
+    PRIMARY KEY (internal_id)
+);
+
 -- Insert test data for instances
 INSERT INTO public.dod_instances (username, db_name, e_group, category, creation_date, expiry_date, db_type, db_size, no_connections, project, description, version, master, slave, host, state, status)
 VALUES ('user01', 'dbod01', 'testgroupA', 'TEST', now(), NULL, 'MYSQL', 100, 100, 'API', 'Test instance 1', '5.6.17', NULL, NULL, 'host01', 'RUNNING', 1),
@@ -341,3 +360,22 @@ GROUP BY host;
 CREATE OR REPLACE VIEW api.functional_aliases AS
 SELECT * 
 FROM functional_aliases;
+
+-- Fim data view
+CREATE OR REPLACE VIEW api.fim_data AS
+SELECT 
+    internal_id,
+    instance_name,
+    description,
+    owner_account_type,
+    owner_first_name,
+    owner_last_name,
+    owner_login,
+    owner_mail,
+    owner_phone1,
+    owner_phone2,
+    owner_portable_phone,
+    owner_department,
+    owner_group,
+    owner_section
+FROM public.db_on_demand;

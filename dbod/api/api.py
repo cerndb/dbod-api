@@ -29,6 +29,7 @@ from dbod.api.hostaliases import HostAliases
 from dbod.api.host import Host
 from dbod.api.instance import Instance
 from dbod.api.attribute import Attribute
+from dbod.api.fim import Fim
 from dbod.config import config
 
 handlers = [
@@ -44,6 +45,7 @@ handlers = [
     (r"/api/v1/rundeck/job/(?P<job>[^\/]+)/?(?P<node>[^\/]+)?", RundeckJobs),
     # Deprecated, will be deleted in following versions
     (r"/api/v1/metadata/(?P<class>[^\/]+)/?(?P<name>[^\/]+)?", Metadata),  
+    (r"/api/v1/fim/([^/]+)", Fim),
     ]
 
 class Application():
