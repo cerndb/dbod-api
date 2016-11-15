@@ -421,7 +421,7 @@ SELECT
     db_type, 
     version, 
     string_to_array(dod_instances.host::text, ','::text) AS hosts, 
-    public.get_attributes(id) attributes,
+    public.get_instance_attributes(id) attributes,
     public.get_attribute('port', id) port, 
     get_volumes volumes, 
     d.*
