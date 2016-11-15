@@ -24,6 +24,7 @@ from tornado.ioloop import IOLoop
 from dbod.api.base import DocHandler
 from dbod.api.rundeck import RundeckResources, RundeckJobs
 from dbod.api.metadata import Metadata
+from dbod.api.cluster import Cluster
 from dbod.api.functionalalias import FunctionalAlias
 from dbod.api.hostaliases import HostAliases
 from dbod.api.instance import Instance
