@@ -97,6 +97,7 @@ class FunctionalAlias(tornado.web.RequestHandler):
         The *dns name* is chosen automatically from a pool; so, in the background this method 
         actually updates the *database name* and *alias* fields, which were *NULL* in the 
         begining.
+        begining.
 
         .. note::
 
@@ -177,7 +178,7 @@ class FunctionalAlias(tornado.web.RequestHandler):
             headers = {'Prefer': 'return=representation', 'Content-Type': 'application/json'}
             composed_url = self.url + '?dns_name=eq.' + dns_name
             logging.debug('Requesting deletion: ' + composed_url)
-            delete_data = '{"db_name": null, "alias": null}'
+            delete_data = '{"instance_id": null, "alias": null}'
             logging.debug("dns_name to be remained: " + dns_name)
             response = requests.patch(composed_url, json=json.loads(delete_data), headers=headers)
 
@@ -238,7 +239,7 @@ class FunctionalAlias(tornado.web.RequestHandler):
                 return dns_name_dict['dns_name']
             except IndexError:
                 self.set_status(BAD_REQUEST)
-                return None
+                return Noneyt
         else:
             self.set_status(SERVICE_UNAVAILABLE) 
             return None
