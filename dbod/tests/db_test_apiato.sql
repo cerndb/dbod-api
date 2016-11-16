@@ -427,10 +427,10 @@ CREATE OR REPLACE VIEW apiato_ro.cluster AS
 -- Functional Aliases View
 CREATE OR REPLACE VIEW apiato_ro.functional_aliases AS
   SELECT functional_alias.dns_name,
-         apiato.instance.name as db_name,
-         functional_alias.alias
+    apiato.instance.name as db_name,
+    functional_alias.alias
   FROM apiato.functional_alias
-    LEFT JOIN apiato.instance ON apiato.functional_alias.instance_id = apiato.functional_alias.instance_id;
+    LEFT JOIN apiato.instance ON apiato.functional_alias.instance_id = apiato.instance.instance_id;
 
 
 -- Rundeck instances View

@@ -227,7 +227,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
         mock_patch.return_value = MagicMock(spec=requests.models.Response,
                                             ok=False,
                                             status_code=status_code_test) 
-        response = self.fetch("/api/v1/instance/alias/%s" %('dbod_01'),
+        response = self.fetch("/api/v1/instance/alias/%s" %('dbod01'),
                               headers={'Authorization': self.authentication},
                               method="DELETE")
         self.assertEquals(response.code, status_code_test)
