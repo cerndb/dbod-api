@@ -20,6 +20,8 @@ import tornado.escape
 from dbod.api.base import *
 from dbod.config import config
 
+from dbod.api.instance import Instance
+
 class FunctionalAlias(tornado.web.RequestHandler):
 
     """
@@ -115,6 +117,7 @@ class FunctionalAlias(tornado.web.RequestHandler):
 
         logging.debug('Arguments:' + str(self.request.arguments))
         try:
+            entid = Instance.__get_instance_id__(db_name)
             alias = self.get_argument('alias')
             logging.debug("alias: %s" % (alias))
             
@@ -123,7 +126,7 @@ class FunctionalAlias(tornado.web.RequestHandler):
             if dns_name:
                 logging.debug("dns_name picked: " + str(dns_name))
                 headers = {'Prefer': 'return=representation'}
-                insert_data = {"db_name": db_name, 
+                insert_data = {"instance_id": entid,
                                "alias": alias}
                 logging.debug("Data to insert: " + str(insert_data))
 
@@ -166,7 +169,6 @@ class FunctionalAlias(tornado.web.RequestHandler):
         :raises: HTTPError - when the deletion is not successful
 
         """
-
         logging.debug('Arguments:' + str(self.request.arguments))
 
         dns_name = self._get_dns(db_name)

@@ -217,6 +217,16 @@ CREATE INDEX functional_alias_instance_idx ON apiato.functional_alias (instance_
 ------------------------------
 -- FUNCTIONS
 ------------------------------
+-- Get instance_name function
+CREATE OR REPLACE FUNCTION apiato.get_instance_name(inst_id INTEGER)
+  RETURNS VARCHAR AS $$
+DECLARE
+  name VARCHAR := '';
+BEGIN
+  SELECT apiato.instance.name FROM apiato.instance WHERE instance_id = inst_id INTO name;
+  RETURN name;
+END
+$$ LANGUAGE plpgsql;
 
 -- Get hosts function
 CREATE OR REPLACE FUNCTION apiato.get_hosts(host_ids INTEGER[])
@@ -427,11 +437,10 @@ CREATE OR REPLACE VIEW apiato_ro.cluster AS
 -- Functional Aliases View
 CREATE OR REPLACE VIEW apiato_ro.functional_aliases AS
   SELECT functional_alias.dns_name,
-    apiato.instance.name as db_name,
-    functional_alias.alias
-  FROM apiato.functional_alias
-    LEFT JOIN apiato.instance ON apiato.functional_alias.instance_id = apiato.instance.instance_id;
-
+    functional_alias.instance_id,
+    functional_alias.alias,
+    apiato.get_instance_name(functional_alias.instance_id) as db_name
+  FROM apiato.functional_alias;
 
 -- Rundeck instances View
 CREATE OR REPLACE VIEW apiato_ro.rundeck_instances AS

@@ -1,6 +1,17 @@
 ------------------------------
 -- FUNCTIONS
 ------------------------------
+-- Get instance_name function
+CREATE OR REPLACE FUNCTION apiato.get_instance_name(inst_id INTEGER)
+RETURNS VARCHAR AS $$
+DECLARE
+  name VARCHAR := '';
+BEGIN
+  SELECT apiato.instance.name FROM apiato.instance WHERE instance_id = inst_id INTO name;
+  RETURN name;
+END
+$$ LANGUAGE plpgsql;
+
 
 -- Get hosts function
 CREATE OR REPLACE FUNCTION apiato.get_hosts(host_ids INTEGER[])
@@ -8,7 +19,7 @@ RETURNS VARCHAR[] AS $$
 DECLARE
   hosts VARCHAR := '';
 BEGIN
-  SELECT ARRAY (SELECT name FROM host WHERE host_id = ANY(host_ids)) INTO hosts;
+  SELECT ARRAY (SELECT name FROM apiato.host WHERE host_id = ANY(host_ids)) INTO hosts;
   RETURN hosts;
 END
 $$ LANGUAGE plpgsql;

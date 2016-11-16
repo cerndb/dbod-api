@@ -23,6 +23,7 @@ from timeout_decorator import timeout
 from dbod.api.api import handlers
 from dbod.config import config
 
+
 class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
     """Class for testing functional alias with nosetest"""
     #headers = {'Content-Type': 'application/x-www-form-urlencoded', 
@@ -70,7 +71,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
         mock_get.return_value = MagicMock(spec=requests.models.Response, 
                                           ok=False,
                                           status_code=status_code_test)
-        db_name = 'dbod_01'
+        db_name = 'dbod01'
         response = self.fetch("/api/v1/instance/alias/%s" %(db_name))
         self.assertEquals(response.code, status_code_test)
         self.assertEquals(response.headers['Content-Type'], 'text/html; charset=UTF-8')
@@ -108,7 +109,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
         """test when there is a request to insert a db_name which already exists"""
         print "test_post_duplicate"
         body = 'alias=dbod-dbod-01.cern.ch'
-        response = self.fetch("/api/v1/instance/alias/dbod_01", 
+        response = self.fetch("/api/v1/instance/alias/dbod01",
                               method="POST", 
                               headers={'Authorization': self.authentication},
                               body=body)
@@ -212,7 +213,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
         mock_get.return_value = MagicMock(spec=requests.models.Response,
                                           ok=False,
                                           status_code=status_code_test)
-        response = self.fetch("/api/v1/instance/alias/%s" %('dbod_01'),
+        response = self.fetch("/api/v1/instance/alias/%s" %('dbod01'),
                               headers={'Authorization': self.authentication},
                               method="DELETE")
         # tornado will still give Bad Request error message -- to be improved
