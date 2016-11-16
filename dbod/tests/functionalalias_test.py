@@ -181,21 +181,6 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
                    method="DELETE")   
 
     @timeout(5)
-    def test_delete_valid_request(self):
-        """test when there is a valid request to delete a previous inserted db_name"""
-        print "test_delete_valid_request"
-        # create entity to be deleted
-        body = 'alias=' + self.alias_test
-        response = self.fetch("/api/v1/instance/alias/%s" %(self.db_name_test), 
-                              method="POST", 
-                              headers={'Authorization': self.authentication},
-                              body=body)
-        response = self.fetch("/api/v1/instance/alias/%s" %(self.db_name_test), 
-                              headers={'Authorization': self.authentication},
-                              method="DELETE")
-        self.assertEquals(response.code, 204)
-
-    @timeout(5)
     def test_delete_invalid_dbname(self):
         """test when the given db_name to be deleted does not exist"""
         print "test_delete_invalid_dbname"

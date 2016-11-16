@@ -127,7 +127,7 @@ class FunctionalAlias(tornado.web.RequestHandler):
             if dns_name:
                 logging.debug("dns_name picked: " + str(dns_name))
                 headers = {'Prefer': 'return=representation'}
-                insert_data = {"instance_id": entid,
+                insert_data = {"instance_id": entid, 
                                "alias": alias}
                 logging.debug("Data to insert: " + str(insert_data))
 
@@ -239,7 +239,7 @@ class FunctionalAlias(tornado.web.RequestHandler):
                 return dns_name_dict['dns_name']
             except IndexError:
                 self.set_status(BAD_REQUEST)
-                return Noneyt
+                return None
         else:
             self.set_status(SERVICE_UNAVAILABLE) 
             return None
