@@ -28,7 +28,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
     #headers = {'Content-Type': 'application/x-www-form-urlencoded', 
     #           'Prefer': 'return=representation',
     #           'Accept': 'text/json'}
-    db_name_test = "dbod_42"
+    db_name_test = "dbod42"
     alias_test = "dbod-dbod-42.cern.ch"
     authentication = "basic " + \
                      base64.b64encode(config.get('api', 'user') + \
@@ -41,7 +41,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
     def test_get_single_alias_by_name(self):
         """test for getting the right data"""
         print "test_get_single_alias_by_name"
-        db_name = 'dbod_01'
+        db_name = 'dbod01'
         response = self.fetch("/api/v1/instance/alias/%s" %(db_name))
         data = json.loads(response.body)["response"]
         self.assertEquals(response.code, 200)
@@ -70,7 +70,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
         mock_get.return_value = MagicMock(spec=requests.models.Response, 
                                           ok=False,
                                           status_code=status_code_test)
-        db_name = 'dbod_01'
+        db_name = 'dbod01'
         response = self.fetch("/api/v1/instance/alias/%s" %(db_name))
         self.assertEquals(response.code, status_code_test)
         self.assertEquals(response.headers['Content-Type'], 'text/html; charset=UTF-8')
@@ -108,7 +108,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
         """test when there is a request to insert a db_name which already exists"""
         print "test_post_duplicate"
         body = 'alias=dbod-dbod-01.cern.ch'
-        response = self.fetch("/api/v1/instance/alias/dbod_01", 
+        response = self.fetch("/api/v1/instance/alias/dbod01", 
                               method="POST", 
                               headers={'Authorization': self.authentication},
                               body=body)
@@ -124,7 +124,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
                    headers={'Authorization': self.authentication},
                    body=body)
         body = 'alias=' + 'dbod-dbod-24.cern.ch'
-        response = self.fetch("/api/v1/instance/alias/dbod_24", 
+        response = self.fetch("/api/v1/instance/alias/dbod24", 
                               method="POST", 
                               headers={'Authorization': self.authentication},
                               body=body)
@@ -212,7 +212,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
         mock_get.return_value = MagicMock(spec=requests.models.Response,
                                           ok=False,
                                           status_code=status_code_test)
-        response = self.fetch("/api/v1/instance/alias/%s" %('dbod_01'),
+        response = self.fetch("/api/v1/instance/alias/%s" %('dbod01'),
                               headers={'Authorization': self.authentication},
                               method="DELETE")
         # tornado will still give Bad Request error message -- to be improved
@@ -227,7 +227,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
         mock_patch.return_value = MagicMock(spec=requests.models.Response,
                                             ok=False,
                                             status_code=status_code_test) 
-        response = self.fetch("/api/v1/instance/alias/%s" %('dbod_01'),
+        response = self.fetch("/api/v1/instance/alias/%s" %('dbod01'),
                               headers={'Authorization': self.authentication},
                               method="DELETE")
         self.assertEquals(response.code, status_code_test)
