@@ -41,7 +41,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
     def test_get_single_alias_by_name(self):
         """test for getting the right data"""
         print "test_get_single_alias_by_name"
-        db_name = 'dbod_01'
+        db_name = 'dbod01'
         response = self.fetch("/api/v1/instance/alias/%s" %(db_name))
         data = json.loads(response.body)["response"]
         self.assertEquals(response.code, 200)
