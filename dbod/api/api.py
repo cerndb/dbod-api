@@ -26,6 +26,7 @@ from dbod.api.rundeck import RundeckResources, RundeckJobs
 from dbod.api.metadata import Metadata
 from dbod.api.functionalalias import FunctionalAlias
 from dbod.api.hostaliases import HostAliases
+from dbod.api.host import Host
 from dbod.api.instance import Instance
 from dbod.config import config
 
@@ -33,6 +34,7 @@ handlers = [
     (r"/", DocHandler),
     (r"/api/v1/instance/([^/]+)", Instance),
     (r"/api/v1/host/aliases/([^/]+)", HostAliases),
+    (r"/api/v1/host/names/([^/]+)", Host),
     (r"/api/v1/instance/alias/?(?P<db_name>[^\/]+)?", FunctionalAlias),
     (r"/api/v1/metadata/(?P<class>[^\/]+)/?(?P<name>[^\/]+)?", Metadata),
     (r"/api/v1/rundeck/resources.xml", RundeckResources),
