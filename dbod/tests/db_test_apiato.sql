@@ -426,15 +426,38 @@ CREATE OR REPLACE VIEW apiato_ro.cluster AS
 
 -- Functional Aliases View
 CREATE OR REPLACE VIEW apiato_ro.functional_aliases AS
-  SELECT functional_aliases.dns_name,
-    functional_aliases.name as db_name,
-    functional_aliases.alias
+  SELECT functional_alias.dns_name,
+         apiato.instance.name as db_name,
+         functional_alias.alias
   FROM apiato.functional_alias
     LEFT JOIN apiato.instance ON apiato.functional_alias.instance_id = apiato.functional_alias.instance_id;
 
 
+-- Rundeck instances View
+CREATE OR REPLACE VIEW apiato_ro.rundeck_instances AS
+  SELECT apiato.instance.name AS db_name,
+         apiato.functional_alias.alias AS hostname,
+         apiato.get_instance_attribute('port', apiato.instance.instance_id) AS port,
+         'dbod'::CHAR(4) AS username,
+         apiato.instance_type.type AS db_type,
+         apiato.instance.category AS category,
+         apiato.instance_type.type || ',' || category AS tags
+  FROM apiato.instance
+    JOIN apiato.functional_alias ON apiato.instance.instance_id = apiato.functional_alias.instance_id
+    JOIN apiato.instance_type ON apiato.instance.instance_type_id = apiato.instance_type.instance_type_id;
+
+-- Host aliases View
+CREATE OR REPLACE VIEW apiato_ro.host_aliases AS
+  SELECT host.name AS host,
+         array_agg('dbod-' || regexp_replace(apiato.instance.name, '_', '-', 'g') || '.cern.ch') AS aliases
+  FROM apiato.instance
+    JOIN apiato.host ON apiato.instance.host_id = apiato.host.host_id
+  GROUP BY host;
 
 
+-------------------------------
+-- Test values
+-------------------------------
 INSERT INTO apiato.volume_type (type, description)
     VALUES ('NETAPP', 'NETAPP volume type');
 
@@ -490,7 +513,7 @@ INSERT INTO apiato.cluster_attribute (cluster_id, name, value)
            (1, 'user'   ,'zookeeper');
 
 -- Insert test data for functional aliases
-INSERT INTO public.functional_aliases (dns_name, instance_id, alias)
+INSERT INTO apiato.functional_alias (dns_name, instance_id, alias)
 VALUES ('db-dbod-dns01', 1   , 'dbod-dbod-01.cern.ch'),
        ('db-dbod-dns02', 2   , 'dbod-dbod-02.cern.ch'),
        ('db-dbod-dns03', 3   , 'dbod-dbod-03.cern.ch'),
