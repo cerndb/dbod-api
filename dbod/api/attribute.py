@@ -183,7 +183,7 @@ class Attribute(tornado.web.RequestHandler):
         attribute_n = args.get('attribute')
         entid = get_instance_id_by_name(instance_n)
         if not entid:
-            logging.error("Instance '" + name + "' doest not exist.")
+            logging.error("Instance '" + instance_n + "' doest not exist.")
             raise tornado.web.HTTPError(NOT_FOUND)
             
         body = json.loads('{"value":"' + new_value + '"}')
