@@ -14,6 +14,8 @@ before_install:
     - sudo mkdir /var/log/dbod
     - sudo chown travis /var/log/dbod
     - sudo cp static/api.cfg /etc/dbod
+    - cp static/api_missing_section.cfg /tmp/
+    - cp static/api_missing_option.cfg /tmp/
     - wget https://github.com/begriffs/postgrest/releases/download/v0.3.1.1/postgrest-0.3.1.1-ubuntu.tar.xz
     - tar xf postgrest-0.3.1.1-ubuntu.tar.xz
 install:
