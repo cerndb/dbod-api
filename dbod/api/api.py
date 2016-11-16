@@ -13,7 +13,7 @@ Main module to initialize the Tornado Server and endpoints
 """
 
 import ConfigParser
-import sys, traceback
+import sys, traceback, re
 import tornado.web
 #import logging
 
@@ -31,8 +31,10 @@ from dbod.api.host import Host
 from dbod.api.instance import Instance
 from dbod.api.attribute import Attribute
 from dbod.api.fim import Fim
-from dbod.config import config
+from dbod.config import config, optionalConfig
 
+# This list is a global object because in needs to be accessed
+# from the test suites
 handlers = [
     (r"/", DocHandler),
     (r"/api/v1/instance/(?P<instance>[^\/]+)/attribute/?(?P<attribute>[^\/]+)?", Attribute),
@@ -51,9 +53,38 @@ handlers = [
 
 class Application():
     """
-    This is the main entrypoint of the dbod-api where the main parameters are specified in order to start the server.
+    This is the main entrypoint of the dbod-api where the main parameters are
+    specified in order to start the server.  
     """
+
+    def __handler_filter(self, handlers, config, optionalConfig):
+        """
+        Remove handlers which are not to be used when optional functions are
+        not configured 
+        """
+        # Create a copy of the handler list, which we will modify
+        res = list(handlers) 
+        logging.debug('Active endpoints: %s' % res)
+        for section in optionalConfig.keys():
+            logging.info('Checking optional configuration section [%s]' % (section))
+            try:
+                config.items(section)
+            except ConfigParser.NoSectionError:
+                logging.info('Section not found. Removing related endpoints')
+                # Remove handlers whose url matches the missing optional 
+                # section names
+                for handler in handlers:
+                    url, handler_class = handler
+                    if re.search(section, url):
+                        logging.warning('Removing endpoint [%s]' % url)
+                        res.remove(handler)
+        logging.info('Active endpoints: %s' % res)
+        return res
+
     def __init__(self):
+        """
+        Class constructor. Sets up logging, active handlers and application server
+        """
         # Set up log file, level and formatting
         options.log_file_prefix = config.get('logging', 'path')
         options.logging = config.get('logging', 'level')
@@ -74,8 +105,11 @@ class Application():
                 logger.setFormatter(formatter)
 
         # Defining handlers
+        # Removing optional handlers from handler list 
+        filtered_handlers = self.__handler_filter(handlers, config, optionalConfig)
         logging.info("Defining application (url, handler) pairs")
-        application = tornado.web.Application(handlers, debug=config.getboolean('tornado', 'debug'))
+        application = tornado.web.Application(filtered_handlers, 
+                            debug = config.getboolean('tornado', 'debug'))
         
         # Configuring server and SSL
         logging.info("Configuring HTTP server")
