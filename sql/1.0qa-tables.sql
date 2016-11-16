@@ -211,3 +211,16 @@ CREATE TABLE apiato.volume_attribute (
   UNIQUE (volume_id, name)
 );
 CREATE INDEX volume_attribute_volume_idx ON apiato.volume_attribute (volume_id);
+
+
+-- Functional aliases table
+CREATE TABLE apiato.functional_alias
+(
+  function_alias_id serial,
+  dns_name          character varying(256) UNIQUE NOT NULL,
+  instance_id       int UNIQUE,
+  alias             character varying(256),
+  CONSTRAINT functional_alias_pkey        PRIMARY KEY (function_alias_id),
+  CONSTRAINT functional_alias_instance_fk FOREIGN KEY (instance_id)    REFERENCES apiato.instance (instance_id)
+);
+CREATE INDEX functional_alias_instance_idx ON apiato.functional_alias (instance_id);

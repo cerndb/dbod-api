@@ -169,10 +169,10 @@ VALUES ('host01', 12),
        
 -- Insert test data for database aliases
 INSERT INTO public.functional_aliases (dns_name, db_name, alias)
-VALUES ('db-dbod-dns01','dbod_01','dbod-dbod-01.cern.ch'),
-       ('db-dbod-dns02','dbod_02','dbod-dbod-02.cern.ch'),
-       ('db-dbod-dns03','dbod_03','dbod-dbod-03.cern.ch'),
-       ('db-dbod-dns04','dbod_04','dbod-dbod-04.cern.ch'),
+VALUES ('db-dbod-dns01','dbod01','dbod-dbod-01.cern.ch'),
+       ('db-dbod-dns02','dbod02','dbod-dbod-02.cern.ch'),
+       ('db-dbod-dns03','dbod03','dbod-dbod-03.cern.ch'),
+       ('db-dbod-dns04','dbod04','dbod-dbod-04.cern.ch'),
        ('db-dbod-dns05', NULL, NULL);
 
 -- Schema API

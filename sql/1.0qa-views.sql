@@ -86,3 +86,12 @@ CREATE OR REPLACE VIEW apiato_ro.cluster AS
   FROM apiato.cluster
     JOIN apiato.instance_type ON apiato.cluster.instance_type_id = apiato.instance_type.instance_type_id,
     apiato.get_cluster_instances(apiato.cluster.cluster_id);
+
+
+-- Functional Aliases View
+CREATE OR REPLACE VIEW apiato_ro.functional_aliases AS
+SELECT functional_aliases.dns_name,
+       functional_aliases.name as db_name,
+       functional_aliases.alias
+FROM apiato.functional_alias
+LEFT JOIN apiato.instance ON apiato.functional_alias.instance_id = apiato.functional_alias.instance_id;
