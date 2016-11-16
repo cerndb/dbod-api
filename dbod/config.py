@@ -16,19 +16,34 @@ import ConfigParser
 import sys, traceback
 import argparse
 
-parser = argparse.ArgumentParser()
-parser.add_argument("-c", "--config", default="/etc/dbod/api.cfg", help="specify the location of the config file")
-args, unk = parser.parse_known_args()
-
 config = None
 
 # Dictionary with the required present fields in the config file
-requiredConfig = {'server': ['port'], 
-                  'logging':['path', 'level', 'stderr'], 
-                  'api':['user', 'pass'], 
-                  'postgrest':['rundeck_resources_url', 'host_aliases_url', 'metadata_url', 'instance_url', 'volume_url', 'attribute_url', 'functional_alias_url'], 
-                  'rundeck':['api_run_job', 'api_job_output', 'api_authorization'], 
-                  'rundeck-jobs':['get-snapshots']}
+requiredConfig = {
+        'server' : [ 'port' ] ,
+        'logging' : [ 'path', 'level', 'stderr' ],
+        'api' : [ 'user', 'pass' ], 
+        'postgrest': [ 
+            'rundeck_resources_url', 
+            'host_aliases_url', 
+            'entity_metadata_url', 
+            'instance_url', 
+            'volume_url', 
+            'attribute_url', 
+            'functional_alias_url'
+            ], 
+        }
+
+optionalConfig = {
+                  'rundeck' : [ 
+                      'api_run_job', 
+                      'api_job_output', 
+                      'api_authorization'
+                      ], 
+                  'rundeck-jobs' : [
+                      'get-snapshots'
+                      ]
+                  }
 
 try:
     # Load configuration from file
