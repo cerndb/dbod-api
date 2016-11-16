@@ -73,10 +73,7 @@ class Host(tornado.web.RequestHandler):
         composed_url = self.url + '?name=eq.' + name + '&select=memory'
         logging.info("Requesting " + composed_url)
         response = requests.get(composed_url)
-        try:
-            data = response.json()
-        except ValueError:
-            logging.error("Response is not a json: '%s'. Check if postgrest is working" %(response))
+        data = response.json()
         if response.ok and data:
             logging.debug("response: " + json.dumps(data))
             self.write({'response' : data})
