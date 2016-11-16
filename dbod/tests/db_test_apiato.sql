@@ -484,7 +484,15 @@ VALUES (1, 'port', '5501'),
        (6, 'port', '2181'),
        (7, 'port', '2181');
 
-
+-- Insert test data for cluster attributes
 INSERT INTO apiato.cluster_attribute (cluster_id, name, value)
     VALUES (1, 'service','zookeeper'),
            (1, 'user'   ,'zookeeper');
+
+-- Insert test data for functional aliases
+INSERT INTO public.functional_aliases (dns_name, instance_id, alias)
+VALUES ('db-dbod-dns01', 1   , 'dbod-dbod-01.cern.ch'),
+       ('db-dbod-dns02', 2   , 'dbod-dbod-02.cern.ch'),
+       ('db-dbod-dns03', 3   , 'dbod-dbod-03.cern.ch'),
+       ('db-dbod-dns04', 4   , 'dbod-dbod-04.cern.ch'),
+       ('db-dbod-dns05', NULL, NULL);
