@@ -66,7 +66,7 @@ class Host(tornado.web.RequestHandler):
         :type name: str
         :rtype: json -- the response of the request
         :raises: HTTPError - when the requested name does not exist or if there is an internal 
-        error or ifthe response is empty
+        error or if the response is empty
         """
 
         logging.debug('Arguments:' + str(self.request.arguments))
