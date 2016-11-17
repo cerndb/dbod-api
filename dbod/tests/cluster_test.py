@@ -32,7 +32,6 @@ class ClusterTest(AsyncHTTPTestCase):
     def test_create_delete_cluster(self):
         print "test_create_delete_cluster"
         """test for create and delete a cluster with the right data"""
-        response = self.fetch("/api/v1/cluster/testcluster", method='DELETE', headers={'Authorization': self.authentication})
 
         instance = """{
         "owner": "testuser", "class": "TEST", "expiry_date": "2016-11-20", "e_group": "testgroupZ"
@@ -46,7 +45,7 @@ class ClusterTest(AsyncHTTPTestCase):
         self.assertEquals(response.code, 201)
 
         # Check the metadata for this new cluster
-        #response = self.fetch("/api/v1/metadata/cluster/testcluster")
+        #response = self.fetch("/api/v1/cluster/testcluster")
         #self.assertEquals(response.code, 200)
         #data = json.loads(response.body)["response"]
         #self.assertEquals(data[0]["name"], "testcluster")
