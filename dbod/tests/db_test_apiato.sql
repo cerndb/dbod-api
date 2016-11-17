@@ -86,17 +86,6 @@ CREATE TABLE apiato.host (
   CONSTRAINT host_pkey PRIMARY KEY (host_id)
 );
 
-
--- HOST
-CREATE TABLE apiato.host (
-  host_id  serial,
-  name     varchar(63) UNIQUE NOT NULL,
-  memory   integer NOT NULL,
-  CONSTRAINT host_pkey PRIMARY KEY (host_id)
-);
-
-
-
 -- INSTANCES
 CREATE TABLE apiato.instance (
     instance_id          serial,
@@ -425,23 +414,23 @@ CREATE OR REPLACE VIEW apiato_ro.cluster AS
     cluster.category "class",
     instance_type.type AS type,
     cluster.version,
-    cluster_master.name AS master_name
+    cluster_master.name AS master_name,
     get_cluster_instances as instances,
     apiato.get_cluster_attributes(apiato.cluster.cluster_id) as attributes,
     apiato.get_cluster_attribute('port', apiato.cluster.cluster_id ) port
   FROM apiato.cluster
     JOIN apiato.instance_type ON apiato.cluster.instance_type_id = apiato.instance_type.instance_type_id
-    JOIN apiato.cluter AS cluster_master ON apiato.cluter.cluster_id = cluster_master.master_cluster_id,
+    JOIN apiato.cluster AS cluster_master ON apiato.cluster.cluster_id = cluster_master.master_cluster_id,
       apiato.get_cluster_instances(apiato.cluster.cluster_id);
 
 
 -- Functional Aliases View
 CREATE OR REPLACE VIEW apiato_ro.functional_aliases AS
   SELECT functional_alias.dns_name,
-    functional_alias.instance_id,
-    functional_alias.alias,
-    apiato.get_instance_name(functional_alias.instance_id) as db_name
-  FROM apiato.functional_alias;
+         apiato.instance.name AS name,
+         functional_alias.alias
+  FROM apiato.functional_alias
+  JOIN apiato.instance ON apiato.functional_alias.instance_id = apiato.instance.instance_id ;
 
 -- Rundeck instances View
 CREATE OR REPLACE VIEW apiato_ro.rundeck_instances AS

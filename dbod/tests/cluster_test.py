@@ -22,8 +22,8 @@ class ClusterTest(AsyncHTTPTestCase):
         return tornado.web.Application(handlers)
 
     @timeout(5)
-    def test_create_instance(self):
-        """Creation of a new instance in a correct way"""
+    def test_create_delete_cluster(self):
+        """test for create and delete a cluster with the right data"""
         response = self.fetch("/api/v1/cluster/testcluster", method='DELETE', headers={'Authorization': self.authentication})
 
         instance = """{
