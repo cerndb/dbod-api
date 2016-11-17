@@ -10,6 +10,8 @@
 
 import tornado.web
 import json
+import base64
+import logging
 
 from tornado.testing import AsyncHTTPTestCase
 from tornado.testing import get_unused_port
@@ -25,7 +27,7 @@ class ClusterTest(AsyncHTTPTestCase):
     def get_app(self):
         return tornado.web.Application(handlers, debug=True)
 
-    
+
     @timeout(5)
     def test_create_delete_cluster(self):
         """test for create and delete a cluster with the right data"""
