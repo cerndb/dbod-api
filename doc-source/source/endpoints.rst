@@ -5,10 +5,10 @@ Endpoints
    :maxdepth: 2
 
    endpoints/root
-   endpoints/attribute
    endpoints/fim
    endpoints/instance
    endpoints/instance_alias
+   endpoints/instance_attribute
    endpoints/instance_metadata
    endpoints/host
    endpoints/host_aliases

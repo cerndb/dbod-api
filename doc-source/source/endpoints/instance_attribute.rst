@@ -1,5 +1,5 @@
-/api/v1/attribute
-===================
+/api/v1/instance/<name>/attribute/<attribute_name>
+==================================================
 
 .. http:get:: /api/v1/instance/(db_name)
 
