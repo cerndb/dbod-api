@@ -1,5 +1,5 @@
-/api/v1/metadata/host
-======================
+/api/v1/host/<name>/metadata
+============================
 
 .. http:get:: /api/v1/metadata/host/(hostname)
 

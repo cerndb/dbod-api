@@ -1,5 +1,5 @@
-/api/v1/metadata/instance
-=============================
+/api/v1/instance/<name>/metadata
+================================
 
 .. http:get:: /api/v1/metadata/instance/(db_name)
 
