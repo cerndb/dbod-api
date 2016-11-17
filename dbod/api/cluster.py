@@ -39,7 +39,7 @@ class Cluster(tornado.web.RequestHandler):
     The request method implemented for this endpoint is just the :func:`get`.
 
     """
-    def get(self, **args):
+    def get(self, name):
         """Returns the metadata of a host or an instance
         The *GET* method returns the instance(s)' metadata given the *host* or the *database name*.
         (No any special headers for this request)

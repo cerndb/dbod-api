@@ -28,9 +28,9 @@ class ClusterTest(AsyncHTTPTestCase):
         return tornado.web.Application(handlers, debug=True)
 
     @timeout(5)
-    def test_get_single_cluster(self):
+    def test_get_cluster_by_name(self):
 
-        """test getting a cluster with the right data"""
+        """test getting a cluster by name"""
 
         # Check the data for the given cluster
         response = self.fetch("/api/v1/cluster/cluster01")
