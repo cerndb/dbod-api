@@ -18,9 +18,14 @@ from timeout_decorator import timeout
 from dbod.api.api import *
 
 class ClusterTest(AsyncHTTPTestCase):
-    def get_app(self):
-        return tornado.web.Application(handlers)
 
+    """Class to test instances endpoint"""
+    authentication = "basic " + base64.b64encode(config.get('api','user') + ":" + config.get('api','pass'))
+
+    def get_app(self):
+        return tornado.web.Application(handlers, debug=True)
+
+    
     @timeout(5)
     def test_create_delete_cluster(self):
         """test for create and delete a cluster with the right data"""
