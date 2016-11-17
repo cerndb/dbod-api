@@ -27,6 +27,20 @@ class ClusterTest(AsyncHTTPTestCase):
     def get_app(self):
         return tornado.web.Application(handlers, debug=True)
 
+    @timeout(5)
+    def test_get_single_cluster(self):
+
+        """test getting a cluster with the right data"""
+
+        # Check the data for the given cluster
+        response = self.fetch("/api/v1/cluster/cluster01")
+        self.assertEquals(response.code, 200)
+        #data = json.loads(response.body)["response"]
+        #self.assertEquals(data[0]["name"], "testcluster")
+        #self.assertEquals(len(data[0]["attributes"]), 1)
+        #self.assertEquals(data[0]["attributes"]["port"], "2108")  # Reminder: the port is saved as a String in DB
+
+
 
     @timeout(5)
     def test_create_delete_cluster(self):
