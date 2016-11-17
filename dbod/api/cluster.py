@@ -40,8 +40,8 @@ class Cluster(tornado.web.RequestHandler):
 
     """
     def get(self, name):
-        """Returns the metadata of a host or an instance
-        The *GET* method returns the instance(s)' metadata given the *host* or the *database name*.
+        """Returns the cluster information
+        he *GET* method returns a *cluster* given a *name*.
         (No any special headers for this request)
 
         :param name: the database name which is given in the url
@@ -50,24 +50,18 @@ class Cluster(tornado.web.RequestHandler):
         :raises: HTTPError - when the given cluster name does not exist or in case of an internal error
 
         """
-        name = args.get('name')
-        if name:
-            composed_url = config.get('postgrest', 'cluster_url') + '?name=eq.' + name
-            logging.info('Requesting ' + composed_url)
-            response = requests.get(composed_url, verify=False)
+        response = requests.get(config.get('postgrest', 'cluster_url') + "?name=eq." + name)
+        if response.ok:
             data = response.json()
-            if response.ok and data:
-                logging.debug("response: " + json.dumps(data))
+            if data:
                 self.write({'response' : data})
-            elif response.ok:
-                logging.warning("Instance metadata not found: " + name)
-                raise tornado.web.HTTPError(NOT_FOUND)
+                self.set_status(OK)
             else:
-                logging.error("Error fetching instance metadata: " + response.text)
-                raise tornado.web.HTTPError(response.status_code)
+                logging.error("Instance metadata not found: " + name)
+                raise tornado.web.HTTPError(NOT_FOUND)
         else:
-            logging.error("Unsupported endpoint")
-            raise tornado.web.HTTPError(BAD_REQUEST)
+            logging.error("Entity metadata not found: " + name)
+            raise tornado.web.HTTPError(NOT_FOUND)
 
 
 

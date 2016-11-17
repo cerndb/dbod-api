@@ -47,7 +47,7 @@ class ClusterTest(AsyncHTTPTestCase):
         print "test_create_delete_cluster"
         """test for create and delete a cluster with the right data"""
 
-        instance = """{
+        cluster = """{
         "owner": "testuser", "class": "TEST", "expiry_date": "2016-11-20", "e_group": "testgroupZ"
         "version": "3.9", "type": "ZOOKEEPER", "name": "testcluster", "state":"RUNNING", "STATUS":"ACTIVE"
         "attributes": {
@@ -55,7 +55,7 @@ class ClusterTest(AsyncHTTPTestCase):
         }}"""
 
         # Create the instance
-        response = self.fetch("/api/v1/cluster/create", method='POST', headers={'Authorization': self.authentication}, body=instance)
+        response = self.fetch("/api/v1/cluster/create", method='POST', headers={'Authorization': self.authentication}, body=cluster)
         self.assertEquals(response.code, 201)
 
         # Check the metadata for this new cluster
