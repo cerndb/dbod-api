@@ -94,9 +94,8 @@ class FunctionalAlias(tornado.web.RequestHandler):
         The *POST* method inserts a new *database name* and its *alias* into the database. It
         adds the functional alias association for an instance.
 
-        The *dns name* is chosen automatically from a pool; so, in the background this method 
-        actually updates the *database name* and *alias* fields, which were *NULL* in the 
-        begining.
+        The *dns name* is chosen automatically from a pool; so, in the background this method
+        actually updates the *database name* and *alias* fields, which were *NULL* in the
         begining.
 
         .. note::
@@ -107,8 +106,8 @@ class FunctionalAlias(tornado.web.RequestHandler):
             * if there are no any *dns names* available
             * if the format of the *request body* is not right
             * if headers have to be specified
-            * if the client does not have the right authorization header 
-           
+            * if the client does not have the right authorization header
+
         :param db_name: the new database name which is given in the url
         :type db_name: str
         :raises: HTTPError - when the *url* or the *request body* format or the *headers* are not right
@@ -121,21 +120,21 @@ class FunctionalAlias(tornado.web.RequestHandler):
             entid = Instance.__get_instance_id__(db_name)
             alias = self.get_argument('alias')
             logging.debug("alias: %s" % (alias))
-            
+
             dns_name = self._next_dnsname()
 
             if dns_name:
                 logging.debug("dns_name picked: " + str(dns_name))
                 headers = {'Prefer': 'return=representation'}
-                insert_data = {"instance_id": entid, 
+                insert_data = {"instance_id": entid,
                                "alias": alias}
                 logging.debug("Data to insert: " + str(insert_data))
 
                 composed_url = self.url + '?dns_name=eq.' + dns_name
                 logging.debug('Requesting insertion: ' + composed_url)
-                
+
                 response = requests.patch(composed_url, json=insert_data, headers=headers)
-            
+
                 if response.ok:
                     logging.info('Data inserted in the functional_aliases table')
                     logging.debug(response.text)
@@ -143,7 +142,7 @@ class FunctionalAlias(tornado.web.RequestHandler):
                 else:
                     logging.error("Error inserting the functional alias: " + response.text)
                     self.set_status(response.status_code)
-                        
+
             else:
                 logging.error("No dns_name available in the functional_aliases table")
                 self.set_status(SERVICE_UNAVAILABLE)
@@ -157,14 +156,14 @@ class FunctionalAlias(tornado.web.RequestHandler):
     @http_basic_auth
     def delete(self, db_name, *args):
         """
-        The *DELETE* method deletes or else asssigns to *NULL* the *database name* and 
+        The *DELETE* method deletes or else asssigns to *NULL* the *database name* and
         *alias* fields. It removes the functional alias association for an instance.
 
         .. note::
-            
+
             * If the *database name* doesn't exist it doesn't do anything
             * You have to be authorized to use this method
-        
+
         :param db_name: the new database name which is given in the url
         :type db_name: str
         :raises: HTTPError - when the deletion is not successful

@@ -209,7 +209,7 @@ class Instance(tornado.web.RequestHandler):
     @http_basic_auth
     def put(self, name):
         """
-        The *PUT* method updates an instance into the database wih all the information that is needed.
+        The *PUT* method updates an instance into the database with all the information that is needed.
 
         In the request body we specify all the information of the *instance*
         table along with the *attribute* and *volume* tables. 

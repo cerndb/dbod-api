@@ -71,7 +71,7 @@ CREATE OR REPLACE VIEW apiato_ro.metadata AS
     apiato.get_volumes(apiato.instance.instance_id);
 
 
--- Metadata View
+-- Cluster View
 CREATE OR REPLACE VIEW apiato_ro.cluster AS
   SELECT
     cluster.cluster_id AS id,
@@ -80,11 +80,13 @@ CREATE OR REPLACE VIEW apiato_ro.cluster AS
     cluster.category "class",
     instance_type.type AS type,
     cluster.version,
+    cluster_master.name AS master_name
     get_cluster_instances as instances,
     apiato.get_cluster_attributes(apiato.cluster.cluster_id) as attributes,
     apiato.get_cluster_attribute('port', apiato.cluster.cluster_id ) port
   FROM apiato.cluster
-    JOIN apiato.instance_type ON apiato.cluster.instance_type_id = apiato.instance_type.instance_type_id,
+    JOIN apiato.instance_type ON apiato.cluster.instance_type_id = apiato.instance_type.instance_type_id
+    JOIN apiato.cluter AS cluster_master ON apiato.cluter.cluster_id = cluster_master.master_cluster_id,
     apiato.get_cluster_instances(apiato.cluster.cluster_id);
 
 

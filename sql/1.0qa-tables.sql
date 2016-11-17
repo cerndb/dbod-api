@@ -125,7 +125,7 @@ CREATE TABLE apiato.instance (
     CONSTRAINT instance_slave_fk           FOREIGN KEY (slave_instance_id)  REFERENCES apiato.instance (instance_id),
     CONSTRAINT instance_host_fk            FOREIGN KEY (host_id)            REFERENCES apiato.host     (host_id),
     CONSTRAINT instance_instance_type_fk   FOREIGN KEY (instance_type_id)   REFERENCES apiato.instance_type (instance_type_id),
-    CONSTRAINT instance_cluster_fk         FOREIGN KEY (cluster_id)         REFERENCES apiato.cluster (cluster_id)
+    CONSTRAINT instance_cluster_fk         FOREIGN KEY (cluster_id)         REFERENCES apiato.cluster (cluster_id) ON DELETE CASCADE
 );
 --FK INDEXES for INSTANCE table
 CREATE INDEX instance_host_idx      ON apiato.instance (host_id);
@@ -156,7 +156,7 @@ CREATE TABLE apiato.cluster_attribute (
   name         varchar(32) NOT NULL,
   value        varchar(250) NOT NULL,
   CONSTRAINT cluster_attribute_pkey        PRIMARY KEY (attribute_id),
-  CONSTRAINT cluster_attribute_cluster_fk FOREIGN KEY (cluster_id) REFERENCES apiato.cluster (cluster_id),
+  CONSTRAINT cluster_attribute_cluster_fk FOREIGN KEY (cluster_id) REFERENCES apiato.cluster (cluster_id) ON DELETE CASCADE,
   UNIQUE (cluster_id, name)
 );
 CREATE INDEX cluster_attribute_cluster_idx ON apiato.cluster_attribute (cluster_id);

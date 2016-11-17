@@ -22,18 +22,37 @@ class ClusterTest(AsyncHTTPTestCase):
         return tornado.web.Application(handlers)
 
     @timeout(5)
-    def test_clustert(self):
-        response = self.fetch("/api/v1/cluster/metadata/cluster01")
-        data = json.loads(response.body)["response"]
+    def test_create_instance(self):
+        """Creation of a new instance in a correct way"""
+        response = self.fetch("/api/v1/cluster/testcluster", method='DELETE', headers={'Authorization': self.authentication})
+
+        instance = """{
+        "owner": "testuser", "class": "TEST", "expiry_date": "2016-11-20", "e_group": "testgroupZ"
+        "version": "3.9", "type": "ZOOKEEPER", "name": "testcluster", "state":"RUNNING", "STATUS":"ACTIVE"
+        "attributes": {
+            "port": "2108"
+        }}"""
+
+        # Create the instance
+        response = self.fetch("/api/v1/cluster/create", method='POST', headers={'Authorization': self.authentication}, body=instance)
+        self.assertEquals(response.code, 201)
+
+        # Check the metadata for this new cluster
+        response = self.fetch("/api/v1/metadata/cluster/testcluster")
         self.assertEquals(response.code, 200)
-        self.assertEquals(data[0]["name"],"cluster01")
-        #self.assertEquals(len(data["instances"]), 2)
-        #self.assertEquals(data["instances"][0]["name"], "node01")
-        #self.assertEquals(data["instances"][1]["name"], "node02")
-        #self.assertTrue(data[i]["volumes"] != None)
-        #self.assertEquals(len(data["attributes"]), 2)
+        data = json.loads(response.body)["response"]
+        self.assertEquals(data[0]["name"], "testcluster")
+        self.assertEquals(len(data[0]["volumes"]), 2)
+        self.assertEquals(len(data[0]["attributes"]), 1)
+        self.assertEquals(data[0]["attributes"]["port"], "2108")  # Reminder: the port is saved as a String in DB
 
+        # Delete the created instance
+        response = self.fetch("/api/v1/cluster/testcluster", method='DELETE', headers={'Authorization': self.authentication})
+        self.assertEquals(response.code, 204)
 
+        # Check again, the metadata should be empty
+        response = self.fetch("/api/v1/metadata/instance/testdb")
+        self.assertEquals(response.code, 404)
 
     @timeout(5)
     def test_no_cluster(self):

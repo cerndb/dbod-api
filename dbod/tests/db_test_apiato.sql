@@ -87,6 +87,15 @@ CREATE TABLE apiato.host (
 );
 
 
+-- HOST
+CREATE TABLE apiato.host (
+  host_id  serial,
+  name     varchar(63) UNIQUE NOT NULL,
+  memory   integer NOT NULL,
+  CONSTRAINT host_pkey PRIMARY KEY (host_id)
+);
+
+
 
 -- INSTANCES
 CREATE TABLE apiato.instance (
@@ -114,7 +123,7 @@ CREATE TABLE apiato.instance (
     CONSTRAINT instance_slave_fk           FOREIGN KEY (slave_instance_id)  REFERENCES apiato.instance (instance_id),
     CONSTRAINT instance_host_fk            FOREIGN KEY (host_id)            REFERENCES apiato.host     (host_id),
     CONSTRAINT instance_instance_type_fk   FOREIGN KEY (instance_type_id)   REFERENCES apiato.instance_type (instance_type_id),
-    CONSTRAINT instance_cluster_fk         FOREIGN KEY (cluster_id)         REFERENCES apiato.cluster (cluster_id)
+    CONSTRAINT instance_cluster_fk         FOREIGN KEY (cluster_id)         REFERENCES apiato.cluster (cluster_id) ON DELETE CASCADE
 );
 --FK INDEXES for INSTANCE table
 CREATE INDEX instance_host_idx      ON apiato.instance (host_id);
@@ -145,7 +154,7 @@ CREATE TABLE apiato.cluster_attribute (
   name         varchar(32) NOT NULL,
   value        varchar(250) NOT NULL,
   CONSTRAINT cluster_attribute_pkey        PRIMARY KEY (attribute_id),
-  CONSTRAINT cluster_attribute_cluster_fk FOREIGN KEY (cluster_id) REFERENCES apiato.cluster (cluster_id),
+  CONSTRAINT cluster_attribute_cluster_fk FOREIGN KEY (cluster_id) REFERENCES apiato.cluster (cluster_id) ON DELETE CASCADE,
   UNIQUE (cluster_id, name)
 );
 CREATE INDEX cluster_attribute_cluster_idx ON apiato.cluster_attribute (cluster_id);
@@ -217,16 +226,6 @@ CREATE INDEX functional_alias_instance_idx ON apiato.functional_alias (instance_
 ------------------------------
 -- FUNCTIONS
 ------------------------------
--- Get instance_name function
-CREATE OR REPLACE FUNCTION apiato.get_instance_name(inst_id INTEGER)
-  RETURNS VARCHAR AS $$
-DECLARE
-  name VARCHAR := '';
-BEGIN
-  SELECT apiato.instance.name FROM apiato.instance WHERE instance_id = inst_id INTO name;
-  RETURN name;
-END
-$$ LANGUAGE plpgsql;
 
 -- Get hosts function
 CREATE OR REPLACE FUNCTION apiato.get_hosts(host_ids INTEGER[])
@@ -417,7 +416,7 @@ CREATE OR REPLACE VIEW apiato_ro.metadata AS
     apiato.get_volumes(apiato.instance.instance_id);
 
 
--- Metadata View
+-- cluster View
 CREATE OR REPLACE VIEW apiato_ro.cluster AS
   SELECT
     cluster.cluster_id AS id,
@@ -426,12 +425,14 @@ CREATE OR REPLACE VIEW apiato_ro.cluster AS
     cluster.category "class",
     instance_type.type AS type,
     cluster.version,
+    cluster_master.name AS master_name
     get_cluster_instances as instances,
     apiato.get_cluster_attributes(apiato.cluster.cluster_id) as attributes,
     apiato.get_cluster_attribute('port', apiato.cluster.cluster_id ) port
   FROM apiato.cluster
-    JOIN apiato.instance_type ON apiato.cluster.instance_type_id = apiato.instance_type.instance_type_id,
-    apiato.get_cluster_instances(apiato.cluster.cluster_id);
+    JOIN apiato.instance_type ON apiato.cluster.instance_type_id = apiato.instance_type.instance_type_id
+    JOIN apiato.cluter AS cluster_master ON apiato.cluter.cluster_id = cluster_master.master_cluster_id,
+      apiato.get_cluster_instances(apiato.cluster.cluster_id);
 
 
 -- Functional Aliases View
