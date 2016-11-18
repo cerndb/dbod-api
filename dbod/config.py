@@ -28,7 +28,9 @@ requiredConfig = {
             'instance_url', 
             'volume_url', 
             'attribute_url', 
-            'functional_alias_url'
+            'functional_alias_url',
+            'cluster_url',
+            'cluster_attribute_url'
             ], 
         }
 
