@@ -518,3 +518,78 @@ VALUES ('db-dbod-dns01', 1   , 'dbod-dbod-01.cern.ch'),
        ('db-dbod-dns03', 3   , 'dbod-dbod-03.cern.ch'),
        ('db-dbod-dns04', 4   , 'dbod-dbod-04.cern.ch'),
        ('db-dbod-dns05', NULL, NULL);
+
+
+--------------------------------
+-- INSERT PROCEDURES
+--------------------------------
+--Clusters
+CREATE OR REPLACE FUNCTION apiato_ro.insert_cluster(in_json JSON) RETURNS INTEGER AS $$
+DECLARE
+  cluster_id      int;
+  type_id         int;
+  attribute_id    int[];
+  cluster_json    json;
+  attributes_json json;
+BEGIN
+  --Get the new cluster_id to be used in the insertion
+   SELECT nextval(pg_get_serial_sequence('apiato.cluster', 'cluster_id')) INTO cluster_id;
+   cluster_json := in_json::jsonb || ('{ "cluster_id" :' || cluster_id || '}')::jsonb;
+
+  --Get the instance type id
+   SELECT apiato.instance_type.instance_type_id INTO type_id FROM apiato.instance_type WHERE apiato.instance_type.type = (in_json->>'type') ;
+   cluster_json := cluster_json::jsonb || ('{ "instance_type_id" :' || '"' || type_id || '"}')::jsonb;
+   INSERT INTO apiato.cluster SELECT * FROM json_populate_record(null::apiato.cluster,cluster_json);
+
+   --Inserting Attributes
+   attributes_json := cluster_json::json->'attributes';
+   PERFORM apiato_ro.insert_cluster_attributes(json_array_elements(attributes_json));
+
+  RETURN cluster_id;
+END
+$$ LANGUAGE plpgsql;
+
+
+-Cluster Attributes
+CREATE OR REPLACE FUNCTION apiato_ro.insert_cluster_attributes(in_json JSON) RETURNS INTEGER AS $$
+DECLARE
+  attribute_id    int;
+  cluster_id      int;
+  attributes_json json;
+BEGIN
+
+   --Get the new cluster_id to be used in the insertion
+   SELECT nextval(pg_get_serial_sequence('apiato.cluster_attribute', 'attribute_id')) INTO attribute_id;
+   attributes_json := in_json::jsonb || ('{ "attribute_id" :' || attribute_id || '}')::jsonb;
+
+   --Get the cluster id
+   SELECT apiato.cluster.cluster_id INTO cluster_id FROM apiato.cluster WHERE apiato.cluster.name = (in_json->>'cluster_name') ;
+   attributes_json := attributes_json::jsonb || ('{ "cluster_id" :' || '"' || cluster_id || '"}')::jsonb;
+
+   INSERT INTO apiato.cluster_attribute SELECT * FROM json_populate_record(null::apiato.cluster_attribute,attributes_json);
+
+  RETURN attribute_id;
+END
+$$ LANGUAGE plpgsql;
+
+--Instance Attributes
+CREATE OR REPLACE FUNCTION apiato_ro.insert_instance_attributes(in_json JSON) RETURNS INTEGER AS $$
+DECLARE
+  attribute_id    int;
+  instance_id      int;
+  attributes_json json;
+BEGIN
+
+   --Get the new cluster_id to be used in the insertion
+   SELECT nextval(pg_get_serial_sequence('apiato.instance_attribute', 'attribute_id')) INTO attribute_id;
+   attributes_json := in_json::jsonb || ('{ "attribute_id" :' || attribute_id || '}')::jsonb;
+
+   --Get the cluster id
+   SELECT apiato.instance.instance_id INTO instance_id FROM apiato.instance WHERE apiato.instance.name = (in_json->>'instance_name') ;
+   attributes_json := attributes_json::jsonb || ('{ "instance_id" :' || '"' || instance_id || '"}')::jsonb;
+
+   INSERT INTO apiato.instance_attribute SELECT * FROM json_populate_record(null::apiato.instance_attribute,attributes_json);
+
+  RETURN attribute_id;
+END
+$$ LANGUAGE plpgsql;

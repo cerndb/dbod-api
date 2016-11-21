@@ -82,17 +82,9 @@ class Cluster(tornado.web.RequestHandler):
         logging.debug(self.request.body)
         cluster = json.loads(self.request.body)
 
-        attributes = None
-        entid = None
-        # Get the attributes
-        if "attributes" in cluster:
-            attributes = cluster["attributes"]
-            del cluster["attributes"]
-
         # Insert the instance in database using PostREST
-        response = requests.post(config.get('postgrest', 'cluster_url'), json=cluster, headers={'Prefer': 'return=representation'})
+        response = requests.post(config.post('postgrest', 'insert_cluster_url'), json=cluster, headers={'Prefer': 'return=representation'})
         if response.ok:
-            clusterid = json.loads(response.text)["id"]
             logging.info("Created instance " + cluster["name"])
             logging.debug(response.text)
             self.set_status(CREATED)
@@ -100,22 +92,6 @@ class Cluster(tornado.web.RequestHandler):
             logging.error("Error creating the instance: " + response.text)
             raise tornado.web.HTTPError(response.status_code)
 
-
-        # Insert the attributes
-        if attributes:
-            insert_attributes = []
-            for attribute in attributes:
-                insert_attr = {'instance_id': clusterid, 'name': attribute, 'value': attributes[attribute]}
-                logging.debug("Inserting attribute: " + json.dumps(insert_attr))
-                insert_attributes.append(insert_attr)
-
-            response = requests.post(config.get('postgrest', 'cluster_attribute_url'), json=insert_attributes)
-            if response.ok:
-                self.set_status(CREATED)
-            else:
-                logging.error("Error inserting attributes: " + response.text)
-                self.__delete_instance__(entid)
-                raise tornado.web.HTTPError(response.status_code)
 
 
 
