@@ -67,7 +67,6 @@ class Cluster(tornado.web.RequestHandler):
         .. note::
             * It's possible to insert more than one *attribute* in one cluster.
             * The cluster names have to be unique
-            * If any of the 2 insertions (in *cluster*, *attribute* table) is not successful then an *Exception* is raised and the private function :func:`__delete_cluster__` is used in order to delete what may has been created.
             * Also, the creation is not successful
                 * if the client is not authorized or
                 * if there is any internal error
@@ -83,13 +82,13 @@ class Cluster(tornado.web.RequestHandler):
         cluster = json.loads(self.request.body)
 
         # Insert the instance in database using PostREST
-        response = requests.post(config.post('postgrest', 'insert_cluster_url'), json=cluster, headers={'Prefer': 'return=representation'})
+        response = requests.post(config.get('postgrest', 'insert_cluster_url'), json=cluster, headers={'Prefer': 'return=representation'})
         if response.ok:
-            logging.info("Created instance " + cluster["name"])
+            logging.info("Created cluster " + cluster["in_json"]["name"])
             logging.debug(response.text)
             self.set_status(CREATED)
         else:
-            logging.error("Error creating the instance: " + response.text)
+            logging.error("Error creating the cluster: " + response.text)
             raise tornado.web.HTTPError(response.status_code)
 
 
@@ -144,7 +143,7 @@ class Cluster(tornado.web.RequestHandler):
             del instance["attributes"]
 
     @http_basic_auth
-    def delete(self, name):
+    def delete(self, id):
         """
         The *DELETE* method deletes a cluster by *name*.
         In order to delete a cluster we have to delete all the related information of the specified database name in *cluster*, *attribute* and *instance* tables.
@@ -152,29 +151,17 @@ class Cluster(tornado.web.RequestHandler):
         :type name: str
         :raises: HTTPError - when the given database name cannot be found
         """
-        clusterid = self.__get_instance_id__(name)
-        if clusterid:
-            requests.delete(config.get('postgrest', 'cluster_url') + "?name=eq." + str(name))
-        else:
-            logging.error("Cluster not found: " + name)
-            raise tornado.web.HTTPError(NOT_FOUND)
+        logging.debug(self.request.body)
+        cluster = {'id': id}
 
-
-
-    def __get_cluster_id__(self, name):
-        """
-        This is a private function which is used by :func:`put` and :func:`delete` methods.
-        Returns the instance *id* given the cluster name in order to be able to operate on the instance related tables. It returns *None* if the specified database name does not exist in the *cluster* table or in case of internal error.
-        :param name: the cluster name from which we want to get the *id*
-        :type name: str
-        :rtype: str or None
-        """
-        response = requests.get(config.get('postgrest', 'cluster_url') + "?name=eq." + name)
+        # Insert the instance in database using PostREST
+        response = requests.post(config.get('postgrest', 'delete_cluster_url'), json=cluster, headers={'Prefer': 'return=representation'})
         if response.ok:
-            data = response.json()
-            if data:
-                return data[0]["id"]
-            else:
-                return None
+            logging.info("Delete cluster " + cluster["id"])
+            logging.debug(response.text)
+            self.set_status(CREATED)
         else:
-            return None
+            logging.error("Error delete the cluster: " + response.text)
+            raise tornado.web.HTTPError(response.status_code)
+
+

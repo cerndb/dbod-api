@@ -33,49 +33,47 @@ class ClusterTest(AsyncHTTPTestCase):
         """test getting a cluster by name"""
 
         # Check the data for the given cluster
+        print "test_cluster_metadata"
         response = self.fetch("/api/v1/cluster/cluster01")
         self.assertEquals(response.code, 200)
-        #data = json.loads(response.body)["response"]
-        #self.assertEquals(data[0]["name"], "testcluster")
-        #self.assertEquals(len(data[0]["attributes"]), 1)
-        #self.assertEquals(data[0]["attributes"]["port"], "2108")  # Reminder: the port is saved as a String in DB
+        data = json.loads(response.body)["response"]
+        self.assertEquals(data[0]["name"], "cluster01")
+        self.assertEquals(len(data[0]["instances"]), 2)
+        self.assertEquals(len(data[0]["attributes"]), 2)
+        self.assertEquals(data[0]["attributes"]["user"], "zookeeper")
 
 
 
     @timeout(5)
     def test_create_cluster(self):
-        print "test_create_delete_cluster"
+
         """test for create and delete a cluster with the right data"""
 
-        cluster = """{
-        "owner": "testuser", "class": "TEST", "expiry_date": "2016-11-20", "e_group": "testgroupZ"
-        "version": "3.9", "type": "ZOOKEEPER", "name": "testcluster", "state":"RUNNING", "STATUS":"ACTIVE"
-        "attributes": {
-            "port": "2108"
-        }}"""
+        cluster = """{"in_json" : {"owner": "testuser", "category": "TEST", "creation_date": "2016-11-20", "e_group": "testgroupZ", "version": "3.9", "instance_type_id": 1, "name": "testcluster", "state": "RUNNING", "status": "ACTIVE", "attributes": [{"name" : "testp01", "value" : "testvalue" },{"name" : "testp02", "value" : "testvalue"}]}}"""
+        print "test_create_delete_cluster"
 
         # Create the instance
         response = self.fetch("/api/v1/cluster/create", method='POST', headers={'Authorization': self.authentication}, body=cluster)
         self.assertEquals(response.code, 201)
 
-        # Check the metadata for this new cluster
-        #response = self.fetch("/api/v1/cluster/testcluster")
-        #self.assertEquals(response.code, 200)
-        #data = json.loads(response.body)["response"]
-        #self.assertEquals(data[0]["name"], "testcluster")
-        #self.assertEquals(len(data[0]["attributes"]), 1)
-        #self.assertEquals(data[0]["attributes"]["port"], "2108")  # Reminder: the port is saved as a String in DB
+        # Check for this new cluster
+        response = self.fetch("/api/v1/cluster/testcluster")
+        self.assertEquals(response.code, 200)
+        data = json.loads(response.body)["response"]
+        self.assertEquals(data[0]["name"], "testcluster")
+        self.assertEquals(len(data[0]["attributes"]), 2)
+        self.assertEquals(data[0]["attributes"]["testp01"], "testvalue")  # Reminder: the port is saved as a String in DB
 
         # Delete the created instance
-        #response = self.fetch("/api/v1/cluster/testcluster", method='DELETE', headers={'Authorization': self.authentication})
-        #self.assertEquals(response.code, 204)
+        response = self.fetch("/api/v1/cluster/" + str(data[0]["id"]) , method='DELETE', headers={'Authorization': self.authentication})
+        self.assertEquals(response.code, 201)
 
         # Check again, the metadata should be empty
-        #response = self.fetch("/api/v1/metadata/instance/testdb")
-        #self.assertEquals(response.code, 404)
+        response = self.fetch("/api/v1/cluster/testcluster")
+        self.assertEquals(response.code, 404)
 
     @timeout(5)
     def test_get_invalid_cluster(self):
         print "test_get_invalid_cluster"
-        response = self.fetch("/api/v1/cluster/metadata/invalid")
+        response = self.fetch("/api/v1/cluster/invalid")
         self.assertEquals(response.code, 404)
