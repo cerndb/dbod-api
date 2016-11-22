@@ -359,21 +359,6 @@ FROM apiato.instance
   JOIN apiato.instance_type ON apiato.instance.instance_type_id = apiato.instance_type.instance_type_id
   JOIN apiato.host ON apiato.instance.host_id = apiato.host.host_id;
 
--- Instance Attribute View
-CREATE OR REPLACE VIEW apiato_ro.instance_attribute AS
-SELECT instance_attribute.attribute_id AS id,
-       instance_attribute.instance_id,
-       instance_attribute.name,
-       instance_attribute.value
-FROM apiato.instance_attribute;
-
---Volume Attribute View
-CREATE OR REPLACE VIEW apiato_ro.volume_attribute AS
-SELECT volume_attribute.attribute_id AS id,
-       volume_attribute.volume_id,
-       volume_attribute.name,
-       volume_attribute.value
-FROM apiato.volume_attribute;
 
 -- Volume View
 CREATE OR REPLACE VIEW apiato_ro.volume AS
@@ -420,7 +405,7 @@ CREATE OR REPLACE VIEW apiato_ro.cluster AS
     apiato.get_cluster_attribute('port', apiato.cluster.cluster_id ) port
   FROM apiato.cluster
     JOIN apiato.instance_type ON apiato.cluster.instance_type_id = apiato.instance_type.instance_type_id
-    JOIN apiato.cluster AS cluster_master ON apiato.cluster.cluster_id = cluster_master.master_cluster_id,
+    LEFT JOIN apiato.cluster AS cluster_master ON apiato.cluster.cluster_id = cluster_master.master_cluster_id,
       apiato.get_cluster_instances(apiato.cluster.cluster_id);
 
 
@@ -536,21 +521,18 @@ BEGIN
    SELECT nextval(pg_get_serial_sequence('apiato.cluster', 'cluster_id')) INTO cluster_id;
    cluster_json := in_json::jsonb || ('{ "cluster_id" :' || cluster_id || '}')::jsonb;
 
-  --Get the instance type id
-   SELECT apiato.instance_type.instance_type_id INTO type_id FROM apiato.instance_type WHERE apiato.instance_type.type = (in_json->>'type') ;
-   cluster_json := cluster_json::jsonb || ('{ "instance_type_id" :' || '"' || type_id || '"}')::jsonb;
    INSERT INTO apiato.cluster SELECT * FROM json_populate_record(null::apiato.cluster,cluster_json);
 
    --Inserting Attributes
    attributes_json := cluster_json::json->'attributes';
-   PERFORM apiato_ro.insert_cluster_attributes(json_array_elements(attributes_json));
+   PERFORM apiato_ro.insert_cluster_attributes((json_array_elements(attributes_json)::jsonb || ('{ "cluster_id" :' || cluster_id || '}')::jsonb)::json);
 
   RETURN cluster_id;
 END
 $$ LANGUAGE plpgsql;
 
 
--Cluster Attributes
+--Cluster Attributes
 CREATE OR REPLACE FUNCTION apiato_ro.insert_cluster_attributes(in_json JSON) RETURNS INTEGER AS $$
 DECLARE
   attribute_id    int;
@@ -561,10 +543,6 @@ BEGIN
    --Get the new cluster_id to be used in the insertion
    SELECT nextval(pg_get_serial_sequence('apiato.cluster_attribute', 'attribute_id')) INTO attribute_id;
    attributes_json := in_json::jsonb || ('{ "attribute_id" :' || attribute_id || '}')::jsonb;
-
-   --Get the cluster id
-   SELECT apiato.cluster.cluster_id INTO cluster_id FROM apiato.cluster WHERE apiato.cluster.name = (in_json->>'cluster_name') ;
-   attributes_json := attributes_json::jsonb || ('{ "cluster_id" :' || '"' || cluster_id || '"}')::jsonb;
 
    INSERT INTO apiato.cluster_attribute SELECT * FROM json_populate_record(null::apiato.cluster_attribute,attributes_json);
 
@@ -584,12 +562,39 @@ BEGIN
    SELECT nextval(pg_get_serial_sequence('apiato.instance_attribute', 'attribute_id')) INTO attribute_id;
    attributes_json := in_json::jsonb || ('{ "attribute_id" :' || attribute_id || '}')::jsonb;
 
-   --Get the cluster id
-   SELECT apiato.instance.instance_id INTO instance_id FROM apiato.instance WHERE apiato.instance.name = (in_json->>'instance_name') ;
-   attributes_json := attributes_json::jsonb || ('{ "instance_id" :' || '"' || instance_id || '"}')::jsonb;
-
    INSERT INTO apiato.instance_attribute SELECT * FROM json_populate_record(null::apiato.instance_attribute,attributes_json);
 
   RETURN attribute_id;
+END
+$$ LANGUAGE plpgsql;
+
+-----------------------------------
+--DELETE PROCEDURES
+-----------------------------------
+--Clusters
+CREATE OR REPLACE FUNCTION apiato_ro.delete_cluster(id int) RETURNS bool AS $$
+DECLARE
+ success bool;
+BEGIN
+
+   EXECUTE format(' DELETE FROM apiato.cluster WHERE cluster_id = $1 RETURNING TRUE') USING id INTO success;
+
+RETURN success;
+END
+$$ LANGUAGE plpgsql;
+
+
+-----------------------------------
+--UPDATE PROCEDURES
+-----------------------------------
+--Clusters
+CREATE OR REPLACE FUNCTION apiato_ro.update_cluster(id int, col VARCHAR, val VARCHAR) RETURNS bool AS $$
+DECLARE
+ success bool;
+BEGIN
+
+   EXECUTE format(' UPDATE apiato.cluster SET %s=$1 WHERE cluster_id=%d RETURNING TRUE', col, id) USING val INTO success;
+
+RETURN success;
 END
 $$ LANGUAGE plpgsql;
