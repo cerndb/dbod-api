@@ -205,7 +205,7 @@ CREATE TABLE apiato.functional_alias
 (
   function_alias_id serial,
   dns_name          character varying(256) UNIQUE NOT NULL,
-  instance_id       int UNIQUE,
+  instance_id       int,
   alias             character varying(256),
   CONSTRAINT functional_alias_pkey        PRIMARY KEY (function_alias_id),
   CONSTRAINT functional_alias_instance_fk FOREIGN KEY (instance_id)    REFERENCES apiato.instance (instance_id)
@@ -512,8 +512,6 @@ VALUES ('db-dbod-dns01', 1   , 'dbod-dbod-01.cern.ch'),
 CREATE OR REPLACE FUNCTION apiato_ro.insert_cluster(in_json JSON) RETURNS INTEGER AS $$
 DECLARE
   cluster_id      int;
-  type_id         int;
-  attribute_id    int[];
   cluster_json    json;
   attributes_json json;
 BEGIN
@@ -568,6 +566,23 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 
+--Clusters
+CREATE OR REPLACE FUNCTION apiato_ro.insert_functional_alias(in_json JSON) RETURNS INTEGER AS $$
+DECLARE
+  functional_alias_id  int;
+  fa_json              json;
+BEGIN
+  --Get the new cluster_id to be used in the insertion
+   SELECT nextval(pg_get_serial_sequence('apiato.functional_alias', 'functional_alias_id')) INTO functional_alias_id;
+   fa_json := in_json::jsonb || ('{ "functional_alias_id" :' || functional_alias_id || '}')::jsonb;
+
+   INSERT INTO apiato.functional_alias SELECT * FROM json_populate_record(null::apiato.functional_alias,fa_json);
+
+  RETURN functional_alias_id;
+END
+$$ LANGUAGE plpgsql;
+
+
 -----------------------------------
 --DELETE PROCEDURES
 -----------------------------------
@@ -584,6 +599,19 @@ END
 $$ LANGUAGE plpgsql;
 
 
+--functional alias
+CREATE OR REPLACE FUNCTION apiato_ro.delete_functional_alias(id int) RETURNS bool AS $$
+DECLARE
+ success bool;
+BEGIN
+
+   EXECUTE format(' UPDATE apiato.functional_alias SET instance_id = null, alias=null WHERE functional_alias_id = $1 RETURNING TRUE') USING id INTO success;
+
+RETURN success;
+END
+$$ LANGUAGE plpgsql;
+
+
 -----------------------------------
 --UPDATE PROCEDURES
 -----------------------------------
@@ -594,6 +622,19 @@ DECLARE
 BEGIN
 
    EXECUTE format(' UPDATE apiato.cluster SET %s=$1 WHERE cluster_id=%d RETURNING TRUE', col, id) USING val INTO success;
+
+RETURN success;
+END
+$$ LANGUAGE plpgsql;
+
+
+--Functional Alias
+CREATE OR REPLACE FUNCTION apiato_ro.update_functional_alias(id int, col VARCHAR, val VARCHAR) RETURNS bool AS $$
+DECLARE
+ success bool;
+BEGIN
+
+   EXECUTE format(' UPDATE functional_alias SET %s=$1 WHERE functional_alias_id=%d RETURNING TRUE', col, id) USING val INTO success;
 
 RETURN success;
 END

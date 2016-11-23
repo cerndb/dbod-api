@@ -341,17 +341,5 @@ class Instance(tornado.web.RequestHandler):
         else:
             return None
             
-    def __delete_instance__(self, inst_id):
-        """
-        This is a private function that is used by :func:`put` and :func:`delete` methods.
-        It deletes all the related information of an instance from the *instance*, *attribute* and *volume* table given the database's *id*
-        
-        :param inst_id: the id of the instance we want to delete
-        :type inst_id: str
 
-        """
-        requests.delete(config.get('postgrest', 'attribute_url') + "?instance_id=eq." + str(inst_id))
-        requests.delete(config.get('postgrest', 'volume_url') + "?instance_id=eq." + str(inst_id))
-        requests.delete(config.get('postgrest', 'instance_url') + "?id=eq." + str(inst_id))
-        
 

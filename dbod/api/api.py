@@ -43,7 +43,7 @@ handlers = [
     (r"/api/v1/cluster/([^/]+)", Cluster),
     (r"/api/v1/host/aliases/([^/]+)", HostAliases),
     (r"/api/v1/host/names/([^/]+)", Host),
-    (r"/api/v1/instance/alias/?(?P<db_name>[^\/]+)?", FunctionalAlias),
+    (r"/api/v1/instance/alias/?(?P<name>[^\/]+)?", FunctionalAlias),
     (r"/api/v1/(?P<class>[^\/]+)/(?P<name>[^\/]+)/metadata", Metadata),
     (r"/api/v1/host/aliases/([^/]+)", HostAliases),
     (r"/api/v1/rundeck/resources.xml", RundeckResources),

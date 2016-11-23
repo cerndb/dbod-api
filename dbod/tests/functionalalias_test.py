@@ -41,8 +41,8 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
     def test_get_single_alias_by_name(self):
         """test for getting the right data"""
         print "test_get_single_alias_by_name"
-        db_name = 'dbod01'
-        response = self.fetch("/api/v1/instance/alias/%s" %(db_name))
+        name = 'dbod01'
+        response = self.fetch("/api/v1/instance/alias/%s" %(name))
         data = json.loads(response.body)["response"]
         self.assertEquals(response.code, 200)
         #self.assertEquals(json.loads(response.headers)['Content-Type'], 'application/json')
@@ -77,8 +77,8 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
 
     @timeout(5)
     def test_novalid_db(self):
-        """test when the given db does not exist"""
-        response = self.fetch("/api/v1/instance/alias/some_db")
+        """test when the given instance does not exist"""
+        response = self.fetch("/api/v1/instance/alias/some_instance")
         self.assertEquals(response.code, 404)
 
 
@@ -109,7 +109,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
         print "test_post_duplicate"
         body = 'alias=dbod-dbod-01.cern.ch'
         response = self.fetch("/api/v1/instance/alias/dbod01", 
-                              method="POST", 
+                              method="POST",
                               headers={'Authorization': self.authentication},
                               body=body)
         self.assertEquals(response.code, 409)    
