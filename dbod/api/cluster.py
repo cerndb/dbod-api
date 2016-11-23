@@ -22,7 +22,7 @@ from dbod.config import config
 
 class Cluster(tornado.web.RequestHandler):
     """
-    This is the handler of **/cluster/<class>/<name>** endpoint.
+    This is the handler of **/cluster/<name>** endpoint.
     This endpoint takes 1 arguments:
     * *<name>* - the name of a *cluster*
     Things that are given for the development of this endpoint:
@@ -57,7 +57,7 @@ class Cluster(tornado.web.RequestHandler):
 
 
     @http_basic_auth
-    def post(self, name):
+    def post(self, id):
         """
         The *POST* method inserts a new cluster into the database with all the
         information that is needed for the creation of it.
@@ -71,12 +71,12 @@ class Cluster(tornado.web.RequestHandler):
                 * if the client is not authorized or
                 * if there is any internal error
                 * if the format of the request body is not right or if there is no *database name* field
-        :param name: the new cluster name which is given in the url or any other string
-        :type name: str
+        :param id: the new cluster name which is given in the url or any other string
+        :type id: str
         :raises: HTTPError - in case of an internal error
         :request body:  json
-                       - for *instance*: json
-                       - for *attribute*: json
+                       - for *cluster*: json
+                       - for *cluster attribute*: json
         """
         logging.debug(self.request.body)
         cluster = json.loads(self.request.body)
@@ -98,57 +98,30 @@ class Cluster(tornado.web.RequestHandler):
     def put(self, id):
         """
         The *PUT* method updates a cluster with all the information that is needed.
-        In the request body we specify all the information of the *cluster*
-        table along with the *attribute* tables.
         The procedure of this method is the following:
-        * We extract and separate the information of each table.
-        * We get the *id* of the row from the given (unique) database from the url.
-        * If it exists, we delete if any information with that *id* exists in the tables.
-        * After that, we insert the information to the related table along with the instance *id*.
-        * In case of more than one attributes we insert each one separetely.
-        * Finally, we update the *cluster* table's row (which include the given database name) with the new given information.
         :param name: the cluster name which is given in the url
         :type name: str
         :raises: HTTPError - when the *request body* format is not right or in case of internall error
         """
         logging.debug(self.request.body)
-        instance = json.loads(self.request.body)
-        clusterid = id
-        if not clusterid:
-            logging.error("Cluster '" + id + "' doest not exist.")
-            raise tornado.web.HTTPError(NOT_FOUND)
+        cluster = json.loads(self.request.body)
+        response = requests.post(config.get('postgrest', 'update_cluster_url'), json=cluster, headers={'Prefer': 'return=representation'})
+        if response.ok:
+            logging.info("Update Cluster: " + cluster["id"] + " Column: " + cluster["col"] + " Value: " + cluster["val"])
+            logging.debug(response.text)
+            self.set_status(CREATED)
+        else:
+            logging.error("Error updating the cluster: " + response.text)
+            raise tornado.web.HTTPError(response.status_code)
 
-        # Check if the attributes are changed
-        if "attributes" in instance:
-            attributes = instance["attributes"]
-            response = requests.delete(config.get('postgrest', 'cluster_attribute_url') + "?cluster_id=eq." + str(clusterid))
-            if response.ok or response.status_code == 404:
-                if len(attributes) > 0:
-                    # Insert the attributes
-                    insert_attributes = []
-                    for attribute in attributes:
-                        insert_attr = {'cluster_id': clusterid, 'name': attribute, 'value': attributes[attribute]}
-                        logging.debug("Inserting attribute: " + json.dumps(insert_attr))
-                        insert_attributes.append(insert_attr)
-
-                    response = requests.post(config.get('postgrest', 'cluster_attribute_url'), json=insert_attributes)
-                    if response.ok:
-                        self.set_status(NO_CONTENT)
-                    else:
-                        logging.error("Error inserting attributes: " + response.text)
-                        raise tornado.web.HTTPError(response.status_code)
-            else:
-                logging.error("Error deleting attributes: " + response.text)
-                raise tornado.web.HTTPError(response.status_code)
-            del instance["attributes"]
 
     @http_basic_auth
     def delete(self, id):
         """
         The *DELETE* method deletes a cluster by *name*.
         In order to delete a cluster we have to delete all the related information of the specified database name in *cluster*, *attribute* and *instance* tables.
-        :param name: the database name which is given in the url
-        :type name: str
+        :param id: the database name which is given in the url
+        :type id: str
         :raises: HTTPError - when the given database name cannot be found
         """
         logging.debug(self.request.body)

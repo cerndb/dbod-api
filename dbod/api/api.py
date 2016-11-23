@@ -38,7 +38,6 @@ from dbod.api.cluster import Cluster
 # from the test suites
 handlers = [
     (r"/", DocHandler),
-    (r"/api/v1/instance/(?P<instance>[^\/]+)/attribute/?(?P<attribute>[^\/]+)?", Attribute),
     (r"/api/v1/instance/([^/]+)", Instance),
     (r"/api/v1/cluster/([^/]+)", Cluster),
     (r"/api/v1/host/aliases/([^/]+)", HostAliases),
@@ -48,9 +47,12 @@ handlers = [
     (r"/api/v1/host/aliases/([^/]+)", HostAliases),
     (r"/api/v1/rundeck/resources.xml", RundeckResources),
     (r"/api/v1/rundeck/job/(?P<job>[^\/]+)/?(?P<node>[^\/]+)?", RundeckJobs),
+    (r"/api/v1/(?P<class>[^\/]+)/(?P<name>[^\/]+)/attribute/(?P<attribute_name>[^\/]+)", Attribute),
+
     # Deprecated, will be deleted in following versions
-    (r"/api/v1/metadata/(?P<class>[^\/]+)/?(?P<name>[^\/]+)?", Metadata),  
+    (r"/api/v1/metadata/(?P<class>[^\/]+)/?(?P<name>[^\/]+)?", Metadata),
     (r"/api/v1/fim/([^/]+)", Fim),
+    #(r"/api/v1/instance/(?P<instance>[^\/]+)/attribute/?(?P<attribute>[^\/]+)?", Attribute)
     ]
 
 class Application():

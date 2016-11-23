@@ -24,7 +24,7 @@ from dbod.config import config
 class Attribute(tornado.web.RequestHandler):
 
     """
-    This is the handler of **/instance/<database name>/attribute/<attribute name>** endpoint.
+    This is the handler of **/<class>/<name>/attribute/<attribute_name>** endpoint.
 
     Things that are given for the development of this endpoint:
 
@@ -79,7 +79,8 @@ class Attribute(tornado.web.RequestHandler):
 
         """
         instance_n = args.get('instance')
-        attribute_n = args.get('attribute')
+        attribute_n = args.get('attribute_name')
+        class_n = args.get('class')
         entid = get_instance_id_by_name(instance_n)
         if entid:
             if attribute_n:
