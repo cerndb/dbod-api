@@ -360,6 +360,24 @@ FROM apiato.instance
   JOIN apiato.host ON apiato.instance.host_id = apiato.host.host_id;
 
 
+CREATE OR REPLACE VIEW apiato_ro.cluster_attributes AS
+SELECT
+      apiato.cluster.cluster_id,
+      apiato.get_cluster_attributes(apiato.cluster.cluster_id) as attributes
+FROM apiato.cluster;
+
+CREATE OR REPLACE VIEW apiato_ro.instance_attributes AS
+SELECT
+      apiato.instance.instance_id,
+      apiato.get_instance_attributes(apiato.instance.instance_id) as attributes
+FROM apiato.instance;
+
+CREATE OR REPLACE VIEW apiato_ro.volume_attributes AS
+SELECT
+      apiato.volume.volume_id,
+      apiato.get_volume_attributes(apiato.volume.volume_id) as attributes
+FROM apiato.volume;
+
 -- Volume View
 CREATE OR REPLACE VIEW apiato_ro.volume AS
 SELECT volume.volume_id AS id,
@@ -396,6 +414,9 @@ CREATE OR REPLACE VIEW apiato_ro.cluster AS
     cluster.cluster_id AS id,
     cluster.owner AS username,
     cluster.name AS name,
+    cluster.e_group,
+    cluster.project,
+    cluster.description,
     cluster.category "class",
     instance_type.type AS type,
     cluster.version,
@@ -587,7 +608,7 @@ $$ LANGUAGE plpgsql;
 --DELETE PROCEDURES
 -----------------------------------
 --Clusters
-CREATE OR REPLACE FUNCTION apiato_ro.delete_cluster(id int) RETURNS bool AS $$
+CREATE OR REPLACE FUNCTION apiato_ro.delete_cluster(id INT) RETURNS bool AS $$
 DECLARE
  success bool;
 BEGIN
@@ -600,7 +621,7 @@ $$ LANGUAGE plpgsql;
 
 
 --functional alias
-CREATE OR REPLACE FUNCTION apiato_ro.delete_functional_alias(id int) RETURNS bool AS $$
+CREATE OR REPLACE FUNCTION apiato_ro.delete_functional_alias(id INT) RETURNS bool AS $$
 DECLARE
  success bool;
 BEGIN
@@ -616,12 +637,12 @@ $$ LANGUAGE plpgsql;
 --UPDATE PROCEDURES
 -----------------------------------
 --Clusters
-CREATE OR REPLACE FUNCTION apiato_ro.update_cluster(id int, col VARCHAR, val VARCHAR) RETURNS bool AS $$
+CREATE OR REPLACE FUNCTION apiato_ro.update_cluster(id INT, col VARCHAR, val VARCHAR) RETURNS bool AS $$
 DECLARE
  success bool;
 BEGIN
 
-   EXECUTE format(' UPDATE apiato.cluster SET %s=$1 WHERE cluster_id=%d RETURNING TRUE', col, id) USING val INTO success;
+   EXECUTE format(' UPDATE apiato.cluster SET %s=$1 WHERE cluster_id=%s RETURNING TRUE', col, id) USING val INTO success;
 
 RETURN success;
 END
@@ -634,7 +655,7 @@ DECLARE
  success bool;
 BEGIN
 
-   EXECUTE format(' UPDATE functional_alias SET %s=$1 WHERE functional_alias_id=%d RETURNING TRUE', col, id) USING val INTO success;
+   EXECUTE format(' UPDATE functional_alias SET %s=$1 WHERE functional_alias_id=%s RETURNING TRUE', col, val) USING val INTO success;
 
 RETURN success;
 END

@@ -72,6 +72,31 @@ class ClusterTest(AsyncHTTPTestCase):
         response = self.fetch("/api/v1/cluster/testcluster")
         self.assertEquals(response.code, 404)
 
+    def test_update_cluster(self):
+        """test for update a cluster"""
+        current_cluster = """{ "id" : "1", "col" : "e_group", "val" : "testgroupZ"}"""
+        new_cluster = """{ "id" : "1", "col" : "e_group", "val" : "testgroupX"}"""
+
+        response = self.fetch("/api/v1/cluster/1" , method='PUT', headers={'Authorization': self.authentication}, body=new_cluster)
+        self.assertEquals(response.code, 201)
+
+        # Check the cluster update
+        response = self.fetch("/api/v1/cluster/cluster01")
+        self.assertEquals(response.code, 200)
+        data = json.loads(response.body)["response"]
+        self.assertEquals(data[0]["e_group"], "testgroupX")
+
+        # Restore the instance
+        response = self.fetch("/api/v1/cluster/1", method='PUT', headers={'Authorization': self.authentication}, body=current_cluster)
+        self.assertEquals(response.code, 201)
+
+        # Check the cluster update (restore)
+        response = self.fetch("/api/v1/cluster/cluster01")
+        self.assertEquals(response.code, 200)
+        data = json.loads(response.body)["response"]
+        self.assertEquals(data[0]["e_group"], "testgroupZ")
+
+
     @timeout(5)
     def test_get_invalid_cluster(self):
         print "test_get_invalid_cluster"
