@@ -95,7 +95,7 @@ class Cluster(tornado.web.RequestHandler):
 
 
     @http_basic_auth
-    def put(self, name):
+    def put(self, id):
         """
         The *PUT* method updates a cluster with all the information that is needed.
         In the request body we specify all the information of the *cluster*
@@ -113,9 +113,9 @@ class Cluster(tornado.web.RequestHandler):
         """
         logging.debug(self.request.body)
         instance = json.loads(self.request.body)
-        clusterid = self.__get_cluster_id__(name)
+        clusterid = id
         if not clusterid:
-            logging.error("Cluster '" + name + "' doest not exist.")
+            logging.error("Cluster '" + id + "' doest not exist.")
             raise tornado.web.HTTPError(NOT_FOUND)
 
         # Check if the attributes are changed
