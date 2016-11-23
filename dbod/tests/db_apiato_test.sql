@@ -620,6 +620,70 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 
+--Volume Attributes
+CREATE OR REPLACE FUNCTION apiato_ro.insert_volume_attributes(in_json JSON) RETURNS INTEGER AS $$
+DECLARE
+  attribute_id     int;
+  instance_id      int;
+  attributes_json json;
+BEGIN
+   --Get the new attribute_id to be used in the insertion
+   SELECT nextval(pg_get_serial_sequence('apiato.volume_attribute', 'attribute_id')) INTO attribute_id;
+   attributes_json := in_json::jsonb || ('{ "attribute_id" :' || attribute_id || '}')::jsonb;
+
+   INSERT INTO apiato.volume_attribute SELECT * FROM json_populate_record(null::apiato.volume_attribute, attributes_json);
+
+  RETURN attribute_id;
+END
+$$ LANGUAGE plpgsql;
+
+--Volume
+CREATE OR REPLACE FUNCTION apiato_ro.insert_volume(in_json JSON) RETURNS INTEGER AS $$
+DECLARE
+  volume_id       int;
+  volume_json     json;
+  attributes_json json;
+BEGIN
+  --Get the new volume_id to be used in the insertion
+   SELECT nextval(pg_get_serial_sequence('apiato.volume', 'volume_id')) INTO volume_id;
+   volume_json := in_json::jsonb || ('{ "volume_id" :' || volume_id || '}')::jsonb;
+
+   INSERT INTO apiato.volume SELECT * FROM json_populate_record(null::apiato.volume, volume_json);
+
+   --Inserting Attributes
+   attributes_json := volume_json::json->'attributes';
+   PERFORM apiato_ro.insert_volume_attributes((json_array_elements(attributes_json)::jsonb || ('{ "volume_id" :' || volume_id || '}')::jsonb)::json);
+
+  RETURN volume_id;
+END
+$$ LANGUAGE plpgsql;
+
+--Instance
+CREATE OR REPLACE FUNCTION apiato_ro.insert_instance(in_json JSON) RETURNS INTEGER AS $$
+DECLARE
+  instance_id     int;
+  instance_json   json;
+  volumes_json    json;
+  attributes_json json;
+BEGIN
+  --Get the new instance_id to be used in the insertion
+   SELECT nextval(pg_get_serial_sequence('apiato.instance', 'instance_id')) INTO instance_id;
+   instance_json := in_json::jsonb || ('{ "instance_id" :' || instance_id || '}')::jsonb;
+
+   INSERT INTO apiato.instance SELECT * FROM json_populate_record(null::apiato.instance, instance_json);
+
+   --Inserting Attributes
+   attributes_json := instance_json::json->'attributes';
+   PERFORM apiato_ro.insert_instance_attributes((json_array_elements(attributes_json)::jsonb || ('{ "instance_id" :' || instance_id || '}')::jsonb)::json);
+   
+   --Inserting Volumes
+   volumes_json := instance_json::json->'volumes';
+   PERFORM apiato_ro.insert_volume((json_array_elements(volumes_json)::jsonb || ('{ "instance_id" :' || instance_id || '}')::jsonb)::json);
+
+  RETURN instance_id;
+END
+$$ LANGUAGE plpgsql;
+
 
 --Cluster Attributes
 CREATE OR REPLACE FUNCTION apiato_ro.insert_host(in_json JSON) RETURNS INTEGER AS $$
@@ -673,6 +737,32 @@ DECLARE
 BEGIN
 
    UPDATE apiato.functional_alias SET instance_id = NULL, alias=NULL WHERE functional_alias_id = id RETURNING TRUE INTO success;
+
+RETURN success;
+END
+$$ LANGUAGE plpgsql;
+
+
+--Instance
+CREATE OR REPLACE FUNCTION apiato_ro.delete_instance(id int) RETURNS bool AS $$
+DECLARE
+ success bool;
+BEGIN
+
+   EXECUTE format(' DELETE FROM apiato.instance WHERE instance_id = $1 RETURNING TRUE') USING id INTO success;
+
+RETURN success;
+END
+$$ LANGUAGE plpgsql;
+
+
+--Volume
+CREATE OR REPLACE FUNCTION apiato_ro.delete_volume(id int) RETURNS bool AS $$
+DECLARE
+ success bool;
+BEGIN
+
+   EXECUTE format(' DELETE FROM apiato.volume WHERE volume_id = $1 RETURNING TRUE') USING id INTO success;
 
 RETURN success;
 END
