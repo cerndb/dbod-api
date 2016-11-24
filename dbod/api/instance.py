@@ -91,33 +91,31 @@ class Instance(tornado.web.RequestHandler):
         :raises: HTTPError - when the requested database name does not exist or if in case of an internal error 
 
         """
-        response = requests.get(config.get('postgrest', 'instance_url') + "?db_name=eq." + name)
+        response = requests.get(config.get('postgrest', 'instance_url') + "?name=eq." + name)
         if response.ok:
             data = response.json()
             if data:
                 self.write({'response' : data})
                 self.set_status(OK)
             else: 
-                logging.error("Instance metadata not found: " + name)
+                logging.error("Instance metadata not found for name: " + name)
                 raise tornado.web.HTTPError(NOT_FOUND)
         else:
-            logging.error("Entity metadata not found: " + name)
+            logging.error("Entity metadata not found for name: " + name)
             raise tornado.web.HTTPError(NOT_FOUND)
 
     @http_basic_auth
-    def post(self, name):
+    def post(self, id):
         """
         The *POST* method inserts a new instance into the database wih all the
         information that is needed for the creation of it.
 
         In the request body we specify all the information of the *instance*
-        table along with the *attribute* and *volume* tables. We extract and
-        separate the information of each table. After inserting the information
-        in the *instance* table we use its *id* to relate the specific instance
-        with the *attribute* and *volume* table.
+        table along with the *attribute* and *volume* tables. All the 
+        information is sent to a stored procedure in PostgreSQL which will
+        insert the data in the related tables.
         
         .. note::
-            
             
             * It's possible to insert more than one *hosts* or *volumes* in one instance.
             * The database names have to be unique
@@ -128,8 +126,8 @@ class Instance(tornado.web.RequestHandler):
                 * if there is any internal error
                 * if the format of the request body is not right or if there is no *database name* field
 
-        :param name: the new database name which is given in the url or any other string
-        :type name: str
+        :param id: this argument is not used, however it has to exist for compatibility with the rest of endpoints
+        :type id: str
         :raises: HTTPError - in case of an internal error
         :request body:  json
 
@@ -141,73 +139,20 @@ class Instance(tornado.web.RequestHandler):
         logging.debug(self.request.body)
         instance = json.loads(self.request.body)
         
-        attributes = None
-        volumes = None
-        entid = None
-        # Get the attributes
-        if "attributes" in instance:
-            attributes = instance["attributes"]
-            del instance["attributes"]
-        
-        # Get the hosts
-        if "hosts" in instance:
-            hosts = instance["hosts"][0]
-            if len(instance["hosts"]) > 1:
-                for i in range(1, len(instance["hosts"])):
-                    hosts = hosts + "," + instance["hosts"][i]
-            instance["host"] = hosts
-            del instance["hosts"]
-        
-        # Get the volumes
-        if "volumes" in instance:
-            volumes = instance["volumes"]
-            del instance["volumes"]
-        
-        # Insert the instance in database using PostREST
-        response = requests.post(config.get('postgrest', 'instance_url'), json=instance, headers={'Prefer': 'return=representation'})
+        # Insert the instance in database using PostgREST
+        response = requests.post(config.get('postgrest', 'insert_instance_url'), json=instance, headers={'Prefer': 'return=representation'})
         if response.ok:
-            entid = json.loads(response.text)["id"]
-            logging.info("Created instance " + instance["db_name"])
+            logging.info("Created instance " + instance["in_json"]["name"])
             logging.debug(response.text)
             self.set_status(CREATED)
         else:
             logging.error("Error creating the instance: " + response.text)
             raise tornado.web.HTTPError(response.status_code)
-        
-        # Add instance id to volumes
-        if volumes:
-            for volume in volumes:
-                volume["instance_id"] = entid
-
-            # Insert the volumes in database using PostREST
-            logging.debug(volumes)
-            response = requests.post(config.get('postgrest', 'volume_url'), json=volumes)
-            if response.ok:
-                logging.debug("Inserting volumes: " + json.dumps(volumes))
-                self.set_status(CREATED)
-            else:
-                logging.error("Error creating the volumes: " + response.text)
-                self.__delete_instance__(entid)
-                raise tornado.web.HTTPError(response.status_code)
-                
-        # Insert the attributes
-        if attributes:
-            insert_attributes = []
-            for attribute in attributes:
-                insert_attr = {'instance_id': entid, 'name': attribute, 'value': attributes[attribute]}
-                logging.debug("Inserting attribute: " + json.dumps(insert_attr))
-                insert_attributes.append(insert_attr)
             
-            response = requests.post(config.get('postgrest', 'attribute_url'), json=insert_attributes)
-            if response.ok:
-                self.set_status(CREATED)
-            else:
-                logging.error("Error inserting attributes: " + response.text)
-                self.__delete_instance__(entid)
-                raise tornado.web.HTTPError(response.status_code)
+            
             
     @http_basic_auth
-    def put(self, name):
+    def put(self, id):
         """
         The *PUT* method updates an instance into the database wih all the information that is needed.
 
@@ -221,125 +166,54 @@ class Instance(tornado.web.RequestHandler):
         * If it exists, we delete if any information with that *id* exists in the tables.
         * After that, we insert the information to the related table along with the instance *id*. 
         * In case of more than one attributes we insert each one separetely.  
-        * Finally, we update the *instance* table's row (which include the given database name) with the new given information.
+        * Finally, we update the *instance* table's row (which include the given database id) with the new given information.
 
-        :param name: the database name which is given in the url
-        :type name: str
+        :param id: the database id which is given in the url
+        :type id: str
         :raises: HTTPError - when the *request body* format is not right or in case of internall error
 
         """
         logging.debug(self.request.body)
         instance = json.loads(self.request.body)
-        entid = self.__get_instance_id__(name)
-        if not entid:
-            logging.error("Instance '" + name + "' doest not exist.")
-            raise tornado.web.HTTPError(NOT_FOUND)
         
-        # Check if the volumes are changed
-        if "volumes" in instance:
-            volumes = instance["volumes"]
-            for volume in volumes:
-                volume["instance_id"] = entid
-            del instance["volumes"]
-            
-            # Delete current volumes
-            response = requests.delete(config.get('postgrest', 'volume_url') + "?instance_id=eq." + str(entid))
-            logging.debug("Volumes to insert: " + json.dumps(volumes))
-            if response.ok or response.status_code == 404:
-                if len(volumes) > 0:
-                    response = requests.post(config.get('postgrest', 'volume_url'), json=volumes)
-                    if response.ok:
-                        self.set_status(NO_CONTENT)
-                    else:
-                        logging.error("Error adding volumes: " + response.text)
-                        raise tornado.web.HTTPError(response.status_code)
-            else:
-                logging.error("Error deleting old volumes: " + response.text)
-                raise tornado.web.HTTPError(response.status_code)
-                
-        # Check if the attributes are changed
-        if "attributes" in instance:
-            attributes = instance["attributes"]
-            response = requests.delete(config.get('postgrest', 'attribute_url') + "?instance_id=eq." + str(entid))
-            if response.ok or response.status_code == 404:
-                if len(attributes) > 0:
-                    # Insert the attributes
-                    insert_attributes = []
-                    for attribute in attributes:
-                        insert_attr = {'instance_id': entid, 'name': attribute, 'value': attributes[attribute]}
-                        logging.debug("Inserting attribute: " + json.dumps(insert_attr))
-                        insert_attributes.append(insert_attr)
-                        
-                    response = requests.post(config.get('postgrest', 'attribute_url'), json=insert_attributes)
-                    if response.ok:
-                        self.set_status(NO_CONTENT)
-                    else:
-                        logging.error("Error inserting attributes: " + response.text)
-                        raise tornado.web.HTTPError(response.status_code)
-            else:
-                logging.error("Error deleting attributes: " + response.text)
-                raise tornado.web.HTTPError(response.status_code)
-            del instance["attributes"]
-        
-        if instance:
-            # Check if the hosts are changed
-            if "hosts" in instance:
-                hosts = instance["hosts"][0]
-                if len(instance["hosts"]) > 1:
-                    for i in range(1, len(instance["hosts"])):
-                        hosts = hosts + "," + instance["hosts"][i]
-                instance["host"] = hosts
-                del instance["hosts"]
-        
-            response = requests.patch(config.get('postgrest', 'instance_url') + "?db_name=eq." + name, json=instance)
-            if response.ok:
-                self.set_status(NO_CONTENT)
-            else:
-                logging.error("Error editing the instance: " + response.text)
-                raise tornado.web.HTTPError(response.status_code)
+        # Update the instance in database using PostgREST
+        response = requests.post(config.get('postgrest', 'update_instance_url'), json=instance, headers={'Prefer': 'return=representation'})
+        if response.ok:
+            logging.info("Update instance: " + instance["id"])
+            logging.debug(response.text)
+            self.set_status(CREATED)
         else:
-            self.set_status(NO_CONTENT)
+            logging.error("Error updating the instance: " + response.text)
+            raise tornado.web.HTTPError(response.status_code)
+            
+            
             
     @http_basic_auth
-    def delete(self, name):
+    def delete(self, id):
         """
-        The *DELETE* method deletes an instance by *database name*.
+        The *DELETE* method deletes an instance by *database id*.
         
-        In order to delete an instance we have to delete all the related information of the specified database name in *instance*, *attribute* and *volume* tables (:func:`__delete_instance__`). To achieve that we have to first find the *id* of the given database name (:func:__get_instance_id__).
+        In order to delete an instance we have to delete all the related information of the specified database id in *instance*, *attribute* and *volume* tables (:func:`__delete_instance__`).
 
-        :param name: the database name which is given in the url
-        :type name: str
-        :raises: HTTPError - when the given database name cannot be found
-
-        """
-        entid = self.__get_instance_id__(name)
-        if entid:
-            logging.debug("Deleting instance id: " + str(entid))
-            self.__delete_instance__(entid)
-            self.set_status(204)
-        else:
-            logging.error("Instance not found: " + name)
-            raise tornado.web.HTTPError(NOT_FOUND)
-            
-    def __get_instance_id__(self, name):
-        """
-        This is a private function which is used by :func:`put` and :func:`delete` methods.
-        Returns the instance *id* given the database name in order to be able to operate on the instance related tables. It returns *None* if the specified database name does not exist in the *instance* table or in case of internal error.
-
-        :param name: the database name from which we want to get the *id*
-        :type name: str
-        :rtype: str or None
+        :param id: the database id which is given in the url
+        :type id: str
+        :raises: HTTPError - when the given database id cannot be found
 
         """
-        response = requests.get(config.get('postgrest', 'instance_url') + "?db_name=eq." + name)
+        logging.debug(self.request.body)
+        instance = {'id': id}
+
+        # Delete the instance in database using PostgREST
+        response = requests.post(config.get('postgrest', 'delete_instance_url'), json=instance, headers={'Prefer': 'return=representation'})
         if response.ok:
-            data = response.json()
-            if data:
-                return data[0]["id"]
-            else:
-                return None
+            logging.info("Delete instance " + instance["id"])
+            logging.debug(response.text)
+            self.set_status(CREATED)
         else:
-            return None
+            logging.error("Error deleting the instance: " + response.text)
+            raise tornado.web.HTTPError(response.status_code)
+
+
             
 
 
