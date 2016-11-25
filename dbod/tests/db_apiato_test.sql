@@ -129,7 +129,7 @@ CREATE TABLE apiato.instance_attribute (
   name         varchar(32) NOT NULL,
   value        varchar(250) NOT NULL,
   CONSTRAINT instance_attribute_pkey        PRIMARY KEY (attribute_id),
-  CONSTRAINT instance_attribute_instance_fk FOREIGN KEY (instance_id) REFERENCES apiato.instance (instance_id),
+  CONSTRAINT instance_attribute_instance_fk FOREIGN KEY (instance_id) REFERENCES apiato.instance (instance_id) ON DELETE CASCADE,
   UNIQUE (instance_id, name)
 );
 CREATE INDEX instance_attribute_instance_idx ON apiato.instance_attribute (instance_id);
@@ -819,7 +819,53 @@ END
 $$ LANGUAGE plpgsql;
 
 
+--Instance
+CREATE OR REPLACE FUNCTION apiato_ro.update_instance(in_json JSON) RETURNS bool AS $$
+DECLARE
+ success bool;
+BEGIN
 
+   UPDATE apiato.instance
+    SET owner             = (CASE WHEN src.in_json::jsonb ? 'owner' THEN src.owner ELSE apiato.instance.owner END),
+        name              = (CASE WHEN src.in_json::jsonb ? 'name' THEN src.name ELSE apiato.instance.name END),
+        e_group           = (CASE WHEN src.in_json::jsonb ? 'e_group' THEN src.e_group ELSE apiato.instance.e_group END),
+        category          = (CASE WHEN src.in_json::jsonb ? 'category' THEN src.category ELSE apiato.instance.category END),
+        creation_date     = (CASE WHEN src.in_json::jsonb ? 'creation_date' THEN src.creation_date ELSE apiato.instance.creation_date END),
+        expiry_date       = (CASE WHEN src.in_json::jsonb ? 'expiry_date' THEN src.expiry_date ELSE apiato.instance.expiry_date END),
+        instance_type_id  = (CASE WHEN src.in_json::jsonb ? 'instance_type_id' THEN src.instance_type_id ELSE apiato.instance.instance_type_id END),
+        project           = (CASE WHEN src.in_json::jsonb ? 'project' THEN src.project ELSE apiato.instance.project END),
+        description       = (CASE WHEN src.in_json::jsonb ? 'description' THEN src.description ELSE apiato.instance.description END),
+        version           = (CASE WHEN src.in_json::jsonb ? 'version' THEN src.version ELSE apiato.instance.version END),
+        master_instance_id = (CASE WHEN src.in_json::jsonb ? 'master_instance_id' THEN src.master_instance_id ELSE apiato.instance.master_instance_id END),
+        slave_instance_id = (CASE WHEN src.in_json::jsonb ? 'slave_instance_id' THEN src.slave_instance_id ELSE apiato.instance.slave_instance_id END),
+        host_id           = (CASE WHEN src.in_json::jsonb ? 'host_id' THEN src.host_id ELSE apiato.instance.host_id END),
+        state             = (CASE WHEN src.in_json::jsonb ? 'state' THEN src.state ELSE apiato.instance.state END),
+        status            = (CASE WHEN src.in_json::jsonb ? 'status' THEN src.status ELSE apiato.instance.status END),
+        cluster_id        = (CASE WHEN src.in_json::jsonb ? 'cluster_id' THEN src.cluster_id ELSE apiato.instance.cluster_id END)
+     FROM (SELECT * FROM json_populate_record(null::apiato.instance,in_json)
+           CROSS JOIN (SELECT in_json AS source_json) src
+    WHERE apiato.instance.instance_id = src.instance_id;
+
+RETURN success;
+END
+$$ LANGUAGE plpgsql;
+
+
+--Instance attribute
+CREATE OR REPLACE FUNCTION apiato_ro.update_instance_attribute(in_json JSON) RETURNS bool AS $$
+DECLARE
+ success bool;
+BEGIN
+
+   UPDATE apiato.instance_attribute
+    SET value = src.name
+     FROM (SELECT * FROM json_populate_record(null::apiato.instance_attribute, in_json)
+           CROSS JOIN (SELECT in_json AS source_json) src
+    WHERE apiato.instance_attribute.instance_id = src.instance_id AND apiato.instance_attribute.name = src.name;
+
+RETURN success;
+END
+$$ LANGUAGE plpgsql;
 
 --Hosts
 CREATE OR REPLACE FUNCTION apiato_ro.update_host(in_json JSON) RETURNS bool AS $$
