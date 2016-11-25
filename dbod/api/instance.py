@@ -98,10 +98,10 @@ class Instance(tornado.web.RequestHandler):
                 self.write({'response' : data})
                 self.set_status(OK)
             else: 
-                logging.error("Instance metadata not found for name: " + name)
+                logging.error("Instance not found for name: " + name)
                 raise tornado.web.HTTPError(NOT_FOUND)
         else:
-            logging.error("Entity metadata not found for name: " + name)
+            logging.error("Instance not found for name: " + name)
             raise tornado.web.HTTPError(NOT_FOUND)
 
     @http_basic_auth
@@ -137,7 +137,7 @@ class Instance(tornado.web.RequestHandler):
 
         """
         logging.debug(self.request.body)
-        instance = json.loads(self.request.body)
+        instance = {'in_json': json.loads(self.request.body)}
         
         # Insert the instance in database using PostgREST
         response = requests.post(config.get('postgrest', 'insert_instance_url'), json=instance, headers={'Prefer': 'return=representation'})
