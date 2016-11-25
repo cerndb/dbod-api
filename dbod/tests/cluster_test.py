@@ -45,7 +45,7 @@ class ClusterTest(AsyncHTTPTestCase):
 
 
     @timeout(5)
-    def test_create_cluster(self):
+    def test_create_delete_cluster(self):
 
         """test for create and delete a cluster with the right data"""
 

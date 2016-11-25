@@ -203,11 +203,11 @@ CREATE INDEX volume_attribute_volume_idx ON apiato.volume_attribute (volume_id);
 -- Functional aliases table
 CREATE TABLE apiato.functional_alias
 (
-  function_alias_id serial,
-  dns_name          character varying(256) UNIQUE NOT NULL,
-  instance_id       int,
-  alias             character varying(256),
-  CONSTRAINT functional_alias_pkey        PRIMARY KEY (function_alias_id),
+  functional_alias_id serial,
+  dns_name            character varying(256) UNIQUE NOT NULL,
+  instance_id         int,
+  alias               character varying(256),
+  CONSTRAINT functional_alias_pkey        PRIMARY KEY (functional_alias_id),
   CONSTRAINT functional_alias_instance_fk FOREIGN KEY (instance_id)    REFERENCES apiato.instance (instance_id)
 );
 CREATE INDEX functional_alias_instance_idx ON apiato.functional_alias (instance_id);
@@ -336,6 +336,13 @@ $$ LANGUAGE plpgsql;
 -- VIEWS
 ------------------------------
 
+--Host
+CREATE OR REPLACE VIEW apiato_ro.host AS
+SELECT host.host_id AS id,
+       host.name,
+       host.memory
+FROM apiato.host;
+
 -- Instance View
 CREATE OR REPLACE VIEW apiato_ro.instance AS
 SELECT instance.instance_id AS id,
@@ -431,15 +438,17 @@ CREATE OR REPLACE VIEW apiato_ro.cluster AS
 
 
 -- Functional Aliases View
-CREATE OR REPLACE VIEW apiato_ro.functional_aliases AS
-  SELECT functional_alias.dns_name,
+CREATE OR REPLACE VIEW apiato_ro.functional_alias AS
+  SELECT functional_alias.functional_alias_id AS id,
+         apiato.instance.instance_id,
+         functional_alias.dns_name,
          apiato.instance.name AS name,
          functional_alias.alias
   FROM apiato.functional_alias
-  JOIN apiato.instance ON apiato.functional_alias.instance_id = apiato.instance.instance_id ;
+  LEFT JOIN apiato.instance ON apiato.functional_alias.instance_id = apiato.instance.instance_id ;
 
 -- Rundeck instances View
-CREATE OR REPLACE VIEW apiato_ro.rundeck_instances AS
+CREATE OR REPLACE VIEW apiato_ro.rundeck_instance AS
   SELECT apiato.instance.name AS db_name,
          apiato.functional_alias.alias AS hostname,
          apiato.get_instance_attribute('port', apiato.instance.instance_id) AS port,
@@ -452,7 +461,7 @@ CREATE OR REPLACE VIEW apiato_ro.rundeck_instances AS
     JOIN apiato.instance_type ON apiato.instance.instance_type_id = apiato.instance_type.instance_type_id;
 
 -- Host aliases View
-CREATE OR REPLACE VIEW apiato_ro.host_aliases AS
+CREATE OR REPLACE VIEW apiato_ro.host_alias AS
   SELECT host.name AS host,
          array_agg('dbod-' || regexp_replace(apiato.instance.name, '_', '-', 'g') || '.cern.ch') AS aliases
   FROM apiato.instance
@@ -489,6 +498,7 @@ VALUES ('user01', 'dbod01', 'testgroupA', 'TEST', now(), 2 , 100 , 100 , 'API' ,
        ('user02', 'dbod03', 'testgroupB', 'TEST', now(), 2 , 100 , 200 , 'WEB' , 'Expired instance 1'   , '5.5'   , NULL, NULL, 1, 'RUNNING', 'NON-ACTIVE', NULL),
        ('user03', 'dbod04', 'testgroupA', 'PROD', now(), 3 , 250 , 10  , 'LCC' , 'Test instance 3'      , '9.4.5' , NULL, NULL, 1, 'RUNNING', 'ACTIVE',     NULL),
        ('user04', 'dbod05', 'testgroupC', 'TEST', now(), 2 , 300 , 200 , 'WEB' , 'Test instance 4'      , '5.6.17', NULL, NULL, 1, 'RUNNING', 'ACTIVE',     NULL),
+       ('user04', 'dbod06', 'testgroupC', 'TEST', now(), 2 , 300 , 200 , 'WEB' , 'Test instance 4'      , '5.6.17', NULL, NULL, 1, 'RUNNING', 'ACTIVE',     NULL),
        ('user05', 'node01', 'testgroupZ', 'DEV' , now(), 1 , NULL, NULL, 'NILE', 'Test zookeeper inst 1', '3.4.9' , NULL, NULL, 4, 'RUNNING', 'ACTIVE',     1),
        ('user05', 'node02', 'testgroupZ', 'DEV' , now(), 1 , NULL, NULL, 'NILE', 'Test zookeeper inst 2', '3.4.9' , NULL, NULL, 4, 'RUNNING', 'ACTIVE',     1);
 
@@ -587,22 +597,46 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 
---Clusters
-CREATE OR REPLACE FUNCTION apiato_ro.insert_functional_alias(in_json JSON) RETURNS INTEGER AS $$
+--Functional Alias
+CREATE OR REPLACE FUNCTION apiato_ro.insert_functional_alias(in_json JSON) RETURNS bool AS $$
 DECLARE
-  functional_alias_id  int;
-  fa_json              json;
+   success     bool;
+  in_dns_name  VARCHAR ;
 BEGIN
-  --Get the new cluster_id to be used in the insertion
-   SELECT nextval(pg_get_serial_sequence('apiato.functional_alias', 'functional_alias_id')) INTO functional_alias_id;
-   fa_json := in_json::jsonb || ('{ "functional_alias_id" :' || functional_alias_id || '}')::jsonb;
 
-   INSERT INTO apiato.functional_alias SELECT * FROM json_populate_record(null::apiato.functional_alias,fa_json);
+    SELECT apiato_ro.functional_alias.dns_name INTO in_dns_name
+     FROM apiato_ro.functional_alias
+    WHERE apiato_ro.functional_alias.name IS NULL
+      AND apiato_ro.functional_alias.alias IS NULL
+  ORDER BY apiato_ro.functional_alias.dns_name ASC LIMIT 1;
 
-  RETURN functional_alias_id;
+    UPDATE apiato.functional_alias
+      SET instance_id=(in_json->>'instance_id')::int, alias = in_json->>'alias'
+    WHERE apiato.functional_alias.dns_name = in_dns_name
+      AND (in_json->>'instance_id')::int NOT IN (SELECT a.instance_id FROM apiato.functional_alias a WHERE a.instance_id IS NOT NULL)
+      RETURNING TRUE INTO success;
+
+    RETURN success;
 END
 $$ LANGUAGE plpgsql;
 
+
+--Cluster Attributes
+CREATE OR REPLACE FUNCTION apiato_ro.insert_host(in_json JSON) RETURNS INTEGER AS $$
+DECLARE
+  host_id    int;
+  host_json  json;
+BEGIN
+
+   --Get the new cluster_id to be used in the insertion
+   SELECT nextval(pg_get_serial_sequence('apiato.host', 'host_id')) INTO host_id;
+   host_json := in_json::jsonb || ('{ "host_id" :' || host_id || '}')::jsonb;
+
+   INSERT INTO apiato.host SELECT * FROM json_populate_record(null::apiato.host,host_json);
+
+  RETURN host_id;
+END
+$$ LANGUAGE plpgsql;
 
 -----------------------------------
 --DELETE PROCEDURES
@@ -613,20 +647,32 @@ DECLARE
  success bool;
 BEGIN
 
-   EXECUTE format(' DELETE FROM apiato.cluster WHERE cluster_id = $1 RETURNING TRUE') USING id INTO success;
+   DELETE FROM apiato.cluster WHERE cluster_id = id RETURNING TRUE INTO success;
+
+RETURN success;
+END
+$$ LANGUAGE plpgsql;
+
+--Hosts
+CREATE OR REPLACE FUNCTION apiato_ro.delete_host(id INT) RETURNS bool AS $$
+DECLARE
+ success bool;
+BEGIN
+
+   DELETE FROM apiato.host WHERE host_id = id RETURNING TRUE INTO success;
 
 RETURN success;
 END
 $$ LANGUAGE plpgsql;
 
 
---functional alias
+--Functional alias
 CREATE OR REPLACE FUNCTION apiato_ro.delete_functional_alias(id INT) RETURNS bool AS $$
 DECLARE
  success bool;
 BEGIN
 
-   EXECUTE format(' UPDATE apiato.functional_alias SET instance_id = null, alias=null WHERE functional_alias_id = $1 RETURNING TRUE') USING id INTO success;
+   UPDATE apiato.functional_alias SET instance_id = NULL, alias=NULL WHERE functional_alias_id = id RETURNING TRUE INTO success;
 
 RETURN success;
 END
@@ -637,12 +683,28 @@ $$ LANGUAGE plpgsql;
 --UPDATE PROCEDURES
 -----------------------------------
 --Clusters
-CREATE OR REPLACE FUNCTION apiato_ro.update_cluster(id INT, col VARCHAR, val VARCHAR) RETURNS bool AS $$
+CREATE OR REPLACE FUNCTION apiato_ro.update_cluster(in_json JSON) RETURNS bool AS $$
 DECLARE
  success bool;
 BEGIN
 
-   EXECUTE format(' UPDATE apiato.cluster SET %s=$1 WHERE cluster_id=%s RETURNING TRUE', col, id) USING val INTO success;
+   UPDATE apiato.cluster
+    SET owner             = (CASE WHEN src.in_json::jsonb ? 'owner' THEN src.owner ELSE apiato.cluster.owner END),
+        name              = (CASE WHEN src.in_json::jsonb ? 'name' THEN src.name ELSE apiato.cluster.name END),
+        e_group           = (CASE WHEN src.in_json::jsonb ? 'e_group' THEN src.e_group ELSE apiato.cluster.e_group END),
+        category          = (CASE WHEN src.in_json::jsonb ? 'category' THEN src.category ELSE apiato.cluster.category END),
+        creation_date     = (CASE WHEN src.in_json::jsonb ? 'creation_date' THEN src.creation_date ELSE apiato.cluster.creation_date END),
+        expiry_date       = (CASE WHEN src.in_json::jsonb ? 'expiry_date' THEN src.expiry_date ELSE apiato.cluster.expiry_date END),
+        instance_type_id  = (CASE WHEN src.in_json::jsonb ? 'instance_type_id' THEN src.instance_type_id ELSE apiato.cluster.instance_type_id END),
+        project           = (CASE WHEN src.in_json::jsonb ? 'project' THEN src.project ELSE apiato.cluster.project END),
+        description       = (CASE WHEN src.in_json::jsonb ? 'description' THEN src.description ELSE apiato.cluster.description END),
+        version           = (CASE WHEN src.in_json::jsonb ? 'version' THEN src.version ELSE apiato.cluster.version END),
+        master_cluster_id = (CASE WHEN src.in_json::jsonb ? 'master_cluster_id' THEN src.master_cluster_id ELSE apiato.cluster.master_cluster_id END),
+        state             = (CASE WHEN src.in_json::jsonb ? 'state' THEN src.state ELSE apiato.cluster.state END),
+        status            = (CASE WHEN src.in_json::jsonb ? 'status' THEN src.status ELSE apiato.cluster.status END),
+     FROM (SELECT * FROM json_populate_record(null::apiato.cluster,in_json)
+           CROSS JOIN (SELECT in_json AS source_json) src
+    WHERE apiato.cluster.cluster_id = src.cluster_id;
 
 RETURN success;
 END
@@ -650,13 +712,38 @@ $$ LANGUAGE plpgsql;
 
 
 --Functional Alias
-CREATE OR REPLACE FUNCTION apiato_ro.update_functional_alias(id int, col VARCHAR, val VARCHAR) RETURNS bool AS $$
+CREATE OR REPLACE FUNCTION apiato_ro.update_functional_alias(in_json JSON) RETURNS bool AS $$
 DECLARE
  success bool;
 BEGIN
 
-   EXECUTE format(' UPDATE functional_alias SET %s=$1 WHERE functional_alias_id=%s RETURNING TRUE', col, val) USING val INTO success;
+   UPDATE apiato.functional_alias
+    SET name   = (CASE WHEN src.in_json::jsonb ? 'instance_id' THEN src.instance_id ELSE apiato.functional_alias.instance_id END),
+        memory = (CASE WHEN src.in_json::jsonb ? 'alias' THEN src.alias ELSE apiato.functional_alias.alias END)
+     FROM (SELECT * FROM json_populate_record(null::apiato.functional_alias,in_json)
+           CROSS JOIN (SELECT in_json AS source_json) src
+    WHERE apiato.functional_alias.functional_alias_id = src.functional_alias_id;
 
-RETURN success;
+RETURN TRUE;
+END
+$$ LANGUAGE plpgsql;
+
+
+
+
+--Hosts
+CREATE OR REPLACE FUNCTION apiato_ro.update_host(in_json JSON) RETURNS bool AS $$
+DECLARE
+ success bool;
+BEGIN
+
+  UPDATE apiato.host
+    SET name   = (CASE WHEN src.in_json::jsonb ? 'name' THEN src.name ELSE apiato.host.name END),
+        memory = (CASE WHEN src.in_json::jsonb ? 'memory' THEN src.memory ELSE apiato.host.memory END)
+     FROM (SELECT * FROM json_populate_record(null::apiato.host,in_json)
+           CROSS JOIN (SELECT in_json) AS source_json) src
+    WHERE apiato.host.host_id = src.host_id;
+
+RETURN TRUE;
 END
 $$ LANGUAGE plpgsql;

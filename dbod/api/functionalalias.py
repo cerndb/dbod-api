@@ -70,7 +70,7 @@ class FunctionalAlias(tornado.web.RequestHandler):
         :raises: HTTPError - when the requested database name does not exist or if there is an internal error 
         
         """
-        response = requests.get(config.get('postgrest', 'functional_alias_url') + "?name=eq." + name + '&select=dns_name,alias')
+        response = requests.get(config.get('postgrest', 'functional_alias_url') + "?name=eq." + name )
         if response.ok:
             data = response.json()
             if data:
@@ -85,7 +85,7 @@ class FunctionalAlias(tornado.web.RequestHandler):
 
 
     @http_basic_auth
-    def post(self, name, *args):
+    def post(self, id):
 
         """
         The *POST* method inserts a new *instance name* and its *alias* into the database. It
@@ -105,42 +105,34 @@ class FunctionalAlias(tornado.web.RequestHandler):
             * if headers have to be specified
             * if the client does not have the right authorization header 
            
-        :param name: the new instance name which is given in the url
-        :type name: str
+        :param id: the new instance id which is given in the url
+        :type id: str
         :raises: HTTPError - when the *url* or the *request body* format or the *headers* are not right
-        :request body: alias=<alias> - the alias to be inserted for the given *database name* which is given in the *body* of the request
+        :request body: <instace_id>=instance_id alias=<alias> - the alias to be inserted for the given *database name* which is given in the *body* of the request
 
         """
         logging.debug(self.request.body)
         try:
-
             functional_alias = json.loads(self.request.body)
-            dns_name = self._next_dnsname()
-            if dns_name:
-                logging.debug("dns_name picked: " + str(dns_name))
-                functional_alias[0]["dns_name"]=dns_name
-                # Insert the instance in database using PostREST
-                response = requests.post(config.get('postgrest', 'insert_functional_alias_url'), json=functional_alias, headers={'Prefer': 'return=representation'})
-                if response.ok:
-                    logging.info("Created functional Alias " + functional_alias["in_json"]["name"])
-                    logging.debug(response.text)
-                    self.set_status(CREATED)
-                else:
-                    logging.error("Error inserting the functional alias: " + response.text)
-                    raise tornado.web.HTTPError(response.status_code)
+
+            # Insert the instance in database using PostREST
+            response = requests.post(config.get('postgrest', 'insert_functional_alias_url'), json=functional_alias, headers={'Prefer': 'return=representation'})
+            if response.ok:
+                logging.info("Created functional Alias " + functional_alias["in_json"]["instance_id"])
+                logging.debug(response.text)
+                self.set_status(CREATED)
             else:
-                logging.error("No dns_name available in the functional_aliases table")
-                self.set_status(SERVICE_UNAVAILABLE)
+                logging.error("Error inserting the functional alias: " + response.text)
+                raise tornado.web.HTTPError(response.status_code)
         except:
             logging.error("Argument not recognized or not defined.")
             logging.error("Try adding header 'Content-Type:application/x-www-form-urlencoded'")
-            logging.error("The right format should be: alias=<alias>")
             raise tornado.web.HTTPError(BAD_REQUEST)
 
 
 
     @http_basic_auth
-    def delete(self, name):
+    def delete(self, id):
         """
         The *DELETE* method deletes or else asssigns to *NULL* the *database name* and 
         *alias* fields. It removes the functional alias association for an instance.
@@ -150,82 +142,20 @@ class FunctionalAlias(tornado.web.RequestHandler):
             * If the *database name* doesn't exist it doesn't do anything
             * You have to be authorized to use this method
         
-        :param name: the new database name which is given in the url
-        :type name: str
+        :param id: the new database name which is given in the url
+        :type id: str
         :raises: HTTPError - when the deletion is not successful
 
         """
-
+        functional_alias = {'id': id}
         logging.debug('Arguments:' + str(self.request.arguments))
-
-        dns_name = self._get_dns(name)
-        logging.debug(dns_name)
-        if dns_name:
-            headers = {'Prefer': 'return=representation', 'Content-Type': 'application/json'}
-            composed_url = self.url + '?dns_name=eq.' + dns_name
-            logging.debug('Requesting deletion: ' + composed_url)
-            delete_data = '{"name": null, "alias": null}'
-            logging.debug("dns_name to be remained: " + dns_name)
-            response = requests.patch(composed_url, json=json.loads(delete_data), headers=headers)
-
-            if response.ok:
-                logging.info("Delete success of: " + dns_name)
-                logging.debug(response.text)
-                self.set_status(NO_CONTENT)
-            else:
-                logging.error("Unsuccessful deletion")
-                raise tornado.web.HTTPError(response.status_code)
-
-        else:
-            logging.info("name not found. Nothing to do")
-
-    def _next_dnsname(self):
-        """
-        This is a private function which is used by :func:`post` method.
-        Returns the next dnsname which can be used for a newly created instance.  
-        If there is no available *dns name* in the pool or if there is any internal error it returns *None*.
-
-        :rtype: str or None
-
-        """
-        #LIMIT is not working in postgrest but it uses some headers for that as well
-        headers = {'Range-Unit': 'items', 'Range': '0-0'}
-        # select the next available dns_name with name and alias assigned to NULL
-        query_select = '?select=dns_name&order=dns_name.asc&'
-        query_filter = 'name=is.null&alias=is.null&dns_name=isnot.null'
-        composed_url = self.url + query_select + query_filter
-        try:
-            response_dns = requests.get(composed_url, headers=headers)
-            if response_dns.ok:
-                response_dns_dict = json.loads(response_dns.text)[0]
-                return response_dns_dict['dns_name']
-            else:
-                return None
-        except:
-            error_msg = exc_info()[0]
-            logging.error(error_msg)
-            return None
-
-    def _get_dns(self, name):
-        """
-        This is a private function which is used by :func:`delete` mehtod.
-        Returns the *dns name* which is needed in order to set the *name* and *alias* to *NULL* (deletion). If the given *database name* which is passed as an argument does not exist then it returns None.
-
-        :param name: the new database name which is given in the url
-        :type name: str
-        :raises: IndexError - when the database name does not exist
-        :rtype: str or None
-
-        """
-        composed_url = self.url + '?name=eq.' + name + '&select=dns_name'
-        response = requests.get(composed_url)
+        response = requests.post(config.get('postgrest', 'delete_functional_alias_url'), json=functional_alias, headers={'Prefer': 'return=representation'})
         if response.ok:
-            try:
-                dns_name_dict = json.loads(response.text)[0]
-                return dns_name_dict['dns_name']
-            except IndexError:
-                self.set_status(BAD_REQUEST)
-                return None
+            logging.info("Delete functional alias " + functional_alias["id"])
+            logging.debug(response.text)
+            self.set_status(CREATED)
         else:
-            self.set_status(SERVICE_UNAVAILABLE) 
-            return None
+            logging.error("Error deleting functional alias: " + response.text)
+            raise tornado.web.HTTPError(response.status_code)
+
+
