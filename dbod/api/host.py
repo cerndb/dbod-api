@@ -56,7 +56,7 @@ class Host(tornado.web.RequestHandler):
 
     url = config.get('postgrest', 'host_url')
 
-    def get(self, name, *args):
+    def get(self, name):
 
         """
         The *GET* method returns the host's memory according to the example given above.
@@ -69,23 +69,21 @@ class Host(tornado.web.RequestHandler):
         error or if the response is empty
         """
 
-        logging.debug('Arguments:' + str(self.request.arguments))
-        composed_url = self.url + '?name=eq.' + name + '&select=memory'
-        logging.info("Requesting " + composed_url)
-        response = requests.get(composed_url)
-        data = response.json()
-        if response.ok and data:
-            logging.debug("response: " + json.dumps(data))
-            self.write({'response' : data})
-        elif response.ok:
-            logging.warning("Name provided is not found in the table of the database: " + name)
-            raise tornado.web.HTTPError(NOT_FOUND)
+        response = requests.get(config.get('postgrest', 'host_url') + "?name=eq." + name)
+        if response.ok:
+            data = response.json()
+            if data:
+                self.write({'response' : data})
+                self.set_status(OK)
+            else:
+                logging.error("host metadata not found: " + name)
+                raise tornado.web.HTTPError(NOT_FOUND)
         else:
-            logging.error("Error fetching name: " + response.text)
-            raise tornado.web.HTTPError(response.status_code)
+            logging.error("Host metadata not found: " + name)
+            raise tornado.web.HTTPError(NOT_FOUND)
 
     @http_basic_auth
-    def post(self, name, *args):
+    def post(self, id):
 
         """
         The *POST* method inserts a new *name* and its *memory* size according to the example above. 
@@ -100,67 +98,45 @@ class Host(tornado.web.RequestHandler):
             * if headers have to be specified
             * if the client does not have the right authorization header 
            
-        :param name: the new name which is given in the url
-        :type name: str
+        :param id: the new id which is given in the url
+        :type id: str
         :raises: HTTPError - when the *url* or the *request body* format or the *headers* are not right orthere is an internal error
         :request body: memory=<memory_int_MB> - the memory (integer in MB) to be inserted for the given *name* which is given in the *body* of the request
         """
 
-        logging.debug('Arguments:' + str(self.request.arguments))
-	try:
-		memory = int(self.get_argument('memory'))
-		logging.debug("memory: %s" %(memory))
+        logging.debug(self.request.body)
+        try:
+            host = json.loads(self.request.body)
 
-                headers = {'Prefer': 'return=representation', 
-                           'Content-Type': 'application/json'}
-                insert_data = {"name": name,
-                               "memory": memory}
-                logging.debug("Data to insert: %s" %(insert_data))
-                composed_url = self.url + '?name=eq.' + name
-                logging.debug('Requesting insertion: ' + composed_url)
-                
-                response = requests.post(composed_url, 
-                                         json=insert_data, 
-                                         headers=headers)
-                if response.ok:
-                        logging.info('Data inserted in the table')
-                        logging.debug(response.text)
-                        self.set_status(CREATED)
-                else:
-                        logging.error("Duplicate entry or backend problem: " + response.text)
-                        self.set_status(response.status_code)
-                        raise tornado.web.HTTPError(response.status_code)
-
-	except tornado.web.MissingArgumentError:
-		logging.error("Bad argument given in the POST body request")
-		logging.error("Try entering 'memory=<memory_int_MB>'")
-		logging.error("Or try adding this header: \
-			      'Content-Type: application/x-www-form-urlencoded'")
-		self.set_status(BAD_REQUEST)
-                raise tornado.web.HTTPError(BAD_REQUEST)
-	except ValueError:
-		logging.error("The value of the argument in the request body \
-			       should be an integer")
-		logging.error("Try entering 'memory=<memory_int_MB>'")
-		self.set_status(BAD_REQUEST)
-                raise tornado.web.HTTPError(BAD_REQUEST)
+            # Insert the instance in database using PostREST
+            response = requests.post(config.get('postgrest', 'insert_host_url'), json=host, headers={'Prefer': 'return=representation'})
+            if response.ok:
+                #logging.info("Created functional Alias " + host["in_json"]["host_id"])
+                logging.debug(response.text)
+                self.set_status(CREATED)
+            else:
+                logging.error("Error inserting the functional alias: " + response.text)
+                raise tornado.web.HTTPError(response.status_code)
+        except:
+            logging.error("Argument not recognized or not defined.")
+            logging.error("Try adding header 'Content-Type:application/x-www-form-urlencoded'")
+            raise tornado.web.HTTPError(BAD_REQUEST)
 
 	
     @http_basic_auth   
-    def put(self, name, *args):
+    def put(self, id):
         """
-        The *PUT* method updates the *memory* size of the given *name* according to the example above.
-        You don't have to specify anything about the *id* since this field should be specified as *serial*.
+        The *PUT* method updates the *host*.
 
 
         .. note::
-            
+
             In order to be able to use *PUT* method possibly you have to specify this header:
             'Content-Type: application/x-www-form-urlencoded'.
 
             This method is not successful:
 
-            * if the *name* does not exist
+            * if the *host* does not exist
             * if the format of the *request body* is not right
             * if headers have to be specified
             * if the client does not have the right authorization header 
@@ -170,48 +146,19 @@ class Host(tornado.web.RequestHandler):
         :raises: HTTPError - when the *url* or the *request body* format or the *headers* are not right orthere is an internal error
         :request body: memory=<memory_int_MB> - the memory (integer in MB) to be inserted for the given *name* which is given in the *body* of the request
         """
-
-    	logging.debug('Arguments:' + str(self.request.arguments))
-	try:
-		memory = int(self.get_argument('memory'))
-		logging.debug("memory: %s" %(memory))
-            
-                headers = {'Prefer': 'return=representation', 
-                           'Content-Type': 'application/json'}
-                update_data = {"name": name,
-                               "memory": memory}
-                logging.debug("Data to insert: %s" %(update_data))
-                composed_url = self.url + '?name=eq.' + name
-                logging.debug('Requesting insertion: ' + composed_url)
-                response = requests.patch(composed_url, 
-                                          json=update_data, 
-                                          headers=headers)
-                if response.ok:
-                        logging.info('Data updated in the table')
-                        logging.debug(response.text)
-                        self.set_status(OK)
-                else:
-                        logging.error("Error while updating the new name: " + response.text)
-                        self.set_status(response.status_code)
-                        raise tornado.web.HTTPError(response.status_code)
-
-	except tornado.web.MissingArgumentError:
-		logging.error("Bad argument given in the POST body request")
-		logging.error("Try entering 'memory=<memory_int_MB>'")
-		logging.error("Or try adding this header: \
-                        'Content-Type: application/x-www-form-urlencoded'")
-		self.set_status(BAD_REQUEST)
-                raise tornado.web.HTTPError(BAD_REQUEST)
-
-	except ValueError:
-		logging.error("The value of the argument in the request body \
-			       should be an integer")
-		logging.error("Try entering 'memory=<memory_int_MB>'")
-		self.set_status(BAD_REQUEST)
-                raise tornado.web.HTTPError(BAD_REQUEST)
+        logging.debug(self.request.body)
+        host = json.loads(self.request.body)
+        response = requests.post(config.get('postgrest', 'update_host_url'), json=host, headers={'Prefer': 'return=representation'})
+        if response.ok:
+            logging.info("Update host: " + host["id"] + " Column: " + host["col"] + " Value: " + host["val"])
+            logging.debug(response.text)
+            self.set_status(CREATED)
+        else:
+            logging.error("Error updating the host: " + response.text)
+            raise tornado.web.HTTPError(response.status_code)
 
     @http_basic_auth
-    def delete(self, name, *args):
+    def delete(self, id):
         """
         The *DELETE* method deletes an entry from the table given the *name* in the url.
         You don't have to specify anything about the *id*.
@@ -230,20 +177,16 @@ class Host(tornado.web.RequestHandler):
         :raises: HTTPError - when there is an internal error or the requested name does not exist
         :request body: memory=<memory_int_MB> - the memory (integer in MB) to be inserted for the given *name* which is given in the *body* of the request
         """
-	headers = {'Prefer': 'return=representation',
-		   'Content-Type': 'application/json'}
-	composed_url = self.url + '?name=eq.' + name
-	response = requests.delete(composed_url,
-				   headers=headers)
-	logging.info("Requesting deletion of: " + name)
-	if response.ok:
-		logging.info("Data deleted")
-		logging.debug(response.text)
-		self.set_status(OK)
-	else:
-		logging.error("Error during deletion with code %s: %s" \
-			      %(response.status_code, response.text) )
-		logging.error("The given name does not exist in the table")
-		self.set_status(response.status_code)
-                raise tornado.web.HTTPError(response.status_code)
+        logging.debug(self.request.body)
+        host = {'id': id}
+
+        # Insert the instance in database using PostREST
+        response = requests.post(config.get('postgrest', 'delete_host_url'), json=host, headers={'Prefer': 'return=representation'})
+        if response.ok:
+            logging.info("Delete host " + host["id"])
+            logging.debug(response.text)
+            self.set_status(CREATED)
+        else:
+            logging.error("Error delete the host: " + response.text)
+            raise tornado.web.HTTPError(response.status_code)
 
