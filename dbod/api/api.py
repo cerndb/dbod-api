@@ -48,7 +48,7 @@ handlers = [
     (r"/api/v1/(?P<class>[^\/]+)/(?P<name>[^\/]+)/metadata", Metadata),
     (r"/api/v1/rundeck/resources.xml", RundeckResources),
     (r"/api/v1/rundeck/job/(?P<job>[^\/]+)/?(?P<node>[^\/]+)?", RundeckJobs),
-    (r"/api/v1/(?P<class>[^\/]+)/(?P<name>[^\/]+)/attribute/(?P<attribute_name>[^\/]+)", Attribute),
+    (r"/api/v1/(?P<class>[^\/]+)/(?P<entity>[^\/]+)/attribute/?(?P<attribute_name>[^\/]+)?", Attribute),
 
     # Deprecated, will be deleted in following versions
     (r"/api/v1/metadata/(?P<class>[^\/]+)/?(?P<name>[^\/]+)?", Metadata),
