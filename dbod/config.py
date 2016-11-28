@@ -27,12 +27,8 @@ requiredConfig = {
             'metadata_url', 
             'instance_url', 
             'volume_url', 
-            'attribute_url',
-            'get_attributes_url',
-            'attribute_url',
             'functional_alias_url',
-            'cluster_url',
-            'cluster_attribute_url'
+            'cluster_url'
             ], 
         }
 
