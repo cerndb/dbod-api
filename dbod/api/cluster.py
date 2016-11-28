@@ -79,7 +79,7 @@ class Cluster(tornado.web.RequestHandler):
                        - for *cluster attribute*: json
         """
         logging.debug(self.request.body)
-        cluster = json.loads(self.request.body)
+        cluster = {'in_json': json.loads(self.request.body)}
 
         # Insert the instance in database using PostREST
         response = requests.post(config.get('postgrest', 'insert_cluster_url'), json=cluster, headers={'Prefer': 'return=representation'})
@@ -104,10 +104,10 @@ class Cluster(tornado.web.RequestHandler):
         :raises: HTTPError - when the *request body* format is not right or in case of internall error
         """
         logging.debug(self.request.body)
-        cluster = json.loads(self.request.body)
+        cluster = {'id': id, 'in_json': json.loads(self.request.body)}
         response = requests.post(config.get('postgrest', 'update_cluster_url'), json=cluster, headers={'Prefer': 'return=representation'})
         if response.ok:
-            logging.info("Update Cluster: " + cluster["id"] + " Column: " + cluster["col"] + " Value: " + cluster["val"])
+            logging.info("Update Cluster: " + id)
             logging.debug(response.text)
             self.set_status(CREATED)
         else:

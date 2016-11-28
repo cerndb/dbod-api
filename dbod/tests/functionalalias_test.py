@@ -72,7 +72,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
         """test insert a new alias (dns_name is available) and delete the data inserted"""
         print "test_post_valid_request"
 
-        funtional_alias = """{ "in_json" : {"instance_id" : "5", "alias" : "dbod-dbod-05.cern.ch" }}"""
+        funtional_alias = """{"instance_id" : "5", "alias" : "dbod-dbod-05.cern.ch" }"""
 
         response = self.fetch("/api/v1/instance/alias/create", method="POST", headers={'Authorization': self.authentication}, body=funtional_alias)
         self.assertEquals(response.code, 201)
@@ -91,7 +91,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
     def test_post_duplicate(self):
         """test when there is a request to insert an instance which already exists"""
         print "test_post_duplicate"
-        funtional_alias = """{ "in_json" : {"instance_id" : "1", "alias" : "dbod-dop-01.cern.ch" }}"""
+        funtional_alias = """{"instance_id" : "1", "alias" : "dbod-dop-01.cern.ch" }"""
         response = self.fetch("/api/v1/instance/alias/dbod01", method="POST", headers={'Authorization': self.authentication}, body=funtional_alias)
         self.assertEquals(response.code, 201)
 
@@ -104,13 +104,13 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
     # @timeout(5)
     def test_post_no_dns(self):
         """test when there are no any dns available"""
-        funtional_alias = """{ "in_json" : {"instance_id" : "5", "alias" : "dbod-dbod-05.cern.ch" }}"""
+        funtional_alias = """{"instance_id" : "5", "alias" : "dbod-dbod-05.cern.ch" }"""
 
         response = self.fetch("/api/v1/instance/alias/create", method="POST", headers={'Authorization': self.authentication}, body=funtional_alias)
         self.assertEquals(response.code, 201)
 
 
-        funtional_alias = """{ "in_json" : {"instance_id" : "6", "alias" : "dbod-dbod-06.cern.ch" }}"""
+        funtional_alias = """{"instance_id" : "6", "alias" : "dbod-dbod-06.cern.ch" }"""
 
         response = self.fetch("/api/v1/instance/alias/create", method="POST", headers={'Authorization': self.authentication}, body=funtional_alias)
         self.assertEquals(response.code, 201)
@@ -127,10 +127,8 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
     @timeout(5)
     def test_post_no_valid_argument(self):
         """test if the provided argument is not valid"""
-        """test when there are no any dns available"""
-        funtional_alias = """{"instance_id" : "5"}"""
+        funtional_alias = """{"instance_id" : "10"}"""
 
         response = self.fetch("/api/v1/instance/alias/create", method="POST", headers={'Authorization': self.authentication}, body=funtional_alias)
-
         self.assertEquals(response.code, 400)
 
