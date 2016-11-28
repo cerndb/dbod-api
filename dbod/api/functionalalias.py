@@ -113,7 +113,7 @@ class FunctionalAlias(tornado.web.RequestHandler):
         """
         logging.debug(self.request.body)
         try:
-            functional_alias = json.loads(self.request.body)
+            functional_alias = {'in_json': json.loads(self.request.body)}
 
             # Insert the instance in database using PostREST
             response = requests.post(config.get('postgrest', 'insert_functional_alias_url'), json=functional_alias, headers={'Prefer': 'return=representation'})

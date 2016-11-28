@@ -49,7 +49,7 @@ class ClusterTest(AsyncHTTPTestCase):
 
         """test for create and delete a cluster with the right data"""
 
-        cluster = """{"in_json" : {"owner": "testuser", "category": "TEST", "creation_date": "2016-11-20", "e_group": "testgroupZ", "version": "3.9", "instance_type_id": 1, "name": "testcluster", "state": "RUNNING", "status": "ACTIVE", "attributes": [{"name" : "testp01", "value" : "testvalue" },{"name" : "testp02", "value" : "testvalue"}]}}"""
+        cluster = """{"owner": "testuser", "category": "TEST", "creation_date": "2016-11-20", "e_group": "testgroupZ", "version": "3.9", "instance_type_id": 1, "name": "testcluster", "state": "RUNNING", "status": "ACTIVE", "attributes": [{"name" : "testp01", "value" : "testvalue" },{"name" : "testp02", "value" : "testvalue"}]}"""
         print "test_create_delete_cluster"
 
         # Create the instance
@@ -72,10 +72,11 @@ class ClusterTest(AsyncHTTPTestCase):
         response = self.fetch("/api/v1/cluster/testcluster")
         self.assertEquals(response.code, 404)
 
+
     def test_update_cluster(self):
         """test for update a cluster"""
-        current_cluster = """{ "id" : "1", "col" : "e_group", "val" : "testgroupZ"}"""
-        new_cluster = """{ "id" : "1", "col" : "e_group", "val" : "testgroupX"}"""
+        current_cluster = """{ "e_group" : "testgroupZ"}"""
+        new_cluster = """{ "e_group" : "testgroupX"}"""
 
         response = self.fetch("/api/v1/cluster/1" , method='PUT', headers={'Authorization': self.authentication}, body=new_cluster)
         self.assertEquals(response.code, 201)

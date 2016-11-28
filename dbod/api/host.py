@@ -105,17 +105,17 @@ class Host(tornado.web.RequestHandler):
         """
 
         logging.debug(self.request.body)
+
         try:
-            host = json.loads(self.request.body)
+            host = {'in_json': json.loads(self.request.body)}
 
             # Insert the instance in database using PostREST
             response = requests.post(config.get('postgrest', 'insert_host_url'), json=host, headers={'Prefer': 'return=representation'})
             if response.ok:
-                #logging.info("Created functional Alias " + host["in_json"]["host_id"])
                 logging.debug(response.text)
                 self.set_status(CREATED)
             else:
-                logging.error("Error inserting the functional alias: " + response.text)
+                logging.error("Error inserting the host: " + response.text)
                 raise tornado.web.HTTPError(response.status_code)
         except:
             logging.error("Argument not recognized or not defined.")
@@ -147,10 +147,10 @@ class Host(tornado.web.RequestHandler):
         :request body: memory=<memory_int_MB> - the memory (integer in MB) to be inserted for the given *name* which is given in the *body* of the request
         """
         logging.debug(self.request.body)
-        host = json.loads(self.request.body)
+        host = {'id': id, 'in_json': json.loads(self.request.body)}
         response = requests.post(config.get('postgrest', 'update_host_url'), json=host, headers={'Prefer': 'return=representation'})
         if response.ok:
-            logging.info("Update host: " + host["id"] + " Column: " + host["col"] + " Value: " + host["val"])
+            logging.info("Update host: " + id)
             logging.debug(response.text)
             self.set_status(CREATED)
         else:
