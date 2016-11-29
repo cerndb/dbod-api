@@ -49,7 +49,7 @@ class ClusterTest(AsyncHTTPTestCase):
 
         """test for create and delete a cluster with the right data"""
 
-        cluster = """{"owner": "testuser", "category": "TEST", "creation_date": "2016-11-20", "e_group": "testgroupZ", "version": "3.9", "instance_type_id": 1, "name": "testcluster", "state": "RUNNING", "status": "ACTIVE", "attributes": [{"name" : "testp01", "value" : "testvalue" },{"name" : "testp02", "value" : "testvalue"}]}"""
+        cluster = """{"owner": "testuser", "category": "TEST", "creation_date": "2016-11-20", "e_group": "testgroupZ", "version": "3.9", "instance_type_id": 1, "name": "testcluster", "state": "RUNNING", "status": "ACTIVE", "attributes": [{"testp01" : "testvalue" },{"testp02" :"testvalue"}]}"""
         print "test_create_delete_cluster"
 
         # Create the instance
