@@ -24,7 +24,7 @@ install:
     - python setup.py install
 before_script:
     - psql -c 'CREATE DATABASE dbod;' -U postgres
-    - psql -d dbod -f dbod/tests/db_apiato_test.sql -U postgres
+    - psql -d dbod -f dbod/tests/db_apiato.sql -U postgres
     - ./postgrest postgres://postgres@localhost/dbod -a postgres -s api &
     - sleep 5
 script:
