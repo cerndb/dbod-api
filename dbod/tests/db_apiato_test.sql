@@ -608,7 +608,7 @@ END
 $$ LANGUAGE plpgsql;
 
 --Instance Attributes
-CREATE OR REPLACE FUNCTION apiato_ro.insert_instance_attributes(in_json JSON) RETURNS INTEGER AS $$
+CREATE OR REPLACE FUNCTION apiato_ro.insert_instance_attribute(in_json JSON) RETURNS INTEGER AS $$
 DECLARE
   attribute_id    int;
   instance_id      int;
