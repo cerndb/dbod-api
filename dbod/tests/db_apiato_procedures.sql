@@ -176,16 +176,29 @@ END
 $$ LANGUAGE plpgsql;
 
 --Instance Attributes
-CREATE OR REPLACE FUNCTION apiato_ro.insert_instance_attributes(in_json JSON) RETURNS INTEGER AS $$
+CREATE OR REPLACE FUNCTION apiato_ro.insert_instance_attribute(id int, in_json JSON) RETURNS INTEGER AS $$
 DECLARE
   attribute_id    int;
-  instance_id      int;
+  instance_id     int;
   attributes_json json;
+  attr_name       varchar;
+  attr_value      varchar;
+
 BEGIN
 
-   --Get the new cluster_id to be used in the insertion
+  --Get the new instance_id to be used in the insertion
+  SELECT nextval(pg_get_serial_sequence('apiato.instance_attribute', 'attribute_id')) INTO attribute_id;
+  attributes_json := in_json::jsonb || ('{ "attribute_id" :' || attribute_id || '}')::jsonb;
+
+  --Tranform key value to table format
+  SELECT json_object_keys(in_json) INTO attr_name;
+  SELECT in_json->>attr_name INTO attr_value;
+  attributes_json := attributes_json::jsonb ||  ('{ "name" : "' || attr_name || '"}')::jsonb || ('{ "value" : "' || attr_value || '"}')::jsonb || ('{ "instance_id" :' || id || '}')::jsonb;
+
+  --Get the new instance_id to be used in the insertion
    SELECT nextval(pg_get_serial_sequence('apiato.instance_attribute', 'attribute_id')) INTO attribute_id;
-   attributes_json := in_json::jsonb || ('{ "attribute_id" :' || attribute_id || '}')::jsonb;
+   attributes_json := attributes_json::jsonb || ('{ "attribute_id" :' || attribute_id || '}')::jsonb;
+
 
    INSERT INTO apiato.instance_attribute SELECT * FROM json_populate_record(null::apiato.instance_attribute,attributes_json);
 
@@ -249,7 +262,7 @@ DECLARE
 
 BEGIN
 
-  --Get the new cluster_id to be used in the insertion
+  --Get the new volume_id to be used in the insertion
   SELECT nextval(pg_get_serial_sequence('apiato.volume_attribute', 'attribute_id')) INTO attribute_id;
   attributes_json := in_json::jsonb || ('{ "attribute_id" :' || attribute_id || '}')::jsonb;
 
@@ -552,7 +565,7 @@ BEGIN
   SELECT in_json->>attr_name INTO attr_value;
   UPDATE apiato.instance_attribute
   SET value = attr_value
-  WHERE apiato.isntance_attribute.instance_id = id AND apiato.instance_attribute.name = attr_name;
+  WHERE apiato.instance_attribute.instance_id = id AND apiato.instance_attribute.name = attr_name;
 
   RETURN TRUE;
 END
