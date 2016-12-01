@@ -1,14 +1,14 @@
 /api/v1/fim
 ===================
 
-.. http:get:: /api/v1/instance/(db_name)
+.. http:get:: /api/v1/fim/(db_name)
 
-	System information about a certain database. Includes ownership, access control 
-	version, server, etc.
+	FIM information about a certain instance. Includes owner contact information
+    and affiliation
 
    **Example request**:
 
-   ``curl -i -X GET https://<server>:<port>/api/v1/instance/<db_name>``
+   ``curl -i -X GET https://<server>:<port>/api/v1/fim/<db_name>``
 
    **Example response**:
 
@@ -23,31 +23,14 @@
 		Server: TornadoServer/4.2
 
 		{
-			"response": [
+			"response": 
 				{
-					"class": "TEST",
-					"creation_date": "2014-08-26",
-					"db_name": "pinocho",
-					"db_size": 200,
-					"db_type": "MYSQL",
-					"description": "MySQL Test database",
-					"e_group": "admin_egroup",
-					"expiry_date": null,
-					"host": "server01",
-					"id": 22,
-					"master": null,
-					"no_connections": 100,
-					"project": "DBOD",
-					"slave": null,
-					"state": "RUNNING",
-					"status": "1",
-					"username": "username",
-					"version": "5.6.17"
+					"owner_name": "foo",
+                    ...
 				}
-			]
 		}
 
-   :query db_name: Instance name
+   :query instance: Instance name
    :resheader Content-Type: application/json; charset=UTF-8
    :statuscode 200: No error
    :statuscode 404: Instance not found in system
