@@ -66,16 +66,19 @@ class Attribute(tornado.web.RequestHandler):
 
     def get(self, **args):
         """
-        The *GET* method returns an attributes referred to an *instance*.
-        The parameter <attribute name> is optional. If it's not set the method will return all the attributes referred to the instance.
-        (No any special headers for this request)
+        The *GET* method returns an attribute value from a certain *instance*.
+        The parameter <attribute name> is optional. If it's not set the method
+        will return all the attributes referred to the instance.  (No any
+        special headers for this request)
 
         :param inst_name: the database name which is given in the url
         :type inst_name: str
         :param attr_name: the attribute name to return
         :type attr_name: str
-        :rtype: json - the response of the request
-        :raises: HTTPError - when the requested database name does not exist or if in case of an internal error 
+        :rtype: str/json - the response of the request. A string for a single attribute
+          and a json encoded object (a dictionary of attribute_name:value structure.
+        :raises: HTTPError - when the requested database name does not exist or
+            if in case of an internal error 
 
         """
         instance_n = args.get('instance')
