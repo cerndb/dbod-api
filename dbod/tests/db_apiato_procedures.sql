@@ -137,7 +137,7 @@ BEGIN
 
    --Inserting Attributes
    attributes_json := cluster_json::json->'attributes';
-   PERFORM apiato_ro.insert_cluster_attributes(cluster_id,(json_array_elements(attributes_json)::jsonb)::json);
+   PERFORM apiato_ro.insert_cluster_attribute(cluster_id,(json_array_elements(attributes_json)::jsonb)::json);
 
   RETURN cluster_id;
 END
@@ -175,36 +175,6 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 
---Instance Attributes
-CREATE OR REPLACE FUNCTION apiato_ro.insert_instance_attribute(id int, in_json JSON) RETURNS INTEGER AS $$
-DECLARE
-  attribute_id    int;
-  instance_id     int;
-  attributes_json json;
-  attr_name       varchar;
-  attr_value      varchar;
-
-BEGIN
-
-  --Get the new instance_id to be used in the insertion
-  SELECT nextval(pg_get_serial_sequence('apiato.instance_attribute', 'attribute_id')) INTO attribute_id;
-  attributes_json := in_json::jsonb || ('{ "attribute_id" :' || attribute_id || '}')::jsonb;
-
-  --Tranform key value to table format
-  SELECT json_object_keys(in_json) INTO attr_name;
-  SELECT in_json->>attr_name INTO attr_value;
-  attributes_json := attributes_json::jsonb ||  ('{ "name" : "' || attr_name || '"}')::jsonb || ('{ "value" : "' || attr_value || '"}')::jsonb || ('{ "instance_id" :' || id || '}')::jsonb;
-
-  --Get the new instance_id to be used in the insertion
-   SELECT nextval(pg_get_serial_sequence('apiato.instance_attribute', 'attribute_id')) INTO attribute_id;
-   attributes_json := attributes_json::jsonb || ('{ "attribute_id" :' || attribute_id || '}')::jsonb;
-
-
-   INSERT INTO apiato.instance_attribute SELECT * FROM json_populate_record(null::apiato.instance_attribute,attributes_json);
-
-  RETURN attribute_id;
-END
-$$ LANGUAGE plpgsql;
 
 --Functional Alias
 CREATE OR REPLACE FUNCTION apiato_ro.insert_functional_alias(in_json JSON) RETURNS bool AS $$
@@ -295,7 +265,7 @@ BEGIN
 
    --Inserting Attributes
    attributes_json := instance_json::json->'attributes';
-   PERFORM apiato_ro.insert_instance_attributes((json_array_elements(attributes_json)::jsonb)::json);
+   PERFORM apiato_ro.insert_instance_attribute(instance_id,(json_array_elements(attributes_json)::jsonb)::json);
 
    --Inserting Volumes
    volumes_json := instance_json::json->'volumes';
@@ -325,7 +295,7 @@ BEGIN
   attributes_json := attributes_json::jsonb ||  ('{ "name" : "' || attr_name || '"}')::jsonb || ('{ "value" : "' || attr_value || '"}')::jsonb || ('{ "instance_id" :' || id || '}')::jsonb;
 
 
-  INSERT INTO apiato.instance_attribute SELECT * FROM json_populate_record(null::apiato.isntance_attribute,attributes_json);
+  INSERT INTO apiato.instance_attribute SELECT * FROM json_populate_record(null::apiato.instance_attribute,attributes_json);
 
   RETURN attribute_id;
 END
