@@ -3,7 +3,7 @@
 
         
 .. http:get:: /api/v1/instance/alias/<db_name>
-    
+
     **Example request**:
 
     ``curl -X GET -i https://<domain>:<port>/api/v1/instance/alias/<db_name>``
@@ -61,7 +61,7 @@
 
 
 .. http:post:: /api/v1/instance/alias/<db_name>
-    
+
     **Example request**:
 
     ``curl -X POST -i https://<domain>:<port>/api/v1/instance/alias/<db_name??alias=<ip-alias>``
