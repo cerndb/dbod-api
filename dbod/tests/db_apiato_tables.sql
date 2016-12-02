@@ -175,7 +175,7 @@ CREATE TABLE apiato.volume (
   mounting_path   varchar(256) NOT NULL,
   volume_type_id  int NOT NULL,
   CONSTRAINT volume_pkey           PRIMARY KEY (volume_id),
-  CONSTRAINT volume_instance_fk    FOREIGN KEY (instance_id)    REFERENCES apiato.instance (instance_id),
+  CONSTRAINT volume_instance_fk    FOREIGN KEY (instance_id)    REFERENCES apiato.instance (instance_id) ON DELETE CASCADE,
   CONSTRAINT volume_volume_type_fk FOREIGN KEY (volume_type_id) REFERENCES apiato.volume_type (volume_type_id)
 );
 CREATE INDEX volume_instance_idx    ON apiato.volume (instance_id);
