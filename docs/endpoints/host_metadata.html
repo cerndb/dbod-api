@@ -1,0 +1,240 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>/api/v1/host/&lt;name&gt;/metadata &#8212; DB On Demand API 0.7.8 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.7.8',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../_static/logo.ico"/>
+    <link rel="top" title="DB On Demand API 0.7.8 documentation" href="../index.html" />
+    <link rel="up" title="Endpoints" href="../endpoints.html" />
+    <link rel="next" title="/api/v1/rundeck/resources.xml" href="rundeck_resources.html" />
+    <link rel="prev" title="/api/v1/host/aliases" href="host_aliases.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="api-v1-host-name-metadata">
+<h1>/api/v1/host/&lt;name&gt;/metadata<a class="headerlink" href="#api-v1-host-name-metadata" title="Permalink to this headline">¶</a></h1>
+<dl class="get">
+<dt id="get--api-v1-metadata-host-(hostname)">
+<code class="descname">GET </code><code class="descname">/api/v1/metadata/host/</code><span class="sig-paren">(</span><em>hostname</em><span class="sig-paren">)</span><a class="headerlink" href="#get--api-v1-metadata-host-(hostname)" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<div>Returns a list with the metadata entries of all the databases hosted in a
+certain server</div></blockquote>
+<p><strong>Example request</strong>:</p>
+<p><code class="docutils literal"><span class="pre">curl</span> <span class="pre">-i</span> <span class="pre">-X</span> <span class="pre">GET</span> <span class="pre">https://&lt;server&gt;:&lt;port&gt;/api/v1/metadata/host/&lt;hostname&gt;</span></code></p>
+<p><strong>Example response</strong>:</p>
+<div class="highlight-http"><div class="highlight"><pre><span></span><span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span> <span class="m">200</span> <span class="ne">OK</span>
+<span class="na">Content-Length</span><span class="o">:</span> <span class="l">954</span>
+<span class="na">Content-Type</span><span class="o">:</span> <span class="l">application/json; charset=UTF-8</span>
+<span class="na">Date</span><span class="o">:</span> <span class="l">Fri, 26 Aug 2016 14:05:13 GMT</span>
+<span class="na">Etag</span><span class="o">:</span> <span class="l">&quot;f3181702286fb653c98cf885923ce61779343020&quot;</span>
+<span class="na">Server</span><span class="o">:</span> <span class="l">TornadoServer/4.2</span>
+
+<span class="p">{</span>
+    <span class="nt">&quot;response&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="nt">&quot;attributes&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="nt">&quot;buffer_pool_size&quot;</span><span class="p">:</span> <span class="s2">&quot;1G&quot;</span><span class="p">,</span>
+                <span class="nt">&quot;port&quot;</span><span class="p">:</span> <span class="s2">&quot;5500&quot;</span>
+            <span class="p">},</span>
+            <span class="nt">&quot;basedir&quot;</span><span class="p">:</span> <span class="s2">&quot;/usr/local/mysql/mysql-5.6.17&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;bindir&quot;</span><span class="p">:</span> <span class="s2">&quot;/usr/local/mysql/mysql-5.6.17/bin&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;class&quot;</span><span class="p">:</span> <span class="s2">&quot;TEST&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;datadir&quot;</span><span class="p">:</span> <span class="s2">&quot;/ORA/dbs03/PINOCHO/mysql&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;db_name&quot;</span><span class="p">:</span> <span class="s2">&quot;pinocho&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;db_type&quot;</span><span class="p">:</span> <span class="s2">&quot;MYSQL&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;hosts&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s2">&quot;db-50019&quot;</span>
+            <span class="p">],</span>
+            <span class="nt">&quot;id&quot;</span><span class="p">:</span> <span class="mi">22</span><span class="p">,</span>
+            <span class="nt">&quot;logdir&quot;</span><span class="p">:</span> <span class="s2">&quot;/ORA/dbs02/PINOCHO/mysql&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;port&quot;</span><span class="p">:</span> <span class="s2">&quot;5500&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;socket&quot;</span><span class="p">:</span> <span class="s2">&quot;/var/lib/mysql/mysql.sock.pinocho.5500&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;username&quot;</span><span class="p">:</span> <span class="s2">&quot;username&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;5.6.17&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;volumes&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="nt">&quot;file_mode&quot;</span><span class="p">:</span> <span class="s2">&quot;0755&quot;</span><span class="p">,</span>
+                    <span class="nt">&quot;group&quot;</span><span class="p">:</span> <span class="s2">&quot;mysql&quot;</span><span class="p">,</span>
+                    <span class="nt">&quot;id&quot;</span><span class="p">:</span> <span class="mi">57</span><span class="p">,</span>
+                    <span class="nt">&quot;instance_id&quot;</span><span class="p">:</span> <span class="mi">22</span><span class="p">,</span>
+                    <span class="nt">&quot;mount_options&quot;</span><span class="p">:</span> <span class="s2">&quot;rw,bg,hard,nointr,tcp,vers=3,noatime,timeo=600,rsize=65536,wsize=65536&quot;</span><span class="p">,</span>
+                    <span class="nt">&quot;mounting_path&quot;</span><span class="p">:</span> <span class="s2">&quot;/ORA/dbs02/PINOCHO&quot;</span><span class="p">,</span>
+                    <span class="nt">&quot;owner&quot;</span><span class="p">:</span> <span class="s2">&quot;mysql&quot;</span><span class="p">,</span>
+                    <span class="nt">&quot;server&quot;</span><span class="p">:</span> <span class="s2">&quot;nasserver01&quot;</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="nt">&quot;file_mode&quot;</span><span class="p">:</span> <span class="s2">&quot;0755&quot;</span><span class="p">,</span>
+                    <span class="nt">&quot;group&quot;</span><span class="p">:</span> <span class="s2">&quot;mysql&quot;</span><span class="p">,</span>
+                    <span class="nt">&quot;id&quot;</span><span class="p">:</span> <span class="mi">58</span><span class="p">,</span>
+                    <span class="nt">&quot;instance_id&quot;</span><span class="p">:</span> <span class="mi">22</span><span class="p">,</span>
+                    <span class="nt">&quot;mount_options&quot;</span><span class="p">:</span> <span class="s2">&quot;rw,bg,hard,nointr,tcp,vers=3,noatime,timeo=600,rsize=65536,wsize=65536&quot;</span><span class="p">,</span>
+                    <span class="nt">&quot;mounting_path&quot;</span><span class="p">:</span> <span class="s2">&quot;/ORA/dbs03/PINOCHO&quot;</span><span class="p">,</span>
+                    <span class="nt">&quot;owner&quot;</span><span class="p">:</span> <span class="s2">&quot;mysql&quot;</span><span class="p">,</span>
+                    <span class="nt">&quot;server&quot;</span><span class="p">:</span> <span class="s2">&quot;nasserver02&quot;</span>
+                <span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+        <span class="p">{</span>
+            <span class="nt">&quot;attributes&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="nt">&quot;buffer_pool_size&quot;</span><span class="p">:</span> <span class="s2">&quot;1G&quot;</span><span class="p">,</span>
+                <span class="nt">&quot;port&quot;</span><span class="p">:</span> <span class="s2">&quot;5501&quot;</span>
+            <span class="p">},</span>
+            <span class="nt">&quot;basedir&quot;</span><span class="p">:</span> <span class="s2">&quot;/usr/local/mysql/mysql-5.6.17&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;bindir&quot;</span><span class="p">:</span> <span class="s2">&quot;/usr/local/mysql/mysql-5.6.17/bin&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;class&quot;</span><span class="p">:</span> <span class="s2">&quot;TEST&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;datadir&quot;</span><span class="p">:</span> <span class="s2">&quot;/ORA/dbs03/PINOCHO2/mysql&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;db_name&quot;</span><span class="p">:</span> <span class="s2">&quot;pinocho2&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;db_type&quot;</span><span class="p">:</span> <span class="s2">&quot;MYSQL&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;hosts&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s2">&quot;hostname2&quot;</span>
+            <span class="p">],</span>
+            <span class="nt">&quot;id&quot;</span><span class="p">:</span> <span class="mi">280</span><span class="p">,</span>
+            <span class="nt">&quot;logdir&quot;</span><span class="p">:</span> <span class="s2">&quot;/ORA/dbs02/PINOCHO2/mysql&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;port&quot;</span><span class="p">:</span> <span class="s2">&quot;5501&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;socket&quot;</span><span class="p">:</span> <span class="s2">&quot;/var/lib/mysql/mysql.sock.pinocho2.5501&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;username&quot;</span><span class="p">:</span> <span class="s2">&quot;username2&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;5.6.17&quot;</span><span class="p">,</span>
+            <span class="nt">&quot;volumes&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="nt">&quot;file_mode&quot;</span><span class="p">:</span> <span class="s2">&quot;0755&quot;</span><span class="p">,</span>
+                    <span class="nt">&quot;group&quot;</span><span class="p">:</span> <span class="s2">&quot;mysql&quot;</span><span class="p">,</span>
+                    <span class="nt">&quot;id&quot;</span><span class="p">:</span> <span class="mi">71</span><span class="p">,</span>
+                    <span class="nt">&quot;instance_id&quot;</span><span class="p">:</span> <span class="mi">280</span><span class="p">,</span>
+                    <span class="nt">&quot;mount_options&quot;</span><span class="p">:</span> <span class="s2">&quot;rw,bg,hard,nointr,tcp,vers=3,noatime,timeo=600,rsize=65536,wsize=65536&quot;</span><span class="p">,</span>
+                    <span class="nt">&quot;mounting_path&quot;</span><span class="p">:</span> <span class="s2">&quot;/ORA/dbs02/PINOCHO2&quot;</span><span class="p">,</span>
+                    <span class="nt">&quot;owner&quot;</span><span class="p">:</span> <span class="s2">&quot;mysql&quot;</span><span class="p">,</span>
+                    <span class="nt">&quot;server&quot;</span><span class="p">:</span> <span class="s2">&quot;nasserver03&quot;</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="nt">&quot;file_mode&quot;</span><span class="p">:</span> <span class="s2">&quot;0755&quot;</span><span class="p">,</span>
+                    <span class="nt">&quot;group&quot;</span><span class="p">:</span> <span class="s2">&quot;mysql&quot;</span><span class="p">,</span>
+                    <span class="nt">&quot;id&quot;</span><span class="p">:</span> <span class="mi">72</span><span class="p">,</span>
+                    <span class="nt">&quot;instance_id&quot;</span><span class="p">:</span> <span class="mi">280</span><span class="p">,</span>
+                    <span class="nt">&quot;mount_options&quot;</span><span class="p">:</span> <span class="s2">&quot;rw,bg,hard,nointr,tcp,vers=3,noatime,timeo=600,rsize=65536,wsize=65536&quot;</span><span class="p">,</span>
+                    <span class="nt">&quot;mounting_path&quot;</span><span class="p">:</span> <span class="s2">&quot;/ORA/dbs03/PINOCHO2&quot;</span><span class="p">,</span>
+                    <span class="nt">&quot;owner&quot;</span><span class="p">:</span> <span class="s2">&quot;mysql&quot;</span><span class="p">,</span>
+                    <span class="nt">&quot;server&quot;</span><span class="p">:</span> <span class="s2">&quot;nasserver04&quot;</span>
+                <span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name" colspan="2">Query Parameters:</th></tr>
+<tr class="field-odd field"><td>&nbsp;</td><td class="field-body"><ul class="first simple">
+<li><strong>hostname</strong> &#8211; Server name</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">Response Headers:</th></tr>
+<tr class="field-even field"><td>&nbsp;</td><td class="field-body"><ul class="first simple">
+<li><a class="reference external" href="http://tools.ietf.org/html/rfc7231#section-3.1.1.5">Content-Type</a> &#8211; application/json; charset=UTF-8</li>
+</ul>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Status Codes:</th><td class="field-body"><ul class="first last simple">
+<li><a class="reference external" href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.2.1">200 OK</a> &#8211; No error</li>
+<li><a class="reference external" href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.5">404 Not Found</a> &#8211; Server not found in system</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/logo.png" alt="Logo"/>
+            </a></p><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../endpoints.html">Endpoints</a><ul>
+      <li>Previous: <a href="host_aliases.html" title="previous chapter">/api/v1/host/aliases</a></li>
+      <li>Next: <a href="rundeck_resources.html" title="next chapter">/api/v1/rundeck/resources.xml</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/endpoints/host_metadata.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, CERN DB On Demand Team.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="../_sources/endpoints/host_metadata.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
