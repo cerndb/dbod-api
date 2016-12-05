@@ -474,7 +474,7 @@ $$ LANGUAGE plpgsql;
 
 
 --Instance
-CREATE OR REPLACE FUNCTION apiato_ro.update_instance(in_json JSON) RETURNS bool AS $$
+CREATE OR REPLACE FUNCTION apiato_ro.update_instance(id int, in_json JSON) RETURNS bool AS $$
 DECLARE
  success bool;
 BEGIN
@@ -498,7 +498,7 @@ BEGIN
         cluster_id         = (CASE WHEN src.in_json::jsonb ? 'cluster_id' THEN src.cluster_id ELSE apiato.instance.cluster_id END)
      FROM (SELECT * FROM json_populate_record(null::apiato.instance,in_json)
            CROSS JOIN (SELECT in_json) AS source_json) src
-    WHERE apiato.instance.instance_id = src.instance_id;
+    WHERE apiato.instance.instance_id = id;
 
 RETURN success;
 END
