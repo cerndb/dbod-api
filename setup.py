@@ -9,14 +9,14 @@
 # or submit itself to any jurisdiction.
 
 """
-DB On Demand REST API server setup file
+Apiato API server setup file
 """
 
 from setuptools import setup, find_packages
 
-setup(name='dbod-api',
+setup(name='apiato',
       version='0.8.0',
-      description='DB On Demand REST API',
+      description='CERN Apiato API server',
       author='CERN',
       author_email='icot@cern.ch',
       license='GPLv3',
