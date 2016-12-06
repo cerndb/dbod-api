@@ -144,6 +144,7 @@ class Instance(tornado.web.RequestHandler):
         if response.ok:
             logging.info("Created instance " + instance["in_json"]["name"])
             logging.debug(response.text)
+            self.write(response.text)
             self.set_status(CREATED)
         else:
             logging.error("Error creating the instance: " + response.text)
@@ -174,12 +175,12 @@ class Instance(tornado.web.RequestHandler):
 
         """
         logging.debug(self.request.body)
-        instance = json.loads(self.request.body)
+        instance = {'id': id, 'in_json': json.loads(self.request.body)}
         
         # Update the instance in database using PostgREST
         response = requests.post(config.get('postgrest', 'update_instance_url'), json=instance, headers={'Prefer': 'return=representation'})
         if response.ok:
-            logging.info("Update instance: " + instance["id"])
+            logging.info("Update instance: " + id)
             logging.debug(response.text)
             self.set_status(CREATED)
         else:
