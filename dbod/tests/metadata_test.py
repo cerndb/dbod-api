@@ -45,7 +45,7 @@ class MetadataTest(AsyncHTTPTestCase):
         self.assertTrue(data[0]["volumes"] != None)
         self.assertEquals(data[0]["hosts"][0], "host03")
     
-    
+
     
     @timeout(5)
     def test_no_instance_by_host(self):
