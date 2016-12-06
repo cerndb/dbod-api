@@ -137,7 +137,7 @@ CREATE TABLE apiato.cluster_attribute (
   cluster_id   integer NOT NULL,
   name         varchar(32) NOT NULL,
   value        varchar(250) NOT NULL,
-  CONSTRAINT cluster_attribute_pkey        PRIMARY KEY (attribute_id),
+  CONSTRAINT cluster_attribute_pkey       PRIMARY KEY (attribute_id),
   CONSTRAINT cluster_attribute_cluster_fk FOREIGN KEY (cluster_id) REFERENCES apiato.cluster (cluster_id) ON DELETE CASCADE,
   UNIQUE (cluster_id, name)
 );
