@@ -106,11 +106,11 @@ class RundeckJobs(tornado.web.RequestHandler):
                 response_output = self.__get_output__(exid)
                 if response_output.ok:
                     output = json.loads(response_output.text)
-                    if output["execState"] != "running":
+                    if output["execCompleted"]:
                         if output["execState"] == "succeeded":
                             logging.debug("response: " + response_output.text)
-                            self.write({'response' : json.loads(response_output.text)})
-                            timeout = 0
+                            self.finish({'response' : output})
+                            return
                         else:
                             logging.warning("The job completed with errors: " + exid)
                             raise tornado.web.HTTPError(BAD_GATEWAY)
