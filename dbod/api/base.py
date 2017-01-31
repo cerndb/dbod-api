@@ -25,9 +25,11 @@ from dbod.config import config
 # HTTP API status codes
 OK = 200
 CREATED = 201 # Request fulfilled resulting in creation of new resource
+ACCEPTED = 202
 NO_CONTENT = 204 # Succesfull delete
 NOT_FOUND = 404
 UNAUTHORIZED = 401
+CONFLICT = 409
 BAD_REQUEST = 400
 BAD_GATEWAY = 502
 SERVICE_UNAVAILABLE = 503
@@ -36,7 +38,7 @@ SERVICE_UNAVAILABLE = 503
 def http_basic_auth(fun):
     """Decorator for extracting HTTP basic authentication user/password pairs
     from the request headers and matching them to configurated credentials.
-    It will generate an HTTP UNAUTHORIZED (Error code 401) if the request is 
+    It will generate an HTTP UNAUTHORIZED (Error code 401) if the request is
     not using HTTP basic authentication.
 
     Example:
@@ -57,7 +59,7 @@ def http_basic_auth(fun):
                 if user == config.get('api','user') and pwd == config.get('api','pass'):
                     return fun(*args, **kwargs)
                 else:
-                    # Raise UNAUTHORIZED HTTP Error (401) 
+                    # Raise UNAUTHORIZED HTTP Error (401)
                     logging.error("Unauthorized access from: %s",
                         self.request.headers)
                     raise tornado.web.HTTPError(UNAUTHORIZED)
@@ -74,7 +76,37 @@ def http_basic_auth(fun):
             raise tornado.web.HTTPError(UNAUTHORIZED)
 
     return wrapper
-    
+
+# Openstack authentication through keystone
+def keystone_auth(fun):
+    @functools.wraps(fun)
+    def wrapper(*args, **kwargs):
+        token_header = 'X-Subject-Token'
+
+        keystone_url = config.get('openstack','keystone_id_url')
+        auth_url = keystone_url + '/auth' + '/tokens'
+        auth_json_file = config.get('openstack','dbodpilot_keystone_json')
+        try:
+            auth_json = json.load(open(auth_json_file, 'r'))
+            header = {'Content-Type': 'application/json'}
+            response = requests.post(auth_url, 
+                                     json=auth_json, 
+                                     headers=header)
+            if response.ok:
+                logging.debug("Token collected for DBoD Pilot Project")
+                return fun(X_Subject_Token=response.headers[token_header], *args, **kwargs)
+            else:
+                logging.error("No Token provided to access openstack with status code: %s" %(response.status_code))
+                raise tornado.web.HTTPError(response.status.code)
+        except ValueError:
+            logging.error("No JSON format of the authentication file provided for keystone.")
+            raise tornado.web.HTTPError(BAD_REQUEST)
+        except KeyError:
+            logging.error("No X-Subject-Token available in headers")
+            logging.debug("Headers of the response from keystone: %s" %(response.headers))
+            tornado.web.HTTPError(SERVICE_UNAVAILABLE)
+    return wrapper        
+
 def get_instance_id_by_name(name):
     """Common function to get the ID of an instance by its name."""
     response = requests.get(config.get('postgrest', 'instance_url') + "?db_name=eq." + name)
@@ -83,7 +115,7 @@ def get_instance_id_by_name(name):
         if data:
             return data[0]["id"]
     return None
-    
+
 class DocHandler(tornado.web.RequestHandler):
     """Shows the list of endpoints available in the API"""
     def get(self):
