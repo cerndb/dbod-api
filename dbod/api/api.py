@@ -31,6 +31,7 @@ from dbod.api.host import Host
 from dbod.api.instance import Instance
 from dbod.api.attribute import Attribute
 from dbod.api.fim import Fim
+from dbod.api.magnum import MagnumClusters
 from dbod.config import config, optionalConfig
 
 # This list is a global object because in needs to be accessed
@@ -41,7 +42,7 @@ handlers = [
     (r"/api/v1/instance/([^/]+)", Instance),
     (r"/api/v1/host/aliases/([^/]+)", HostAliases),
     (r"/api/v1/host/names/([^/]+)", Host),
-    (r"/api/v1/instance/alias/?(?P<db_name>[^\/]+)?", FunctionalAlias),
+    (r"/api/v1/instance/alias/(?P<db_name>[^\/]+)?", FunctionalAlias),
     (r"/api/v1/(?P<class>[^\/]+)/(?P<name>[^\/]+)/metadata", Metadata),
     (r"/api/v1/host/aliases/([^/]+)", HostAliases),
     (r"/api/v1/rundeck/resources.xml", RundeckResources),
@@ -49,6 +50,7 @@ handlers = [
     # Deprecated, will be deleted in following versions
     (r"/api/v1/metadata/(?P<class>[^\/]+)/?(?P<name>[^\/]+)?", Metadata),  
     (r"/api/v1/fim/([^/]+)", Fim),
+    (r"/api/v1/magnum/(?P<class>[^/]+)/?(?P<name>[^/]+)?", MagnumClusters),
     ]
 
 class Application():
