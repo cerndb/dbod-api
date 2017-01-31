@@ -1,0 +1,21 @@
+{
+    "auth": {
+        "identity": {
+            "methods": [
+                "password"
+            ],
+            "password": {
+                "user": {
+                    "id": "user42",
+                    "password": "passofuser42"
+                }
+            }
+        },
+    	"scope": {
+      		"project": {
+        	"name": "Container Pilot",
+        	"domain": { "id": "default" }
+		}
+	}
+    }
+}
