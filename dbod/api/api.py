@@ -32,6 +32,7 @@ from dbod.api.instance import Instance
 from dbod.api.attribute import Attribute
 from dbod.api.fim import Fim
 from dbod.api.magnum import MagnumClusters
+from dbod.api.kubernetes import KubernetesClusters
 from dbod.config import config, optionalConfig
 
 # This list is a global object because in needs to be accessed
@@ -50,7 +51,9 @@ handlers = [
     # Deprecated, will be deleted in following versions
     (r"/api/v1/metadata/(?P<class>[^\/]+)/?(?P<name>[^\/]+)?", Metadata),  
     (r"/api/v1/fim/([^/]+)", Fim),
-    (r"/api/v1/magnum/(?P<class>[^/]+)/?(?P<name>[^/]+)?", MagnumClusters),
+    (r"/api/v1/magnum/(?P<resource>[^/]+)/?(?P<name>[^/]+)?", MagnumClusters),
+    (r"/api/v1/kubernetes/(?P<cluster>[^/]+)/?(?P<resource>[^/]+)?/?(?P<name>[^/]+)?/?(?P<subresource>[^/]+)?/?(?P<subname>[^/]+)?", KubernetesClusters),
+    (r"/api/v1/beta/kubernetes/(?P<cluster>[^/]+)/?(?P<resource>[^/]+)?/?(?P<name>[^/]+)?/?(?P<subresource>[^/]+)?/?(?P<subname>[^/]+)?", KubernetesClusters),
     ]
 
 class Application():
