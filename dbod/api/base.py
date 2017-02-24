@@ -19,6 +19,9 @@ import logging
 import requests
 import json
 import urllib
+from os import mkdir, path, listdir
+from subprocess import check_output
+import shlex
 
 from dbod.config import config
 
@@ -78,34 +81,107 @@ def http_basic_auth(fun):
     return wrapper
 
 # Openstack authentication through keystone
-def keystone_auth(fun):
-    @functools.wraps(fun)
-    def wrapper(*args, **kwargs):
-        token_header = 'X-Subject-Token'
+def cloud_auth(component):
+    def keystone_decorator(fun):
+        @functools.wraps(fun)
+        def wrapper(*args, **kwargs):
+            if component == "magnum":
+                token_header = 'X-Subject-Token'
+                keystone_url = config.get(component, 'auth_id_url')
+                auth_url = keystone_url + '/auth' + '/tokens'
+                auth_json_file = config.get(component,'auth_json')
+                try:
+                    auth_json = json.load(open(auth_json_file, 'r'))
 
-        keystone_url = config.get('openstack','keystone_id_url')
-        auth_url = keystone_url + '/auth' + '/tokens'
-        auth_json_file = config.get('openstack','dbodpilot_keystone_json')
-        try:
-            auth_json = json.load(open(auth_json_file, 'r'))
-            header = {'Content-Type': 'application/json'}
-            response = requests.post(auth_url, 
-                                     json=auth_json, 
-                                     headers=header)
-            if response.ok:
-                logging.debug("Token collected for DBoD Pilot Project")
-                return fun(X_Subject_Token=response.headers[token_header], *args, **kwargs)
-            else:
-                logging.error("No Token provided to access openstack with status code: %s" %(response.status_code))
-                raise tornado.web.HTTPError(response.status.code)
-        except ValueError:
-            logging.error("No JSON format of the authentication file provided for keystone.")
-            raise tornado.web.HTTPError(BAD_REQUEST)
-        except KeyError:
-            logging.error("No X-Subject-Token available in headers")
-            logging.debug("Headers of the response from keystone: %s" %(response.headers))
-            tornado.web.HTTPError(SERVICE_UNAVAILABLE)
-    return wrapper        
+                    header = {'Content-Type': 'application/json'}
+                    response = requests.post(auth_url,
+                                             json=auth_json,
+                                             headers=header)
+                    xtoken = response.headers.get(token_header)
+                    if response.ok and xtoken:
+                        logging.debug("Token collected for DBoD Pilot Project")
+                        kwargs.update({token_header: xtoken})
+                        return fun(*args, **kwargs)
+                    else:
+                        logging.error("No Token or not all the fields provided to access %s with status code: %s" %(component, response.status_code))
+                        raise tornado.web.HTTPError(response.status_code)
+                except ValueError:
+                    logging.error("No JSON format of the authentication file provided for %s." %(component))
+                    raise tornado.web.HTTPError(UNAUTHORIZED)
+                except KeyError:
+                    logging.error("No X-Subject-Token available in headers")
+                    logging.debug("Headers of the response from %s: %s" %(component, response.headers))
+                    raise tornado.web.HTTPError(UNAUTHORIZED)
+
+            if component == 'kubernetes' and config.get('containers-provider', 'cloud') == 'magnum':
+                force = False
+                cloud = config.get('containers-provider', 'cloud')
+                cluster = kwargs.get('cluster')
+                cluster_certs_dir = config.get(cloud, 'cluster_certs_dir') + '/' + cluster
+
+                if path.isdir(cluster_certs_dir):
+                    certsList = set(listdir(cluster_certs_dir))
+                    certFiles = set(['config', 'ca.pem', 'key.pem', 'cert.pem'])
+                    if certFiles <= certsList:
+                        return fun(*args, **kwargs)
+                    else:
+                        force = True
+                        logging.error("There are certificates missing in %s" %(cluster_certs_dir))
+                else:
+                    try:
+                        mkdir(cluster_certs_dir)
+                        logging.debug("Creating certs dir in " + cluster_certs_dir)
+                    except OSError, e:
+                        logging.error("Error while creating certificates directory")
+                        logging.error("Return code: %s" %(e.returncode))
+                        raise tornado.web.HTTPError(UNAUTHORIZED)
+
+                auth_json_file = config.get(cloud,'auth_json')
+                auth_json = json.load(open(auth_json_file, 'r'))['auth']
+
+                os_user_base = auth_json.get('identity').get('password').get('user')
+                username = os_user_base.get('name')
+                user_domain_name = os_user_base.get('domain').get('name')
+                password = os_user_base.get('password')
+
+                os_project_base = auth_json.get('scope').get('project')
+                project_name = os_project_base.get('name')
+                project_domain_name = os_project_base.get('domain').get('name')
+
+                auth_url = config.get(cloud,'auth_id_url')
+                cmd_prefix = 'magnum --os-username ' + username + \
+                             ' --os-user-domain-name ' + user_domain_name + \
+                             ' --os-password ' + password + \
+                             ' --os-project-name ' + '"'+project_name+'"' + \
+                             ' --os-project-domain-name ' + project_domain_name + \
+                             ' --os-auth-url ' + auth_url
+
+                cmd = "cluster-config " + cluster
+                #cmd_args = ' '.join(args)
+                cmd_args = "--dir " + cluster_certs_dir
+                if force:
+                    cmd_args = cmd_args + " --force"
+                cmd_final = cmd_prefix + ' ' + cmd + ' ' + cmd_args
+                try:
+                    check_output(shlex.split(cmd_final))
+                    logging.debug("Command %s with args %s ran successfully" %(cmd, cmd_args))
+                    return fun(*args, **kwargs)
+                except CalledProcessError as e:
+                    logging.error("Command %s with args %s failed with return code %s" %(cmd, cmd_args, e.returncode))
+                    logging.error("Command failed with output: %s" %(e.output))
+                    #return callback(auth_json, cmd, args)
+                    raise tornado.web.HTTPError(UNAUTHORIZED)
+
+        return wrapper
+    return keystone_decorator
+
+def get_function(composed_url, headers):
+    response = requests.get(composed_url, headers=headers)
+    if response.ok:
+        data = response.json()
+        if data:
+            return data, response.status_code
+    return {}, response.status_code, 
 
 def get_instance_id_by_name(name):
     """Common function to get the ID of an instance by its name."""
