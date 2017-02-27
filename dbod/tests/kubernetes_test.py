@@ -34,7 +34,7 @@ class KubernetesClustersTest(AsyncHTTPTestCase, unittest.TestCase):
 
     def test_get_clusters(self):
         response = self.fetch("/api/v1/beta/kubernetes/k8s-test/namespaces/default/deployments/pgpool-depl", method="GET")#, headers={'Authorization': self.authentication})
-        print response.body
+        print response.body, response.code
 
     def test_post_clusters(self):
         body = json.load(open('/home/js/dbod-api/pgpool-depl.json'))
@@ -43,3 +43,10 @@ class KubernetesClustersTest(AsyncHTTPTestCase, unittest.TestCase):
                              headers={'Authorization': self.authentication},
                              body=json.dumps(body))
         print 2, response.code
+
+    def test_delete_clusters(self):
+        response = self.fetch("/api/v1/beta/kubernetes/k8s-test/namespaces/default/deployments/pgpool-depl", 
+                              method="DELETE",
+                              headers={'Authorization': self.authentication})
+        print response.body, response.code
+
