@@ -30,33 +30,8 @@ class KubernetesClusters(tornado.web.RequestHandler):
 
     @cloud_auth(coe)
     def get(self, **args):
-        logging.debug('Arguments:' + str(self.request.arguments))
+        composed_url, cert, key, ca = self._config(args)
 
-        cluster_name = args.get('cluster')
-        resource = args.get('resource')
-        ident = args.get('name')
-        subresource = args.get('subresource')
-        subname = args.get('subname')
-        cluster_certs_dir = config.get(self.cloud, 'cluster_certs_dir') + '/' + cluster_name
-
-        kubeApi = self._api_master(cluster_name)
-        if self.request.uri.split('/')[3] == 'beta':
-            apiVersion = 'apis/extensions/v1beta1'
-        else:
-            apiVersion = 'api/v1'
-        #kubeApi = kubeList[0]
-        composed_url = kubeApi + '/' + apiVersion
-        if resource:
-            composed_url = composed_url + '/' + resource
-            if ident:
-                composed_url = composed_url + '/' + ident
-                if subresource:
-                    composed_url = composed_url + '/' + subresource
-                    if subname:
-                        composed_url = composed_url + '/' + subname
-        cert = cluster_certs_dir + '/cert.pem'
-        key = cluster_certs_dir + '/key.pem'
-        ca = cluster_certs_dir + '/ca.pem'
         logging.debug("Request to " + composed_url)
         response = requests.get(composed_url, cert=(cert, key), verify=ca)
         if response.ok:
@@ -90,6 +65,25 @@ class KubernetesClusters(tornado.web.RequestHandler):
                                  cert=(cert, key),
                                  verify=ca,
                                  headers=self.headers)
+        if response.ok:
+            data = response.json()
+            logging.info("response: " + json.dumps(data))
+            self.write({'response': data})
+        else:
+            logging.error("Error in fetching %s 's resources from %s" %(self.coe, composed_url))
+            self.set_status(response.status_code)
+
+
+    @cloud_auth(coe)
+    @http_basic_auth
+    def delete(self, **args):
+        composed_url, cert, key, ca = self._config(args)
+
+        logging.debug("Request to " + composed_url)
+        response = requests.delete(composed_url,
+                                   cert=(cert, key),
+                                   verify=ca,
+                                   headers=self.headers)
         if response.ok:
             data = response.json()
             logging.info("response: " + json.dumps(data))
