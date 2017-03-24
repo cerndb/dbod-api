@@ -1,0 +1,14 @@
+[mysqld]
+server-id=1
+port={{ instance_port }}
+general-log-file=/ORA/dbs03/{{ instance_name }}/mysql/mysql.log
+socket=/var/lib/mysql/mysql.sock.{{ instance_name }}.{{ instance_port }}
+datadir=/ORA/dbs03/{{ instance_name }}/mysql
+log-bin=/ORA/dbs02/{{ instance_name }}/mysql/binlog
+slow_query_log_file=/ORA/dbs03/{{ instance_name }}/mysql/slow_queries.log
+ssl-cert=/etc/dbod/hostcert.pem
+ssl-ca=/etc/dbod/ca.pem
+ssl-key=/etc/dbod/hostkey.pem
+ssl-cipher=DHE-RSA-AES256-SHA:AES128-SHA
+#relay-log=/ORA/dbs02/{{ instance_name }}/mysql/relay-binlog
+#relay-log-index=/ORA/dbs02/{{ instance_name }}/mysql/relay-bin.index
