@@ -9,3 +9,4 @@ mock
 sphinx
 sphinxcontrib-httpdomain
 python-magnumclient
+Jinja2
