@@ -33,19 +33,19 @@ class KubernetesClustersTest(AsyncHTTPTestCase, unittest.TestCase):
         return tornado.web.Application(handlers)
 
     def test_get_clusters(self):
-        response = self.fetch("/api/v1/beta/kubernetes/k8s-test/namespaces/default/deployments/pgpool-depl", method="GET")#, headers={'Authorization': self.authentication})
+        response = self.fetch("/api/v1/beta/kubernetes/k8s-test2/namespaces/default/deployments/mysql-depl", method="GET")
         print response.body, response.code
 
     def test_post_clusters(self):
-        body = json.load(open('/home/js/dbod-api/pgpool-depl.json'))
-        response = self.fetch("/api/v1/beta/kubernetes/k8s-test/namespaces/default/secrets",
+        body = json.load(open('mysql-depl.json'))
+        response = self.fetch("/api/v1/kubernetes/k8s-test2/namespaces/default/deployments",
                              method="POST",
                              headers={'Authorization': self.authentication},
                              body=json.dumps(body))
         print 2, response.code
 
     def test_delete_clusters(self):
-        response = self.fetch("/api/v1/beta/kubernetes/k8s-test/namespaces/default/deployments/pgpool-depl", 
+        response = self.fetch("/api/v1/beta/kubernetes/k8s-test/namespaces/default/deployments/mysql-depl",
                               method="DELETE",
                               headers={'Authorization': self.authentication})
         print response.body, response.code
