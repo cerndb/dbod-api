@@ -135,7 +135,7 @@ class KubernetesClusters(tornado.web.RequestHandler):
             delete_urls.append(service_url)
 
         if delete_volumes:
-            if app_type == 'mysql':
+            if app_type == 'mysql' or app_type == 'postgres':
                 # Secrets
                 secrets_args = self.get_secrets_args(args.get(cluster))
                 secrets_url, _,_,_ = self._config()
@@ -143,7 +143,7 @@ class KubernetesClusters(tornado.web.RequestHandler):
                 #secret_url = composed_url[:changeurl_index+1] + \
                 #        '/api/v1/namespaces/default/secrets/' + \
                 #        instance_name + '-secret-mysql.cnf'
-                delete_urls.append((secret_url + instance_name + '-secret-mysql.cnf',
+                delete_urls.append((secret_url + instance_name + '-secret-' + app_type + '.cnf',
                                     True, 'delete'))
 
                 delete_urls.append((secret_url + instance_name + '-secret-init.sql',
@@ -259,9 +259,9 @@ class KubernetesClusters(tornado.web.RequestHandler):
             confFiles = set(listdir(app_conf_dir))
             templateFiles = set(listdir(templates_dir))
             conf_required = set(['init.sql', 'templates'])
-            template_required = set(['mysql-cnf.template', 'mysql-depl.json.template',
-                                     'mysql-secret.json.template', 'mysql-secret.yaml.template',
-                                     'mysql-svc.json.template'])
+            template_required = set([app_type + '-cnf.template', app_type + '-depl.json.template',
+                                     app_type + '-secret.json.template', app_type + '-secret.yaml.template',
+                                     app_type + '-svc.json.template'])
             if conf_required > confFiles or template_required > templateFiles:
                 logging.error("Not all conf files of %s were found in %s" %(app_type, app_conf_dir))
                 raise tornado.web.HTTPError(SERVICE_UNAVAILABLE)
@@ -316,9 +316,13 @@ class KubernetesClusters(tornado.web.RequestHandler):
 
 
     def cloud_volume_creation(self, app_conf_dir, app_type, instance_name, templates, cluster_name):
+        if app_type == 'postgres':
+            conf_name = 'postgresql.conf'
+        else:
+            conf_name = app_type + '.cnf'
+        conf_file = app_conf_dir + '/' + instance_name.upper() + '/' + conf_name
         instance_dir = app_conf_dir + '/' + instance_name.upper()
         init_file = app_conf_dir + '/init.sql'
-        conf_file = app_conf_dir + '/' + instance_name.upper() + '/' + 'mysql.cnf'
         volume_url = config.get(self.cloud, 'volume_url')
         auth_id_url = config.get(self.cloud, 'auth_id_url')
 	logging.info("Create volumes for '%s' instance '%s'" %(app_type, instance_name))
@@ -329,8 +333,10 @@ class KubernetesClusters(tornado.web.RequestHandler):
         secret_url, cert, key, ca = self._config(secrets_args)
         volume_project_url = volume_url + '/' + project_id + '/volumes'
 
-        exists_cnf = self.check_ifexists(instance_name+'-secret-mysql.cnf', secret_url, cert=cert, key=key, ca=ca)
-        exists_init = self.check_ifexists(instance_name+'-secret-init.sql', secret_url, cert=cert, key=key, ca=ca)
+        exists_cnf = self.check_ifexists(instance_name+'-secret-' + app_type + '.cnf',
+                                         secret_url, cert=cert, key=key, ca=ca)
+        exists_init = self.check_ifexists(instance_name+'-secret-init.sql',
+                                          secret_url, cert=cert, key=key, ca=ca)
         if not exists_cnf and not exists_init:
             # Secrets
             logging.info("Volumes will be created for project: %s" %(project_name))
@@ -339,7 +345,7 @@ class KubernetesClusters(tornado.web.RequestHandler):
             with open(conf_file) as conf:
                 secret64 = b64encode(conf.read())
             configuration = {'secret64': secret64,
-                             'filename': 'mysql.cnf',
+                             'filename': conf_name,
                              'instance_name': instance_name
                             }
             kube_filename = instance_dir + '/' + 'secretconf.json'
@@ -372,7 +378,7 @@ class KubernetesClusters(tornado.web.RequestHandler):
             secret64 = ''
         else:
             logging.warning("Secret volume %s exists: %s and %s exists: %s"
-                            %(instance_name+'-secret-mysql.cnf',
+                            %(instance_name+'-secret-' + app_type + '.cnf',
                               exists_cnf,
                               instance_name+'-secret-init.sql',
                               exists_init)
