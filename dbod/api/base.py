@@ -20,7 +20,7 @@ import requests
 import json
 import urllib
 from os import mkdir, path, listdir
-from subprocess import check_output
+from subprocess import check_output, CalledProcessError
 import shlex
 
 from dbod.config import config
@@ -120,9 +120,9 @@ def cloud_auth(component):
                 cluster_certs_dir = config.get(cloud, 'cluster_certs_dir') + '/' + cluster
 
                 if path.isdir(cluster_certs_dir):
-                    certsList = set(listdir(cluster_certs_dir))
-                    certFiles = set(['config', 'ca.pem', 'key.pem', 'cert.pem'])
-                    if certFiles <= certsList:
+                    certFiles = set(listdir(cluster_certs_dir))
+                    certRequired = set(['config', 'ca.pem', 'key.pem', 'cert.pem'])
+                    if certRequired <= certFiles:
                         return fun(*args, **kwargs)
                     else:
                         force = True
