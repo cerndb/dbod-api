@@ -29,6 +29,19 @@ class KubernetesClusters(tornado.web.RequestHandler):
     headers = {'Content-Type': 'application/json'}
     cloud = config.get('containers-provider', 'cloud')
     coe = config.get(cloud, 'coe')
+    api_response = {'response': []}
+    app_specifics = {
+            'mysql': {
+                'conf_name': 'mysql.cnf',
+                'init_name': 'init.sql',
+                'port': 5500
+                },
+            'postgres': {
+                'conf_name': 'postgresql.conf',
+                'init_name': 'init.sh',
+                'port': 6600
+                }
+            }
 
     @cloud_auth(coe)
     def get(self, **args):
@@ -80,7 +93,7 @@ class KubernetesClusters(tornado.web.RequestHandler):
 
         if len(specs) > 1:
             temp = composed_url
-            service_args = self.get_service_args(args.get(cluster))
+            service_args = self.get_service_args(args.get('cluster'))
             composed_url, _,_,_ = self._config(service_args)
 
         for spec in specs:
@@ -94,33 +107,39 @@ class KubernetesClusters(tornado.web.RequestHandler):
             if response.ok:
                 data = response.json()
                 logging.info("response: " + json.dumps(data))
-                self.write({'response': data})
+                self.api_response['response'].append({spec['kind']: data})
             elif response.status_code == 409:
                 logging.warning("The name %s in the endpoint %s already exists"
                         %(spec['metadata']['name'],composed_url))
                 self.set_status(CONFLICT)
             else:
-                logging.error("Error in fetching %s 's resources from %s" %(self.coe, composed_url))
+                logging.error("Error in posting %s 's resources from %s" %(self.coe, composed_url))
                 self.set_status(response.status_code)
             if len(specs) > 1:
                 composed_url = temp
+        self.write(self.api_response)
 
     @cloud_auth(coe)
     @http_basic_auth
     def delete(self, **args):
         logging.debug('Arguments:' + str(self.request.arguments))
         composed_url, cert, key, ca = self._config(args)
-        instance_name = args.get('subresource')
-        if not instance_name and not args.get('resource'):
-            instance_name = args.get('name')
+        logging.debug("The url to act upon is: " + composed_url)
+        instance_name = args.get('subname')
+        if not instance_name:
+            if not args.get('subresource'):
+                instance_name = args.get('name')
+            else:
+                logging.error("You have to define the instance name to be deleted in the url")
+                raise tornado.web.HTTPError(BAD_REQUEST)
 
-        logging.debug("Request to delete" + composed_url)
+        logging.debug("Request to delete " + instance_name)
         app_type = self.get_argument('app_type')
-        instance_name = self.get_argument('app_name')
+        #instance_name = self.get_argument('app_name')
         delete_volumes = self.get_argument('delete_volumes', False)
         delete_service = self.get_argument('delete_service', False)
 
-        if not app_type or not instance_name:
+        if not instance_name or (app_type != 'mysql' and app_type != 'postgres'):
             logging.error("You have to define the app type and the instance name")
             raise tornado.web.HTTPError(BAD_REQUEST)
 
@@ -128,52 +147,60 @@ class KubernetesClusters(tornado.web.RequestHandler):
         app_conf_dir = apps_dir + '/' + app_type
         instance_dir = app_conf_dir + '/' + instance_name.upper()
 
-        delete_urls = [(composed_url, True, 'delete')]
+        # delete_urls: (url, use_cert=Boolean, method)
+        if args.get('subresource') == 'deployments':
+            deleteit = composed_url + '-depl'
+        else:
+            deleteit = composed_url
+        delete_urls = [(deleteit, True, 'delete')]
+
         if delete_service:
-            service_args = self.get_service_args(args.get(cluster))
+            service_args = self.get_service_args(args.get('cluster'))
             service_url, _,_,_ = self._config(service_args)
-            delete_urls.append(service_url)
+            delete_urls.append((service_url + '/' + instance_name + '-svc', True, 'delete'))
 
         if delete_volumes:
-            if app_type == 'mysql' or app_type == 'postgres':
-                # Secrets
-                secrets_args = self.get_secrets_args(args.get(cluster))
-                secrets_url, _,_,_ = self._config()
+            # Secrets
+            secrets_args = self.get_secrets_args(args.get('cluster'))
+            secrets_url, _,_,_ = self._config(secrets_args)
 
-                #secret_url = composed_url[:changeurl_index+1] + \
-                #        '/api/v1/namespaces/default/secrets/' + \
-                #        instance_name + '-secret-mysql.cnf'
-                delete_urls.append((secret_url + instance_name + '-secret-' + app_type + '.cnf',
-                                    True, 'delete'))
+            #secret_url = composed_url[:changeurl_index+1] + \
+            #        '/api/v1/namespaces/default/secrets/' + \
+            #        instance_name + '-secret-mysql.cnf'
+            conf_name = self.app_specifics[app_type]['conf_name']
+            init_name = self.app_specifics[app_type]['init_name']
+            delete_urls.append((secrets_url + '/' + instance_name + '-secret-' + conf_name,
+                                True, 'delete'))
 
-                delete_urls.append((secret_url + instance_name + '-secret-init.sql',
-                                    True, 'delete'))
+            delete_urls.append((secrets_url + '/' + instance_name + '-secret-' + init_name,
+                                True, 'delete'))
 
-                # Cinder
-                project_id, project_name = self.get_project_info()
-                volume_url = config.get(self.cloud, 'volume_url')
-                volume_project_url = volume_url + '/' + project_id + '/volumes'
-                body = {"os-detach":{}}
+            # Cinder
+            project_id, project_name = self.get_project_info()
+            volume_url = config.get(self.cloud, 'volume_url')
+            volume_project_url = volume_url + '/' + project_id + '/volumes'
+            body = {"os-detach":{}}
 
-                voldata_name = instance_name + '-vol-data'
-                volbin_name = instance_name + '-vol-bin'
+            voldata_name = instance_name + '-vol-data'
+            volbin_name = instance_name + '-vol-bin'
 
-                len_delete_urls = len(delete_urls)
-                data, _ = get_function(volume_project_url, self.headers)
-                for vol in data['volumes']:
-                    if vol['name'] == voldata_name or vol['name'] == volbin_name:
-                        url_post = volume_project_url + vol['id'] + '/action'
-                        delete_urls.append((url_detach, False, 'post'))
-                        url_delete = volume_project_url + vol['id']
-                        delete_urls.append((url_delete, False, 'delete'))
+            len_delete_urls = len(delete_urls)
+            data, _ = get_function(volume_project_url, self.headers)
+            for vol in data['volumes']:
+                if vol['name'] == voldata_name or vol['name'] == volbin_name:
+                    url_detach = volume_project_url + '/' + vol['id'] + '/action'
+                    delete_urls.append((url_detach, False, 'post'))
+                    url_delete = volume_project_url + '/' + vol['id']
+                    delete_urls.append((url_delete, False, 'delete'))
 
-                if (len(delete_urls) - len_delete_urls) > 2:
-                    logging.error("There is a volume name conflict or \
-                            previous volumes have not been deleted successfully for %s"
-                            %(instance_name))
-                    raise tornado.web.HTTPError(SERVICE_UNAVAILABLE)
+            if (len(delete_urls) - len_delete_urls) > 4:
+                logging.error("There is a volume name conflict or \
+                        previous volumes have not been deleted successfully for %s"
+                        %(instance_name))
+                raise tornado.web.HTTPError(SERVICE_UNAVAILABLE)
 
         for url in delete_urls:
+            logging.debug("Request to %s %s" %(url[2], url[0]))
             if url[2] == 'post':
                 response = requests.post(url[0],
                                          json=body,
@@ -185,20 +212,25 @@ class KubernetesClusters(tornado.web.RequestHandler):
             else:
                 response = requests.delete(url[0],
                                            headers=self.headers)
-            logging.debug("Request to delete" + url)
             if response.ok:
-                data = response.json()
-                logging.info("response: " + json.dumps(data))
-                self.write({'response': data})
+                #data = response.json()
+                #logging.info("response: " + json.dumps(data))
+                #self.api_response['response'].append(data)
+                logging.info("The resource %s has been %sed successfully" %(url[0],url[2]))
+                self.set_status(response.status_code)
+            elif response.status_code == 404:
+                logging.warning("The resource %s cannot be found" %(url[0]))
+                self.set_status(NOT_FOUND)
             else:
                 logging.error("Error in deleting %s 's resources from %s" %(self.coe, url[0]))
                 self.set_status(response.status_code)
+            #self.write(self.api_response)
         try:
-            os.rename(instance_dir, instance_dir + '.old')
+            rename(instance_dir, instance_dir + '.old')
         except OSError as e:
             logging.error("The directory %s is not registered for %s" %(instance_dir, instance_name))
-            logging.error("Return code: %s" %(e.returncode))
-            raise tornado.web.HTTPError(NOT_FOUND)
+            logging.error("Return code: %s" %(e))
+            self.set_status(NOT_FOUND)
 
     def _config(self, args):
         cluster_name = args.get('cluster')
@@ -242,14 +274,18 @@ class KubernetesClusters(tornado.web.RequestHandler):
         composed_url = url + '/' + 'clusters' + '/' + cluster_name
         data, status_code = get_function(composed_url, self.headers)
         if status_code == 200:
-            kubeApiList = data['api_address']
+            kubeApi = data['api_address']
             logging.debug("Kubernetes master(s) api: " + str(kubeApi))
             return kubeApi
         else:
             logging.error("Error fetching cloud's resources in this endpoint: " + composed_url)
-            raise tornado.web.HTTPError(response.status_code)
+            raise tornado.web.HTTPError(status_code)
 
     def app_config(self, app_type, instance_name, cluster_name):
+        # TODO try to initiate mysql through a bash file for consistency
+        instance_port = self.app_specifics[app_type]['port']
+        conf_name = self.app_specifics[app_type]['conf_name']
+
         apps_dir = config.get('containers-provider', 'apps_dir')
         app_conf_dir = apps_dir + '/' + app_type
         templates_dir = app_conf_dir + '/templates'
@@ -288,10 +324,10 @@ class KubernetesClusters(tornado.web.RequestHandler):
         templates = Environment(loader=loader)
         configuration = {'app_type': app_type,
                          'instance_name': instance_name,
-                         'instance_port': 5500
+                         'instance_port': instance_port
                         }
 
-	filename = instance_dir + '/' + app_type + '.cnf'
+	filename = instance_dir + '/' + conf_name
         conf = templates.get_template(app_type + '-cnf.template').render(configuration)
         self._write(conf, filename)
 	logging.debug("%s %s conf file is ready" %(filename, app_type))
@@ -316,13 +352,12 @@ class KubernetesClusters(tornado.web.RequestHandler):
 
 
     def cloud_volume_creation(self, app_conf_dir, app_type, instance_name, templates, cluster_name):
-        if app_type == 'postgres':
-            conf_name = 'postgresql.conf'
-        else:
-            conf_name = app_type + '.cnf'
+        conf_name = self.app_specifics[app_type]['conf_name']
+        init_name = self.app_specifics[app_type]['init_name']
+
         conf_file = app_conf_dir + '/' + instance_name.upper() + '/' + conf_name
         instance_dir = app_conf_dir + '/' + instance_name.upper()
-        init_file = app_conf_dir + '/init.sql'
+        init_file = app_conf_dir + '/' + init_name
         volume_url = config.get(self.cloud, 'volume_url')
         auth_id_url = config.get(self.cloud, 'auth_id_url')
 	logging.info("Create volumes for '%s' instance '%s'" %(app_type, instance_name))
@@ -352,7 +387,7 @@ class KubernetesClusters(tornado.web.RequestHandler):
             conf_template = app_type + '-secret.json.template'
             secretconf = templates.get_template(conf_template).render(configuration)
             self._write(secretconf, kube_filename)
-            _ = self.postjson(secret_url, ('metadata', 'selfLink'),
+            _ = self.postjson(secret_url, ('metadata', 'selfLink'), 'Secretconf',
                           filename=kube_filename,
                           cert=cert,
                           key=key,
@@ -363,13 +398,13 @@ class KubernetesClusters(tornado.web.RequestHandler):
             with open(init_file) as conf:
                 secret64 = b64encode(conf.read())
             configuration = {'secret64': secret64,
-                             'filename': 'init.sql',
+                             'filename': init_name,
                              'instance_name': instance_name
                             }
             kube_filename = app_conf_dir + '/' + 'secretinit.json'
             secretconf = templates.get_template(conf_template).render(configuration)
             self._write(secretconf, kube_filename)
-            _ = self.postjson(secret_url, ('metadata', 'selfLink'),
+            _ = self.postjson(secret_url, ('metadata', 'selfLink'), 'Secretinit',
                               filename=kube_filename,
                               cert=cert,
                               key=key,
@@ -383,10 +418,12 @@ class KubernetesClusters(tornado.web.RequestHandler):
                               instance_name+'-secret-init.sql',
                               exists_init)
                            )
+
         logging.debug("Check the %s if there are volume leftovers with the same name" %(volume_project_url))
         data, _ = get_function(volume_project_url, self.headers)
-        exist_volume = [instance_name+'_vol_data' in vol['name'] or instance_name+'_vol_bin' in vol['name']
+        exist_volume = [instance_name+'-vol-data' in vol['name'] or instance_name+'-vol-bin' in vol['name']
                         for vol in data['volumes']]
+
         if exist_volume.count(True) == 0:
             # Cinder volumes
             volconf={
@@ -406,13 +443,13 @@ class KubernetesClusters(tornado.web.RequestHandler):
                         }
                     }
             logging.debug("Volume conf: %s" %(volconf))
-            voldata = self.postjson(volume_project_url, ('volume','id'),
+            voldata = self.postjson(volume_project_url, ('volume','id'), 'Voldata',
                                     jsondata=volconf)
             logging.debug("Volume data %s has been created" %(volconf['volume']['name']))
 
             volconf['volume']['name'] = instance_name + '-vol-bin'
             volconf['volume']['description'] = instance_name + '-volbin'
-            volbin = self.postjson(volume_project_url, ('volume','id'),
+            volbin = self.postjson(volume_project_url, ('volume','id'), 'Volbin',
                                    jsondata=volconf)
             logging.debug("Volume data %s has been created" %(volconf['volume']['name']))
 	    return voldata, volbin
@@ -467,7 +504,7 @@ class KubernetesClusters(tornado.web.RequestHandler):
                        }
         return secrets_args
 
-    def postjson(self, composed_url, getBackfield, **args):
+    def postjson(self, composed_url, getBackfield, response_name,  **args):
 	filename = args.get('filename')
 	cert = args.get('cert')
 	key = args.get('key')
@@ -497,14 +534,17 @@ class KubernetesClusters(tornado.web.RequestHandler):
            response = requests.post(composed_url, json=jsonconf, headers=self.headers)
 
         if response.ok:
-           data = response.json()[getBackfield[0]][getBackfield[1]]
-           logging.info("response: " + json.dumps(data))
-           self.write({'response': data})
+           #data = response.json()
+           data = data[getBackfield[0]][getBackfield[1]]
+           logging.info("Volume response: " + json.dumps(data))
+           self.api_response['response'].append({response_name: data})
 	   return data
+        elif response.status_code == 409:
+           logging.warning("The secret in %s already exists" %(composed_url))
+           return 'Use the existing secret with the same name'
         else:
-            logging.error("Error in fetching %s 's resources from %s" %(self.coe, composed_url))
+            logging.error("Error in posting %s 's resources from %s" %(self.coe, composed_url))
             raise tornado.web.HTTPError(response.status_code)
-
 
     def _write(self, template, path):
         with open(path, "wb") as output:
