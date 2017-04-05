@@ -535,8 +535,8 @@ class KubernetesClusters(tornado.web.RequestHandler):
 
         if response.ok:
            #data = response.json()
-           data = data[getBackfield[0]][getBackfield[1]]
-           logging.info("Volume response: " + json.dumps(data))
+           data = response.json()[getBackfield[0]][getBackfield[1]]
+           logging.info("Volume response: " + data)
            self.api_response['response'].append({response_name: data})
 	   return data
         elif response.status_code == 409:
