@@ -24,11 +24,10 @@ from base64 import b64encode
 class KubernetesClusters(tornado.web.RequestHandler):
     """This is the handler of **/kubernetes/<class>/<name>** endpoint"""
 
-    token_header = 'X-Subject-Token'
-    auth_header = 'X-Auth-Token'
     headers = {'Content-Type': 'application/json'}
     cloud = config.get('containers-provider', 'cloud')
     coe = config.get(cloud, 'coe')
+    kubeApi = ''
     api_response = {'response': []}
     app_specifics = {
             'mysql': {
@@ -237,6 +236,8 @@ class KubernetesClusters(tornado.web.RequestHandler):
                 logging.error("Error in deleting %s 's resources from %s" %(self.coe, url[0]))
                 self.set_status(response.status_code)
             #self.write(self.api_response)
+
+
         try:
             rename(instance_dir, instance_dir + '.old')
         except OSError as e:
@@ -259,7 +260,8 @@ class KubernetesClusters(tornado.web.RequestHandler):
         isBeta = args.get('beta',True)
         cluster_certs_dir = config.get(self.cloud, 'cluster_certs_dir') + '/' + cluster_name
 
-        kubeApi = self._api_master(cluster_name)
+        if not self.kubeApi:
+            self.kubeApi = self._api_master(cluster_name)
         if self.request.uri.split('/')[3] == 'beta' and isBeta:
             apiVersion = 'apis/extensions/v1beta1'
         else:
