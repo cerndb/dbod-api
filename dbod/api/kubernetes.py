@@ -196,7 +196,7 @@ class KubernetesClusters(tornado.web.RequestHandler):
             volbin_name = instance_name + '-vol-bin'
 
             len_delete_urls = len(delete_urls)
-            data, _ = get_function(volume_project_url, self.headers)
+            data, _ = get_function(volume_project_url, headers=self.headers)
             for vol in data['volumes']:
                 if vol['name'] == voldata_name or vol['name'] == volbin_name:
                     url_detach = volume_project_url + '/' + vol['id'] + '/action'
@@ -210,6 +210,27 @@ class KubernetesClusters(tornado.web.RequestHandler):
                         %(instance_name))
                 raise tornado.web.HTTPError(SERVICE_UNAVAILABLE)
 
+        # Delete if necessary replicasets and remaining non terminating pods
+        logging.debug("Looking for replicasets and pods leftovers")
+        rs_args = self.get_resource_args(cluster, 'replicasets', True)
+        rs_url, _,_,_ = self._config(rs_args)
+        pods_args = self.get_resource_args(cluster, 'pods', False)
+        pods_url, _,_,_ = self._config(pods_args)
+        data, _ = get_function(rs_url, cert=cert, key=key, ca=ca)
+        if data.get('items'):
+            delete_urls.extend([(rs_url + '/' + item['metadata']['name'], True, 'delete')
+                                for item in data['items']
+                                 if instance_name+'-depl' in item['metadata']['name']
+                              ])
+        data, _ = get_function(pods_url, cert=cert, key=key, ca=ca)
+        if data.get('items'):
+            delete_urls.extend([(pods_url + '/' + item['metadata']['name'], True, 'delete')
+                                for item in data['items']
+                                if (instance_name+'-depl' in item['metadata']['name'] and
+                                    item['status']['phase'] == 'Running')
+                               ])
+
+        # Delete using the urls from delete_urls
         for url in delete_urls:
             logging.debug("Request to %s %s" %(url[2], url[0]))
             if url[2] == 'post':
@@ -236,7 +257,6 @@ class KubernetesClusters(tornado.web.RequestHandler):
                 logging.error("Error in deleting %s 's resources from %s" %(self.coe, url[0]))
                 self.set_status(response.status_code)
             #self.write(self.api_response)
-
 
         try:
             rename(instance_dir, instance_dir + '.old')
@@ -267,7 +287,7 @@ class KubernetesClusters(tornado.web.RequestHandler):
         else:
             apiVersion = 'api/v1'
         #kubeApi = kubeList[0]
-        composed_url = kubeApi + '/' + apiVersion
+        composed_url = self.kubeApi + '/' + apiVersion
         if resource:
             composed_url = composed_url + '/' + resource
             if ident:
@@ -292,7 +312,7 @@ class KubernetesClusters(tornado.web.RequestHandler):
 
         url = config.get(self.cloud, 'cluster_url')
         composed_url = url + '/' + 'clusters' + '/' + cluster_name
-        data, status_code = get_function(composed_url, self.headers)
+        data, status_code = get_function(composed_url, headers=self.headers)
         if status_code == 200:
             kubeApi = data['api_address']
             logging.debug("Kubernetes master(s) api: " + str(kubeApi))
@@ -447,7 +467,7 @@ class KubernetesClusters(tornado.web.RequestHandler):
 
         # Continue if volume_type is cinder
         logging.debug("Check the %s if there are volume leftovers with the same name" %(volume_project_url))
-        data, _ = get_function(volume_project_url, self.headers)
+        data, _ = get_function(volume_project_url, headers=self.headers)
         exist_volume = [instance_name+'-vol-data' in vol['name'] or instance_name+'-vol-bin' in vol['name']
                         for vol in data['volumes']]
 
@@ -504,7 +524,7 @@ class KubernetesClusters(tornado.web.RequestHandler):
         auth_id_url = config.get(self.cloud, 'auth_id_url')
 	project_url = auth_id_url + '/auth' + '/projects'
 	logging.debug("Get project id from %s" %(project_url))
-        data, status_code = get_function(project_url, self.headers)
+        data, status_code = get_function(project_url, headers=self.headers)
         if status_code == 200 and data:
             project_id = data['projects'][0]['id']
             project_name = data['projects'][0]['name']
@@ -513,7 +533,7 @@ class KubernetesClusters(tornado.web.RequestHandler):
             logging.error("Cannot access '%s' with status code %s" %(auth_id_url+'/auth'+'/projects', status_code))
             raise tornado.web.HTTPError(status_code)
 
-    def get_resource_args(self,cluster_name, resourse, isBeta):
+    def get_resource_args(self,cluster_name, resource, isBeta):
         resource_args = {'cluster': cluster_name,
                         'resource': 'namespaces',
                         'name': 'default',
