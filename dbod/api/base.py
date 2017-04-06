@@ -175,10 +175,22 @@ def cloud_auth(component):
         return wrapper
     return keystone_decorator
 
-def get_function(composed_url, headers):
-    response = requests.get(composed_url, headers=headers)
+def get_function(composed_url, **auth):
+    if auth.get('headers'):
+        response = requests.get(composed_url,
+                                headers=auth.get('headers'))
+    elif auth.get('cert') and auth.get('key') and auth.get('ca'):
+        response = requests.get(composed_url, 
+                                cert=(auth.get('cert'), auth.get('key')),
+                                verify=auth.get('ca'))
+    else:
+        return {}, 401
+        
     if response.ok:
-        data = response.json()
+        try:
+            data = response.json()
+        except ValueError:
+            return {}, 500
         if data:
             return data, response.status_code
     return {}, response.status_code, 
