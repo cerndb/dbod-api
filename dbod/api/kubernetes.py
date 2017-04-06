@@ -63,6 +63,7 @@ class KubernetesClusters(tornado.web.RequestHandler):
     def post(self, **args):
         logging.debug('Arguments:' + str(self.request.arguments))
         composed_url, cert, key, ca = self._config(args)
+        cluster = args.get('cluster')
 
         app_type = self.get_argument('app_type', None)
         instance_name = self.get_argument('app_name', None)
@@ -81,7 +82,7 @@ class KubernetesClusters(tornado.web.RequestHandler):
 
             logging.info("Start to create the %s instance %s witg %s volumes"
                     %(app_type, instance_name, volume_type))
-            depl, svc = self.app_config(app_type, instance_name, args.get('cluster'), volume_type)
+            depl, svc = self.app_config(app_type, instance_name, cluster, volume_type)
             logging.debug("depl %s & svc %s" %(depl, svc))
             with open(depl) as fd1, open(svc) as fd2 :
                 depl_json = json.load(fd1)
@@ -103,7 +104,7 @@ class KubernetesClusters(tornado.web.RequestHandler):
 
         if len(specs) > 1:
             temp = composed_url
-            service_args = self.get_service_args(args.get('cluster'))
+            service_args = self.get_resource_args(cluster, 'services', False)
             composed_url, _,_,_ = self._config(service_args)
 
         for spec in specs:
@@ -143,6 +144,7 @@ class KubernetesClusters(tornado.web.RequestHandler):
                 logging.error("You have to define the instance name to be deleted in the url")
                 raise tornado.web.HTTPError(BAD_REQUEST)
 
+        cluster = args.get('cluster')
         logging.debug("Request to delete " + instance_name)
         app_type = self.get_argument('app_type', None)
         #instance_name = self.get_argument('app_name')
@@ -165,13 +167,13 @@ class KubernetesClusters(tornado.web.RequestHandler):
         delete_urls = [(deleteit, True, 'delete')]
 
         if delete_service:
-            service_args = self.get_service_args(args.get('cluster'))
+            service_args = self.get_resource_args(cluster, 'services', False)
             service_url, _,_,_ = self._config(service_args)
             delete_urls.append((service_url + '/' + instance_name + '-svc', True, 'delete'))
 
         if delete_volumes:
             # Secrets
-            secrets_args = self.get_secrets_args(args.get('cluster'))
+            secrets_args = self.get_resource_args(cluster, 'secrets', False)
             secrets_url, _,_,_ = self._config(secrets_args)
 
             #secret_url = composed_url[:changeurl_index+1] + \
@@ -383,7 +385,7 @@ class KubernetesClusters(tornado.web.RequestHandler):
 
         project_id, project_name = self.get_project_info()
 
-        secrets_args = self.get_secrets_args(cluster_name)
+        secrets_args = self.get_resource_args(cluster_name, 'secrets', False)
         secret_url, cert, key, ca = self._config(secrets_args)
         volume_project_url = volume_url + '/' + project_id + '/volumes'
 
@@ -509,23 +511,14 @@ class KubernetesClusters(tornado.web.RequestHandler):
             logging.error("Cannot access '%s' with status code %s" %(auth_id_url+'/auth'+'/projects', status_code))
             raise tornado.web.HTTPError(status_code)
 
-    def get_service_args(self, cluster_name):
-        service_args = {'cluster': cluster_name,
+    def get_resource_args(self,cluster_name, resourse, isBeta):
+        resource_args = {'cluster': cluster_name,
                         'resource': 'namespaces',
                         'name': 'default',
-                        'subresource': 'services',
-                        'beta': False
+                        'subresource': resource,
+                        'beta': isBeta
                        }
-        return service_args
-
-    def get_secrets_args(self,cluster_name):
-        secrets_args = {'cluster': cluster_name,
-                        'resource': 'namespaces',
-                        'name': 'default',
-                        'subresource': 'secrets',
-                        'beta': False
-                       }
-        return secrets_args
+        return resource_args
 
     def get_volume_config(self, volume_type, voldata, volbin):
         if volume_type == 'nfs':
