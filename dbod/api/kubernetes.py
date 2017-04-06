@@ -64,14 +64,24 @@ class KubernetesClusters(tornado.web.RequestHandler):
         logging.debug('Arguments:' + str(self.request.arguments))
         composed_url, cert, key, ca = self._config(args)
 
-        app_type = self.get_argument('app_type')
-        instance_name = self.get_argument('app_name')
-        if app_type and instance_name:
-            #exists = self.check_ifexists(instance_name, composed_url, cert=cert, key=key, ca=ca)
-            #if exists:
-            #    raise tornado.web.HTTPError(CONFLICT)
-            logging.info("Start to create the instanse %s" %(instance_name))
-            depl, svc = self.app_config(app_type, instance_name, args.get('cluster'))
+        app_type = self.get_argument('app_type', None)
+        instance_name = self.get_argument('app_name', None)
+        volume_type = self.get_argument('vol_type', None)
+        if ((app_type == 'mysql' or app_type == 'postgres') and
+            (volume_type == 'cinder' or volume_type == 'nfs') and
+            instance_name):
+            if volume_type == 'nfs':
+                # status code 400 if type is nfs and server and path is not defined
+                if (not self.get_argument('server',None) and
+                    not self.get_argument('path_data',None) and
+                    not self.get_argument('path_bin',None)):
+
+                    logging.error("For NFS you need to provide also the server and the path")
+                    raise tornado.web.HTTPError(BAD_REQUEST)
+
+            logging.info("Start to create the %s instance %s witg %s volumes"
+                    %(app_type, instance_name, volume_type))
+            depl, svc = self.app_config(app_type, instance_name, args.get('cluster'), volume_type)
             logging.debug("depl %s & svc %s" %(depl, svc))
             with open(depl) as fd1, open(svc) as fd2 :
                 depl_json = json.load(fd1)
@@ -134,7 +144,7 @@ class KubernetesClusters(tornado.web.RequestHandler):
                 raise tornado.web.HTTPError(BAD_REQUEST)
 
         logging.debug("Request to delete " + instance_name)
-        app_type = self.get_argument('app_type')
+        app_type = self.get_argument('app_type', None)
         #instance_name = self.get_argument('app_name')
         delete_volumes = self.get_argument('delete_volumes', False)
         delete_service = self.get_argument('delete_service', False)
@@ -148,7 +158,7 @@ class KubernetesClusters(tornado.web.RequestHandler):
         instance_dir = app_conf_dir + '/' + instance_name.upper()
 
         # delete_urls: (url, use_cert=Boolean, method)
-        if args.get('subresource') == 'deployments':
+        if args.get('subresource') == 'deployments' and app_type:
             deleteit = composed_url + '-depl'
         else:
             deleteit = composed_url
@@ -228,9 +238,15 @@ class KubernetesClusters(tornado.web.RequestHandler):
         try:
             rename(instance_dir, instance_dir + '.old')
         except OSError as e:
-            logging.error("The directory %s is not registered for %s" %(instance_dir, instance_name))
-            logging.error("Return code: %s" %(e))
-            self.set_status(NOT_FOUND)
+            # e.errno: 39 Directory not empty
+            if e.errno == 39:
+                logging.warning("%s dir cannot be renamed because %s.old already exists" %(instance_name,instance_name))
+                logging.warning("You shoud delete manually %s" %(instance_dir))
+                self.set_status(ACCEPTED)
+            else:
+                logging.error("The directory %s is not registered for %s" %(instance_dir, instance_name))
+                logging.error("Return code: %s" %(e))
+                self.set_status(NOT_FOUND)
 
     def _config(self, args):
         cluster_name = args.get('cluster')
@@ -281,7 +297,7 @@ class KubernetesClusters(tornado.web.RequestHandler):
             logging.error("Error fetching cloud's resources in this endpoint: " + composed_url)
             raise tornado.web.HTTPError(status_code)
 
-    def app_config(self, app_type, instance_name, cluster_name):
+    def app_config(self, app_type, instance_name, cluster_name, volume_type):
         # TODO try to initiate mysql through a bash file for consistency
         instance_port = self.app_specifics[app_type]['port']
         conf_name = self.app_specifics[app_type]['conf_name']
@@ -332,10 +348,12 @@ class KubernetesClusters(tornado.web.RequestHandler):
         self._write(conf, filename)
 	logging.debug("%s %s conf file is ready" %(filename, app_type))
 
-        volume_data, volume_bin = self.cloud_volume_creation(app_conf_dir, app_type, instance_name, templates, cluster_name)
-        configuration.update({'volume_data': volume_data,
-                              'volume_bin': volume_bin
-                             })
+        volume_data = None
+        volume_bin = None
+        volume_data, volume_bin = self.cloud_volume_creation(app_conf_dir, app_type, instance_name, templates, cluster_name, volume_type)
+
+        configuration.update(self.get_volume_config(volume_type, volume_data, volume_bin))
+
 	filename = instance_dir + '/' + 'depl.json'
         controller_json = templates.get_template(app_type + '-depl.json.template').render(configuration)
         self._write(controller_json, filename)
@@ -351,7 +369,8 @@ class KubernetesClusters(tornado.web.RequestHandler):
         return returnBack
 
 
-    def cloud_volume_creation(self, app_conf_dir, app_type, instance_name, templates, cluster_name):
+    def cloud_volume_creation(self, app_conf_dir, app_type, instance_name, templates, cluster_name, volume_type):
+        # TODO separate secrets with cinder volumes
         conf_name = self.app_specifics[app_type]['conf_name']
         init_name = self.app_specifics[app_type]['init_name']
 
@@ -419,6 +438,10 @@ class KubernetesClusters(tornado.web.RequestHandler):
                               exists_init)
                            )
 
+        if volume_type == 'nfs':
+            return None, None
+
+        # Continue if volume_type is cinder
         logging.debug("Check the %s if there are volume leftovers with the same name" %(volume_project_url))
         data, _ = get_function(volume_project_url, self.headers)
         exist_volume = [instance_name+'-vol-data' in vol['name'] or instance_name+'-vol-bin' in vol['name']
@@ -503,6 +526,24 @@ class KubernetesClusters(tornado.web.RequestHandler):
                         'beta': False
                        }
         return secrets_args
+
+    def get_volume_config(self, volume_type, voldata, volbin):
+        if volume_type == 'nfs':
+            return {'volume_type': volume_type,
+                    'volume_ident': 'path',
+                    'volume_ident_data': self.get_argument('path_data'),
+                    'volume_ident_bin': self.get_argument('path_bin'),
+                    'volume_attr': 'server',
+                    'volume_attr_value': self.get_argument('server')
+                   }
+        elif volume_type == 'cinder':
+            return {'volume_type': volume_type,
+                    'volume_ident': 'volumeID',
+                    'volume_ident_data': voldata,
+                    'volume_ident_bin': volbin,
+                    'volume_attr': 'fsType',
+                    'volume_attr_value': 'ext4'
+                   }
 
     def postjson(self, composed_url, getBackfield, response_name,  **args):
 	filename = args.get('filename')
