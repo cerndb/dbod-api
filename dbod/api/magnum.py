@@ -34,7 +34,7 @@ class MagnumClusters(tornado.web.RequestHandler):
     def get(self, **args):
         composed_url = self.magnum_config(args)
 
-        data, status_code = get_function(composed_url, self.headers)
+        data, status_code = get_function(composed_url, headers=self.headers)
         if data:
             logging.debug("response: " + json.dumps(data))
             self.write({'response' : data})
@@ -54,7 +54,7 @@ class MagnumClusters(tornado.web.RequestHandler):
             raise tornado.web.HTTPError(BAD_REQUEST)
 
         new_cluster = cluster_specs['name']
-        _, status_code = get_function(composed_url + '/' + new_cluster, self.headers)
+        _, status_code = get_function(composed_url + '/' + new_cluster, headers=self.headers)
         if status_code == 200 or status_code == 409:
             logging.error("Multiple clusters exist with same name.")
             self.set_status(CONFLICT)
