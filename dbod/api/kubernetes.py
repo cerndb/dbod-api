@@ -190,7 +190,7 @@ class KubernetesClusters(tornado.web.RequestHandler):
             project_id, project_name = self.get_project_info()
             volume_url = config.get(self.cloud, 'volume_url')
             volume_project_url = volume_url + '/' + project_id + '/volumes'
-            body = {"os-detach":{}}
+            body = '{"os-detach":{}\n}'
 
             voldata_name = instance_name + '-vol-data'
             volbin_name = instance_name + '-vol-bin'
@@ -235,8 +235,9 @@ class KubernetesClusters(tornado.web.RequestHandler):
             logging.debug("Request to %s %s" %(url[2], url[0]))
             if url[2] == 'post':
                 response = requests.post(url[0],
-                                         json=body,
+                                         data=body,
                                          headers=self.headers)
+                print response.status_code
             if url[1] and url[2] == 'delete':
                 response = requests.delete(url[0],
                                            cert=(cert, key),
@@ -244,7 +245,7 @@ class KubernetesClusters(tornado.web.RequestHandler):
             else:
                 response = requests.delete(url[0],
                                            headers=self.headers)
-            if response.ok:
+            if response.ok or response.status_code == 202:
                 #data = response.json()
                 #logging.info("response: " + json.dumps(data))
                 #self.api_response['response'].append(data)
