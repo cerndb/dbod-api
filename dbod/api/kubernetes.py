@@ -22,7 +22,38 @@ from jinja2 import Environment, FileSystemLoader
 from base64 import b64encode
 
 class KubernetesClusters(tornado.web.RequestHandler):
-    """This is the handler of **/kubernetes/<class>/<name>** endpoint"""
+    """
+    This is the handler of **(/beta)/kubernetes/<cluster>/<resource>/<name>/<suresource><subname>**
+    endpoint
+
+    Things that are given for the development of this endpoint:
+
+    * There are 2 new sections in the *api.cfg*:
+        * *containers-provider*, which includes:
+            * the name of the cloud container provider e.g. magnum or native
+            * the directory for the applications files
+        * *<name of container provider>* which includes:
+            * *coe*, the name of the orchestrator
+            * *cluster_certs*, the directory where the certificates for accessing
+            the  orchestrator are stored
+            * *auth_json*, the path to the json file for authenticating with the container provider
+            * *cluster_url*, base url for accessing the container provider
+            * *auth_id_url*, base url for authenticating with the container provider
+            * *volume_url*, base url for managing volumes of the container provider
+
+    * All the directories defined in the *api.cfg* above have to exist and the user who runs the
+    api has to be able to read-write on them
+
+    * There has to be a folder named *contenedor-apps* which will have to include folders with the supported
+    applications; in this case these are *mysql* and *postgres*.
+        * In the folder with the name of the application there has to be the templates folder for:
+            * the deployment kubernetes configuration file
+            * the service kubernetes configuration file
+            * the secret kubernetes configuration file
+            * the application's configuration file which will be encoded later to be mounted as a secret
+        * In the folder there has to be also the initialization script (init.sql for mysql and init.sh for postgres)
+        which will be encoded and mounted as a secret in kubernetes as well
+    """
 
     headers = {'Content-Type': 'application/json'}
     cloud = config.get('containers-provider', 'cloud')
@@ -72,7 +103,8 @@ class KubernetesClusters(tornado.web.RequestHandler):
             instance_name):
             if volume_type == 'nfs':
                 # status code 400 if type is nfs and server and path is not defined
-                if (not self.get_argument('server',None) and
+                if (not self.get_argument('server_data',None) and
+                    not self.get_argument('server_bin',None) and
                     not self.get_argument('path_data',None) and
                     not self.get_argument('path_bin',None)):
 
@@ -150,13 +182,14 @@ class KubernetesClusters(tornado.web.RequestHandler):
         delete_volumes = self.get_argument('delete_volumes', False)
         delete_service = self.get_argument('delete_service', False)
 
-        if not instance_name or (app_type != 'mysql' and app_type != 'postgres'):
+        if not instance_name or (app_type and app_type != 'mysql' and app_type != 'postgres'):
             logging.error("You have to define the app type and the instance name")
             raise tornado.web.HTTPError(BAD_REQUEST)
 
-        apps_dir = config.get('containers-provider', 'apps_dir')
-        app_conf_dir = apps_dir + '/' + app_type
-        instance_dir = app_conf_dir + '/' + instance_name.upper()
+        if app_type:
+            apps_dir = config.get('containers-provider', 'apps_dir')
+            app_conf_dir = apps_dir + '/' + app_type
+            instance_dir = app_conf_dir + '/' + instance_name.upper()
 
         # delete_urls: (url, use_cert=Boolean, method)
         if args.get('subresource') == 'deployments' and app_type:
@@ -187,6 +220,7 @@ class KubernetesClusters(tornado.web.RequestHandler):
                                 True, 'delete'))
 
             # Cinder
+            # If there is a volume name with the instance name it will be deleted
             project_id, project_name = self.get_project_info()
             volume_url = config.get(self.cloud, 'volume_url')
             volume_project_url = volume_url + '/' + project_id + '/volumes'
@@ -230,6 +264,7 @@ class KubernetesClusters(tornado.web.RequestHandler):
                                     item['status']['phase'] == 'Running')
                                ])
 
+        logging.debug("URLs to be accessed for deletion: " + str(delete_urls))
         # Delete using the urls from delete_urls
         for url in delete_urls:
             logging.debug("Request to %s %s" %(url[2], url[0]))
@@ -259,18 +294,19 @@ class KubernetesClusters(tornado.web.RequestHandler):
                 self.set_status(response.status_code)
             #self.write(self.api_response)
 
-        try:
-            rename(instance_dir, instance_dir + '.old')
-        except OSError as e:
-            # e.errno: 39 Directory not empty
-            if e.errno == 39:
-                logging.warning("%s dir cannot be renamed because %s.old already exists" %(instance_name,instance_name))
-                logging.warning("You shoud delete manually %s" %(instance_dir))
-                self.set_status(ACCEPTED)
-            else:
-                logging.error("The directory %s is not registered for %s" %(instance_dir, instance_name))
-                logging.error("Return code: %s" %(e))
-                self.set_status(NOT_FOUND)
+        if app_type:
+            try:
+                rename(instance_dir, instance_dir + '.old')
+            except OSError as e:
+                # e.errno: 39 Directory not empty
+                if e.errno == 39:
+                    logging.warning("%s dir cannot be renamed because %s.old already exists" %(instance_name,instance_name))
+                    logging.warning("You shoud delete manually %s" %(instance_dir))
+                    self.set_status(ACCEPTED)
+                else:
+                    logging.error("The directory %s is not registered for %s" %(instance_dir, instance_name))
+                    logging.error("Return code: %s" %(e))
+                    self.set_status(NOT_FOUND)
 
     def _config(self, args):
         cluster_name = args.get('cluster')
@@ -550,7 +586,8 @@ class KubernetesClusters(tornado.web.RequestHandler):
                     'volume_ident_data': self.get_argument('path_data'),
                     'volume_ident_bin': self.get_argument('path_bin'),
                     'volume_attr': 'server',
-                    'volume_attr_value': self.get_argument('server')
+                    'volume_attr_data': self.get_argument('server_data'),
+                    'volume_attr_bin': self.get_argument('server_bin')
                    }
         elif volume_type == 'cinder':
             return {'volume_type': volume_type,
@@ -558,7 +595,8 @@ class KubernetesClusters(tornado.web.RequestHandler):
                     'volume_ident_data': voldata,
                     'volume_ident_bin': volbin,
                     'volume_attr': 'fsType',
-                    'volume_attr_value': 'ext4'
+                    'volume_attr_data': 'ext4',
+                    'volume_attr_bin': 'ext4'
                    }
 
     def postjson(self, composed_url, getBackfield, response_name,  **args):
