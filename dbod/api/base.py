@@ -82,10 +82,21 @@ def http_basic_auth(fun):
 
 # Openstack authentication through keystone
 def cloud_auth(component):
+    """
+    This function can be used as a decorator.
+    It is used for authenticating with the container providers and the orchestrators.
+    In this case the container provider is *magnum* and the orchestrator *kubernetes*.
+
+    :param component: magnum or kubernetes
+    :type component: str
+    :return: The calling function with the auth header or the certificates' paths as function parameters
+    :raises: 401 UNAUTHORIZED - when the password of the *auth_keystone.json* is not correct
+    """
     def keystone_decorator(fun):
         @functools.wraps(fun)
         def wrapper(*args, **kwargs):
             if component == "magnum":
+                # header from keystone
                 token_header = 'X-Subject-Token'
                 keystone_url = config.get(component, 'auth_id_url')
                 auth_url = keystone_url + '/auth' + '/tokens'
@@ -129,6 +140,7 @@ def cloud_auth(component):
                         logging.error("There are certificates missing in %s" %(cluster_certs_dir))
                 else:
                     try:
+                        # create a directory with all the certificates for future use
                         mkdir(cluster_certs_dir)
                         logging.debug("Creating certs dir in " + cluster_certs_dir)
                     except OSError, e:
@@ -136,6 +148,7 @@ def cloud_auth(component):
                         logging.error("Return code: %s" %(e.returncode))
                         raise tornado.web.HTTPError(UNAUTHORIZED)
 
+                # take the necessary information from the authentication json file
                 auth_json_file = config.get(cloud,'auth_json')
                 auth_json = json.load(open(auth_json_file, 'r'))['auth']
 
@@ -163,6 +176,7 @@ def cloud_auth(component):
                     cmd_args = cmd_args + " --force"
                 cmd_final = cmd_prefix + ' ' + cmd + ' ' + cmd_args
                 try:
+                    # No way to run this kind of command through the Openstack API
                     check_output(shlex.split(cmd_final))
                     logging.debug("Command %s with args %s ran successfully" %(cmd, cmd_args))
                     return fun(*args, **kwargs)
@@ -176,16 +190,36 @@ def cloud_auth(component):
     return keystone_decorator
 
 def get_function(composed_url, **auth):
+    """
+    This function is used to do easily GET requests without checking the results every time.
+
+    :param url: The url the request will be sent to
+
+    :param headers: The value is a dict, the token in the header which is used to access openstack through keystone
+    :type headers: dict
+    or
+    :param cert: The value is a str, the path to the certificate which is usually used to access kubernetes
+    :type cert: dict
+    :type cert.value: str
+    :param key: The value is a str, the path to the private key
+    :type key: dict
+    :param ca: The value is a str, the path to the certificate authority
+    :type ca: dict
+
+    :return: The json data and the status_code
+    :rtype: dict, int
+
+    """
     if auth.get('headers'):
         response = requests.get(composed_url,
                                 headers=auth.get('headers'))
     elif auth.get('cert') and auth.get('key') and auth.get('ca'):
-        response = requests.get(composed_url, 
+        response = requests.get(composed_url,
                                 cert=(auth.get('cert'), auth.get('key')),
                                 verify=auth.get('ca'))
     else:
         return {}, 401
-        
+
     if response.ok:
         try:
             data = response.json()
@@ -193,7 +227,7 @@ def get_function(composed_url, **auth):
             return {}, 500
         if data:
             return data, response.status_code
-    return {}, response.status_code, 
+    return {}, response.status_code,
 
 def get_instance_id_by_name(name):
     """Common function to get the ID of an instance by its name."""
