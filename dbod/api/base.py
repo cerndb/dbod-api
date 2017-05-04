@@ -195,12 +195,14 @@ def get_function(composed_url, **auth):
 
     :param url: The url the request will be sent to
 
-    :param headers: The value is a dict, the token in the header which is used to access openstack through keystone
+    :param headers: The value is a *dict*, the token in the header which is used to access openstack through keystone
     :type headers: dict
+
     or
-    :param cert: The value is a str, the path to the certificate which is usually used to access kubernetes
+
+    :param url: The url the request will be sent to
+    :param cert: The value is a *str*, the path to the certificate which is usually used to access kubernetes
     :type cert: dict
-    :type cert.value: str
     :param key: The value is a str, the path to the private key
     :type key: dict
     :param ca: The value is a str, the path to the certificate authority
