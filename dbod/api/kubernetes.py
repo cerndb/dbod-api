@@ -23,8 +23,7 @@ from base64 import b64encode
 
 class KubernetesClusters(tornado.web.RequestHandler):
     """
-    This is the handler of **(/beta)/kubernetes/<cluster>/<resource>/<name>/<suresource><subname>**
-    endpoint
+    This is the handler of **(/beta)/kubernetes/<cluster>/<resource>/<name>/<suresource><subname>** endpoint
 
     Things that are given for the development of this endpoint:
 
@@ -34,25 +33,21 @@ class KubernetesClusters(tornado.web.RequestHandler):
             * the directory for the applications files
         * *<name of container provider>* which includes:
             * *coe*, the name of the orchestrator
-            * *cluster_certs*, the directory where the certificates for accessing
-            the  orchestrator are stored
+            * *cluster_certs*, the directory where the certificates for accessing the  orchestrator are stored
             * *auth_json*, the path to the json file for authenticating with the container provider
             * *cluster_url*, base url for accessing the container provider
             * *auth_id_url*, base url for authenticating with the container provider
             * *volume_url*, base url for managing volumes of the container provider
 
-    * All the directories defined in the *api.cfg* above have to exist and the user who runs the
-    api has to be able to read-write on them
+    * All the directories defined in the *api.cfg* above have to exist and the user who runs the api has to be able to read-write on them
 
-    * There has to be a folder named *contenedor-apps* which will have to include folders with the supported
-    applications; in this case these are *mysql* and *postgres*.
+    * There has to be a folder named *contenedor-apps* which will have to include folders with the supported applications; in this case these are *mysql* and *postgres*.
         * In the folder with the name of the application there has to be the templates folder for:
             * the deployment kubernetes configuration file
             * the service kubernetes configuration file
             * the secret kubernetes configuration file
             * the application's configuration file which will be encoded later to be mounted as a secret
-        * In the folder there has to be also the initialization script (init.sql for mysql and init.sh for postgres)
-        which will be encoded and mounted as a secret in kubernetes as well
+        * In the folder there has to be also the initialization script (init.sql for mysql and init.sh for postgres) which will be encoded and mounted as a secret in kubernetes as well
     """
 
     headers = {'Content-Type': 'application/json'}
@@ -181,6 +176,7 @@ class KubernetesClusters(tornado.web.RequestHandler):
         #instance_name = self.get_argument('app_name')
         delete_volumes = self.get_argument('delete_volumes', False)
         delete_service = self.get_argument('delete_service', False)
+        force = self.get_argument('force', False)
 
         if not instance_name or (app_type and app_type != 'mysql' and app_type != 'postgres'):
             logging.error("You have to define the app type and the instance name")
@@ -245,24 +241,26 @@ class KubernetesClusters(tornado.web.RequestHandler):
                 raise tornado.web.HTTPError(SERVICE_UNAVAILABLE)
 
         # Delete if necessary replicasets and remaining non terminating pods
-        logging.debug("Looking for replicasets and pods leftovers")
-        rs_args = self.get_resource_args(cluster, 'replicasets', True)
-        rs_url, _,_,_ = self._config(rs_args)
-        pods_args = self.get_resource_args(cluster, 'pods', False)
-        pods_url, _,_,_ = self._config(pods_args)
-        data, _ = get_function(rs_url, cert=cert, key=key, ca=ca)
-        if data.get('items'):
-            delete_urls.extend([(rs_url + '/' + item['metadata']['name'], True, 'delete')
-                                for item in data['items']
-                                 if instance_name+'-depl' in item['metadata']['name']
-                              ])
-        data, _ = get_function(pods_url, cert=cert, key=key, ca=ca)
-        if data.get('items'):
-            delete_urls.extend([(pods_url + '/' + item['metadata']['name'], True, 'delete')
-                                for item in data['items']
-                                if (instance_name+'-depl' in item['metadata']['name'] and
-                                    item['status']['phase'] == 'Running')
-                               ])
+        if force:
+            logging.debug("Looking for replicasets and pods leftovers")
+            rs_args = self.get_resource_args(cluster, 'replicasets', True)
+            rs_url, _,_,_ = self._config(rs_args)
+            pods_args = self.get_resource_args(cluster, 'pods', False)
+            pods_url, _,_,_ = self._config(pods_args)
+            data, _ = get_function(rs_url, cert=cert, key=key, ca=ca)
+            if data.get('items'):
+                delete_urls.extend([(rs_url + '/' + item['metadata']['name'], True, 'delete')
+                                    for item in data['items']
+                                     if instance_name in item['metadata']['name']
+                                  ])
+            data, _ = get_function(pods_url, cert=cert, key=key, ca=ca)
+            if data.get('items'):
+                delete_urls.extend([(pods_url + '/' + item['metadata']['name'], True, 'delete')
+                                    for item in data['items']
+                                    if (instance_name in item['metadata']['name'] and
+                                        (item['status']['phase'] == 'Running' or 
+                                        item['status']['phase'] == 'Pending'))
+                                   ])
 
         logging.debug("URLs to be accessed for deletion: " + str(delete_urls))
         # Delete using the urls from delete_urls
