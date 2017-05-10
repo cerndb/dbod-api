@@ -27,6 +27,15 @@ class KubernetesClusters(tornado.web.RequestHandler):
 
     Things that are given for the development of this endpoint:
 
+    * We request indirectly the `Kubernetes <https://kubernetes.io/>`_ standard or beta `API <https://kubernetes.io/docs/api-reference/v1.5/>`_ the current version of Kubernetes is *1.5.2*.
+
+    * In the current use case Kubernetes lives inside `Magnum <https://wiki.openstack.org/wiki/Magnum>`_ and we need to provide for all the requests the token to access keystone, the authentication component of `Openstack <https://www.openstack.org/software/>`_.
+        * A json file defined in the *api.cfg* has to be present with the credentials of the user in order to authenticate with Openstack.
+        * The header *X-Auth-Token* and all the authentication with Openstack and Kubernetes is handled by the handler by using *cloud_auth* decorator with the *cloud* parameter which then passes the **token_header** (dict) parameter to the function.
+        * In all the requests of the supported methods *cloud_auth* decorator with the *coe* parameter makes sure that the certificates for accessing Kubernetes cluster is in place under the right direcotry (*/clusters/<name of cluster>*)
+
+    * The handler functions as a wrapper of Openstack's APIs. This means that you can also do everything that you would do through Kubernetes APIs.
+
     * There are 2 new sections in the *api.cfg*:
         * *containers-provider*, which includes:
             * the name of the cloud container provider e.g. magnum or native
@@ -34,7 +43,7 @@ class KubernetesClusters(tornado.web.RequestHandler):
         * *<name of container provider>* which includes:
             * *coe*, the name of the orchestrator
             * *cluster_certs*, the directory where the certificates for accessing the  orchestrator are stored
-            * *auth_json*, the path to the json file for authenticating with the container provider
+            * *auth_json*, the path to the json file for authenticating with the container provider, magnum (see `openstack docs <https://docs.openstack.org/developer/keystone/devref/api_curl_examples.html#project-scoped>`_)
             * *cluster_url*, base url for accessing the container provider
             * *auth_id_url*, base url for authenticating with the container provider
             * *volume_url*, base url for managing volumes of the container provider
@@ -47,7 +56,21 @@ class KubernetesClusters(tornado.web.RequestHandler):
             * the service kubernetes configuration file
             * the secret kubernetes configuration file
             * the application's configuration file which will be encoded later to be mounted as a secret
-        * In the folder there has to be also the initialization script (init.sql for mysql and init.sh for postgres) which will be encoded and mounted as a secret in kubernetes as well
+        * In the folder there has to be also the initialization script (init.sql for mysql and init.sh for postgres) which will be encoded and mounted as a secret in kubernetes
+
+    * The secret for accessing a private registry, like gitlab-registry, has to be mounted manually on kubernetes
+
+
+    The request methods implemented for this endpoint are:
+
+    * :func:`get`
+    * :func:`post`
+    * :func:`delete`
+
+    .. note::
+
+        You need to provide a <*username*> and a <*password*> to use
+        :func:`post` and :func:`delete` methods or to provide manually the *Authorization* header.
     """
 
     headers = {'Content-Type': 'application/json'}
@@ -70,6 +93,31 @@ class KubernetesClusters(tornado.web.RequestHandler):
 
     @cloud_auth(coe)
     def get(self, **args):
+	"""
+	The *GET* method returns the specific resource object by name.
+
+        The parameters are passed by the url and from the *cloud_auth* decorator
+
+        :param cluster: the name of the cluster in the cloud provider (magnum)
+        :type cluster: str
+
+        :param resource: the resource in the orchestrator (e.g. *namespaces*)
+        :type resource: str
+        :param name: the name of the resource (e.g. *default*)
+        :type name: str
+        :param subresource: the subresource in the orchestrator (e.g. *services*)
+        :type subresource: str
+        :param subname: the name of the subresource
+        :type subname: str
+
+        :return: The json object that Kubernetes returns
+        :rtype: json
+
+        .. note::
+
+            All of the parameters apart from the *cluster* are optional in order to support all of the Kubernetes functionalities.
+
+	"""
         logging.debug('Arguments:' + str(self.request.arguments))
         composed_url, cert, key, ca = self._config(args)
 
@@ -86,6 +134,58 @@ class KubernetesClusters(tornado.web.RequestHandler):
     @cloud_auth(coe)
     @http_basic_auth
     def post(self, **args):
+
+        """
+        The *POST* method creatapp_type(str) - the type of the application (at the moment *mysql* and *postgres* are supported)es a new resource in Kubernetes cluster
+
+        :param cluster: the name of the cluster in the cloud provider (magnum)
+        :type cluster: str
+        :param resource: the resource in the orchestrator (e.g. *namespaces*)
+        :type resource: str
+        :param name: the name of the resource (e.g. *default*)
+        :type name: str
+
+        :param subresource: the subresource in the orchestrator (e.g. *services*)
+        :type subresource: str
+        :param subname: the name of the subresource
+        :type subname: str
+
+        :request body:
+            - app_type(str) - the type of the application (at the moment *mysql* and *postgres* are supported)
+            - app_name(str) - the name of the application instance
+            - vol_type(str) - the storage system that will be used (at the moment *cinder* and *nfs* are supported)
+
+        In case of *vol_type=nfs* the following parameters have to be given as well:
+
+            :request body:
+                - server_data(str) - the hostname/IP of the server which will be used for storing the data of the application (database in our use case)
+                - server_bin(str) - the hostname/IP of the server which will be used for storing the binlogs of the application (database in our use case)
+                - path_data(str) - the path in the *server_data* for storing the data
+                - path_bin(str) - the path in the *server_bin* for storing the binlogs
+
+        :return: The json object that Kubernetes returns
+        :rtype: json
+        :raises HTTPError: if not all request body parameters are given
+        :raises ValueError: in case an invalid json is given through the request body
+
+        .. note::
+
+            - Depending on the resource (i.e. namespace or deployment) some parameters are optional. The minimum parameters that have to be passed through the url are the <*cluster*>, <*resource*> and <*name*>.
+
+            - Conventions:
+                * When the <*app_type*> request body parameter is present:
+
+                    * the resource is a Kubernetes *deployment*
+                    * the name of the resource to create is the instance name of a supported application; and not the actual name of the resource
+                    * in the name of the resource it will be added a suffix:
+                        * *-depl* for the deployment
+                        * *-svc* for the service
+                        * *-secret-<conf_file>/<init_file>* for the secrets
+
+                * When the <*app_type*> request body parameter is not present, no other modifications are made and just the specific resource from the request body it will be posted
+
+        """
+
         logging.debug('Arguments:' + str(self.request.arguments))
         composed_url, cert, key, ca = self._config(args)
         cluster = args.get('cluster')
@@ -93,6 +193,9 @@ class KubernetesClusters(tornado.web.RequestHandler):
         app_type = self.get_argument('app_type', None)
         instance_name = self.get_argument('app_name', None)
         volume_type = self.get_argument('vol_type', None)
+
+        # if there are no the right params present,
+        # it will try to load a json from request body
         if ((app_type == 'mysql' or app_type == 'postgres') and
             (volume_type == 'cinder' or volume_type == 'nfs') and
             instance_name):
@@ -106,8 +209,12 @@ class KubernetesClusters(tornado.web.RequestHandler):
                     logging.error("For NFS you need to provide also the server and the path")
                     raise tornado.web.HTTPError(BAD_REQUEST)
 
-            logging.info("Start to create the %s instance %s witg %s volumes"
+            # when all the right params are present it will prepare to deploy all the necessary
+            # components of the application along with the volumes
+            logging.info("Start to create the %s instance %s with %s volumes"
                     %(app_type, instance_name, volume_type))
+
+            # here it gets the path to the kubernetes configuration files for the specific instance
             depl, svc = self.app_config(app_type, instance_name, cluster, volume_type)
             logging.debug("depl %s & svc %s" %(depl, svc))
             with open(depl) as fd1, open(svc) as fd2 :
@@ -128,6 +235,7 @@ class KubernetesClusters(tornado.web.RequestHandler):
         #if specs['kind'] != resource and specs['kind'] != subresource:
         #    logging.warning("Ensure that your request 'kind:%s' is for this endpoint" %(specs['kind']))
 
+        # since service it's first in the list we compose the right url
         if len(specs) > 1:
             temp = composed_url
             service_args = self.get_resource_args(cluster, 'services', False)
@@ -144,6 +252,7 @@ class KubernetesClusters(tornado.web.RequestHandler):
             if response.ok:
                 data = response.json()
                 logging.info("response: " + json.dumps(data))
+                # the spec['kind'] is the type of resource
                 self.api_response['response'].append({spec['kind']: data})
             elif response.status_code == 409:
                 logging.warning("The name %s in the endpoint %s already exists"
@@ -159,6 +268,51 @@ class KubernetesClusters(tornado.web.RequestHandler):
     @cloud_auth(coe)
     @http_basic_auth
     def delete(self, **args):
+        """
+        The *DELETE* method deletes a resource from Kubernetes cluster
+
+        :param cluster: the name of the cluster in the cloud provider (magnum)
+        :type cluster: str
+        :param resource: the resource in the orchestrator (e.g. *namespaces*)
+        :type resource: str
+        :param name: the name of the resource (e.g. *default*)
+        :type name: str
+
+        :param subresource: the subresource in the orchestrator (e.g. *services*)
+        :type subresource: str
+        :param subname: the name of the subresource
+        :type subname: str
+
+        :request body:
+            - app_type(str) - the type of the application (at the moment *mysql* and *postgres* are supported)
+            - delete_service(bool) - delete the service assciated with the resource (default: False)
+            - delete_volumes(bool) - try to delete the volumes of the resource: secrets and the the cinder volumes in case of *vol_type=cinder* (default: False)
+            - force(bool) - with try to delete all the remainder replica sets and pods if they still exist (default: False)
+
+        :return: it doesn't return anything
+
+        :raises HTTPError: if some request body parameters are not given or if there is a volume name conflict
+        :raises OSError: if there is still a directory *<NAME>.old*
+
+        .. note::
+
+            - Depending on the resource (i.e. namespace or deployment) some parameters are optional. The minimum parameters that have to be passed through the url are the <*cluster*>, <*resource*> and <*name*>. In case of a <*subresource*> there has to be a <*subname*>.
+
+            - Conventions:
+                * When the <*app_type*> request body parameter is present:
+
+                    * we assume that the resource is a Kubernetes *deployment*
+                    * the name of the resource for deletion is the instance name of a supported application which was POSTed through the API; and not the actual name of the resource
+                    * in the name of the resource it will be added a suffix:
+                        * *-depl* for the deployment
+                        * *-svc* for the service
+                        * *-secret-<conf_file>/<init_file>* for the secrets
+
+                * When the <*app_type*> request body parameter is not present, no other modifications are made and just the specific resource it will be deleted
+
+                * The directories which contain all the configuration files for the application are renamed to <NAME>.old
+
+        """
         logging.debug('Arguments:' + str(self.request.arguments))
         composed_url, cert, key, ca = self._config(args)
         logging.debug("The url to act upon is: " + composed_url)
@@ -258,7 +412,7 @@ class KubernetesClusters(tornado.web.RequestHandler):
                 delete_urls.extend([(pods_url + '/' + item['metadata']['name'], True, 'delete')
                                     for item in data['items']
                                     if (instance_name in item['metadata']['name'] and
-                                        (item['status']['phase'] == 'Running' or 
+                                        (item['status']['phase'] == 'Running' or
                                         item['status']['phase'] == 'Pending'))
                                    ])
 
@@ -270,7 +424,6 @@ class KubernetesClusters(tornado.web.RequestHandler):
                 response = requests.post(url[0],
                                          data=body,
                                          headers=self.headers)
-                print response.status_code
             if url[1] and url[2] == 'delete':
                 response = requests.delete(url[0],
                                            cert=(cert, key),
@@ -307,6 +460,27 @@ class KubernetesClusters(tornado.web.RequestHandler):
                     self.set_status(NOT_FOUND)
 
     def _config(self, args):
+        """
+        In this function is composed the Kubernetes url according to the information given.
+
+        :param cluster: the name of the cluster in the cloud provider (magnum)
+        :type cluster: str
+        :param resource: the resource in the orchestrator (e.g. *namespaces*)
+        :type resource: str
+        :param name: the name of the resource (e.g. *default*)
+        :type name: str
+
+        :param subresource: the subresource in the orchestrator (e.g. *services*)
+        :type subresource: str
+        :param subname: the name of the subresource
+        :type subname: str
+
+        :param isBeta: it ensures if the beta API of Kubernetes is going to be used
+        :type isBeta: bool
+
+        :return: the Kubernetes url which has to be accessed and the paths to the certificates
+        :rtype: str, str, str, str
+        """
         cluster_name = args.get('cluster')
         resource = args.get('resource')
         ident = args.get('name')
@@ -338,9 +512,23 @@ class KubernetesClusters(tornado.web.RequestHandler):
 
     @cloud_auth(cloud)
     def _api_master(self, cluster_name, **args):
+        """
+        This function gets the base url to access Kubernetes cluster and adds the 'X-Auth-Token' in the headers in order to access Magnum (Openstack).
+
+        :param cluster: the name of the cluster in the cloud provider (magnum)
+        :type cluster: str
+
+        :param token_header: the token to authenticate with Openstack, obtained and passed by the *cloud_auth* decorator with the *cloud* parameter
+        :type token_header: dict
+
+        :raises HTTPError: when (Openstack) Magnum is inaccessible
+
+        :return: https://<IP>:<port>
+        :rtype: str
+        """
+
         token_header = 'X-Subject-Token'
         auth_header = 'X-Auth-Token'
-
         if auth_header not in self.headers.keys():
             xtoken = {auth_header: args.get(token_header)}
             self.headers.update(xtoken)
@@ -357,6 +545,26 @@ class KubernetesClusters(tornado.web.RequestHandler):
             raise tornado.web.HTTPError(status_code)
 
     def app_config(self, app_type, instance_name, cluster_name, volume_type):
+        """
+        This function creates and prepares all the configuration files needed for the supported applications according to the existing templates.
+
+        It is used with the *POST* method.
+
+        :param app_type: the type of the application (at the moment *mysql* and *postgres* are supported)
+        :type app_type: str
+        :param instance_name: the name of the instance of the new application
+        :type instance_name: str
+        :param cluster_name: the name of the cluster in the cloud provider (magnum)
+        :type cluster_name: str
+        :param vol_type: the storage system that will be used (at the moment *cinder* and *nfs* are supported)
+        :type vol_type: str
+
+        :raises HTTPError: when the templates directory or files do not exist or when the directory for the Kubernetes configuration files of the new instance cannot be made
+
+        :return: the paths for the service and the deployment configuration files
+        :rtype: list
+        """
+
         # TODO try to initiate mysql through a bash file for consistency
         instance_port = self.app_specifics[app_type]['port']
         conf_name = self.app_specifics[app_type]['conf_name']
@@ -411,8 +619,10 @@ class KubernetesClusters(tornado.web.RequestHandler):
         volume_bin = None
         volume_data, volume_bin = self.cloud_volume_creation(app_conf_dir, app_type, instance_name, templates, cluster_name, volume_type)
 
+        # add in the configuration dictionary for the templates the details of the volumes
         configuration.update(self.get_volume_config(volume_type, volume_data, volume_bin))
 
+        # resolve templates and write the new files
 	filename = instance_dir + '/' + 'depl.json'
         controller_json = templates.get_template(app_type + '-depl.json.template').render(configuration)
         self._write(controller_json, filename)
@@ -429,6 +639,31 @@ class KubernetesClusters(tornado.web.RequestHandler):
 
 
     def cloud_volume_creation(self, app_conf_dir, app_type, instance_name, templates, cluster_name, volume_type):
+        """
+        This function is responsible for creating and loading to Kubernetes cluster, if necessary, the secret and cinder volumes. 
+        The NFS volumes cannot be created on demand like Cinder volumes.
+
+        It is used with the *POST* method.
+
+        :param app_conf_dir: the directory of the application where the Kubernetes configuration files of the instances of that app type are going to be stored
+        :type app_conf_dir: str
+        :param app_type: the type of the application (at the moment *mysql* and *postgres* are supported)
+        :type app_type: str
+        :param instance_name: the name of the instance of the new application
+        :type instance_name: str
+        :param templates: the object which has already loaded the templates directory and is going to be used to render the new configuration
+        :param templates: jinja2.environment.Environment object
+        :param cluster_name: the name of the cluster in the cloud provider (magnum)
+        :type cluster_name: str
+        :param vol_type: the storage system that will be used (at the moment *cinder* and *nfs* are supported)
+        :type vol_type: str
+
+        :raises HTTPError: when there are more than 2 volumes(for the configuration and initialization of the application) whose name include the instance name
+
+        :return: the ids for the cinder data and binlog volume
+        :rtype: str, str
+
+        """
         # TODO separate secrets with cinder volumes
         conf_name = self.app_specifics[app_type]['conf_name']
         init_name = self.app_specifics[app_type]['init_name']
@@ -506,6 +741,7 @@ class KubernetesClusters(tornado.web.RequestHandler):
         exist_volume = [instance_name+'-vol-data' in vol['name'] or instance_name+'-vol-bin' in vol['name']
                         for vol in data['volumes']]
 
+        # if there are no volumes with the same name
         if exist_volume.count(True) == 0:
             # Cinder volumes
             volconf={
@@ -540,11 +776,15 @@ class KubernetesClusters(tornado.web.RequestHandler):
             if 'vol_data' in data['volumes'][exist_volume.index(True)]['name']:
                 voldata = data['volumes'][exist_volume.index(True)]['id']
                 volbin = data['volumes'][exist_volume.index(True, exist.index(True)+1)]['id']
+
             else:
                 volbin = data['volumes'][exist_volume.index(True)]['id']
                 voldata = data['volumes'][exist_volume.index(True, exist_volume.index(True)+1)]['id']
+
             return voldata, volbin
+
         else:
+                # there are more than 2 volumes with the same name
                 logging.error("Volume %s exists: %s and %s exists: %s"
                                 %(instance_name+'_vol_data',
                                   instance_name+'_vol_data' in data['volumes'][0].values(),
@@ -556,6 +796,13 @@ class KubernetesClusters(tornado.web.RequestHandler):
                 raise tornado.web.HTTPError(SERVICE_UNAVAILABLE)
 
     def get_project_info(self):
+        """
+        This function is used to get information about the project name which the user is registered to in Magnum (Openstack).
+
+        :raises HTTPError: when the Magnum is not accessible
+        :return: the id and the name of the project of the user
+        :rtype: str, str
+        """
         auth_id_url = config.get(self.cloud, 'auth_id_url')
 	project_url = auth_id_url + '/auth' + '/projects'
 	logging.debug("Get project id from %s" %(project_url))
@@ -569,6 +816,19 @@ class KubernetesClusters(tornado.web.RequestHandler):
             raise tornado.web.HTTPError(status_code)
 
     def get_resource_args(self,cluster_name, resource, isBeta):
+        """
+        This function is used to get the Kubernetes resources information that are needed to compose the final Kubernetes url for this resource.
+
+        :param cluster: the name of the cluster in the cloud provider (magnum)
+        :type cluster: str
+        :param resource: the subresource in the orchestrator (e.g. *services*)
+        :type resource: str
+        :param isBeta: it ensures if the beta API of Kubernetes is going to be used
+        :type isBeta: bool
+
+        :return: all the information needed for each resource
+        :rtype: dict
+        """
         resource_args = {'cluster': cluster_name,
                         'resource': 'namespaces',
                         'name': 'default',
@@ -578,6 +838,19 @@ class KubernetesClusters(tornado.web.RequestHandler):
         return resource_args
 
     def get_volume_config(self, volume_type, voldata, volbin):
+        """
+        This function is used to organize all the information that is needed in the templates depending on the volume type
+
+        :param volume_type: the storage system that will be used (at the moment *cinder* and *nfs* are supported) 
+        :type volume_type: str
+        :param voldata: the id of the cinder volume which will be used for storing data
+        :type voldata: str
+        :param volbin: the id of the cinder volume which will be used for storing binlogs
+        :type volbin: str
+
+        :return: all the volume information needed for the templates
+        :rtype: dict
+        """
         if volume_type == 'nfs':
             return {'volume_type': volume_type,
                     'volume_ident': 'path',
@@ -598,6 +871,29 @@ class KubernetesClusters(tornado.web.RequestHandler):
                    }
 
     def postjson(self, composed_url, getBackfield, response_name,  **args):
+        """
+        This function is used to post either a file or a json using the Openstack token or the certificates.
+
+        :param composed_url: the Kubernetes url which will be accessed to POST
+        :type composed_url: str
+        :param getBackfield: the field that you want to get back as a response from the request
+        :type getBackfield: tuple
+        :param response_name: the key of the dictionary you want to be apeared in the response
+        :type response_name: str
+
+        :param filename: the file path whose contents will be POSTed (optional)
+        :type filename: str
+        :param cert, key, ca: the paths to the certificates that are used to access Kubernetes cluster (optional)
+        :type cert, key, ca: str
+
+        :raises HTTPError: when there is some problem with the POST and Openstack/Kubernetes is not accessible
+        :return: the fields that were requested with *getBackfield* parameter
+        :rtype: str
+
+        .. note::
+
+            The rerurn string is used mainly for the cinder volumes in order to get back and use later their ids.
+        """
 	filename = args.get('filename')
 	cert = args.get('cert')
 	key = args.get('key')
@@ -640,10 +936,35 @@ class KubernetesClusters(tornado.web.RequestHandler):
             raise tornado.web.HTTPError(response.status_code)
 
     def _write(self, template, path):
+        """
+        This function is used just to render the templates to the new files.
+
+        :param template: the rendered contents from the template
+        :type template: str
+        :param path: the file path that the new file with the new instance configuration will be written
+        :type path: str
+        """
         with open(path, "wb") as output:
             output.write(template)
 
     def check_ifexists(self, name, url, **args):
+        """
+        This function is used during the volume creation to check if there are already secret volumes with the same name.
+
+        :param name: the name which has to be checked if it already exists
+        :type name: str
+        :param url: the Kubernetes url which has to be accessed
+        :type url: str
+
+        :param cert, key, ca: the paths to the certificates that are used to access Kubernetes cluster (optional)
+        :type cert, key, ca: str
+
+        :raises HTTPError: when there is a problem to access Openstack/Kubernetes because of the ceritficates or the token
+
+        :return: if the name exists or not
+        :rtype: bool
+
+        """
         cert = args.get('cert')
         key = args.get('key')
         ca = args.get('ca')
