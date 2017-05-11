@@ -526,7 +526,6 @@ class KubernetesClusters(tornado.web.RequestHandler):
         :return: https://<IP>:<port>
         :rtype: str
         """
-
         token_header = 'X-Subject-Token'
         auth_header = 'X-Auth-Token'
         if auth_header not in self.headers.keys():
@@ -612,7 +611,7 @@ class KubernetesClusters(tornado.web.RequestHandler):
 
 	filename = instance_dir + '/' + conf_name
         conf = templates.get_template(app_type + '-cnf.template').render(configuration)
-        self._write(conf, filename)
+        self.template_write(conf, filename)
 	logging.debug("%s %s conf file is ready" %(filename, app_type))
 
         volume_data = None
@@ -625,13 +624,13 @@ class KubernetesClusters(tornado.web.RequestHandler):
         # resolve templates and write the new files
 	filename = instance_dir + '/' + 'depl.json'
         controller_json = templates.get_template(app_type + '-depl.json.template').render(configuration)
-        self._write(controller_json, filename)
+        self.template_write(controller_json, filename)
 	logging.debug("%s controller conf file is ready" %(filename))
         returnBack = [filename]
 
         filename = instance_dir + '/' + 'svc.json'
         service_json = templates.get_template(app_type + '-svc.json.template').render(configuration)
-        self._write(service_json, filename)
+        self.template_write(service_json, filename)
 	logging.debug("%s service conf file is ready" %(filename))
         returnBack.append(filename)
 
@@ -680,11 +679,12 @@ class KubernetesClusters(tornado.web.RequestHandler):
         secrets_args = self.get_resource_args(cluster_name, 'secrets', False)
         secret_url, cert, key, ca = self._config(secrets_args)
         volume_project_url = volume_url + '/' + project_id + '/volumes'
-
+        
         exists_cnf = self.check_ifexists(instance_name+'-secret-' + app_type + '.cnf',
                                          secret_url, cert=cert, key=key, ca=ca)
         exists_init = self.check_ifexists(instance_name+'-secret-init.sql',
                                           secret_url, cert=cert, key=key, ca=ca)
+
         if not exists_cnf and not exists_init:
             # Secrets
             logging.info("Volumes will be created for project: %s" %(project_name))
@@ -699,7 +699,7 @@ class KubernetesClusters(tornado.web.RequestHandler):
             kube_filename = instance_dir + '/' + 'secretconf.json'
             conf_template = app_type + '-secret.json.template'
             secretconf = templates.get_template(conf_template).render(configuration)
-            self._write(secretconf, kube_filename)
+            self.template_write(secretconf, kube_filename)
             _ = self.postjson(secret_url, ('metadata', 'selfLink'), 'Secretconf',
                           filename=kube_filename,
                           cert=cert,
@@ -716,7 +716,7 @@ class KubernetesClusters(tornado.web.RequestHandler):
                             }
             kube_filename = app_conf_dir + '/' + 'secretinit.json'
             secretconf = templates.get_template(conf_template).render(configuration)
-            self._write(secretconf, kube_filename)
+            self.template_write(secretconf, kube_filename)
             _ = self.postjson(secret_url, ('metadata', 'selfLink'), 'Secretinit',
                               filename=kube_filename,
                               cert=cert,
@@ -740,6 +740,7 @@ class KubernetesClusters(tornado.web.RequestHandler):
         data, _ = get_function(volume_project_url, headers=self.headers)
         exist_volume = [instance_name+'-vol-data' in vol['name'] or instance_name+'-vol-bin' in vol['name']
                         for vol in data['volumes']]
+        
 
         # if there are no volumes with the same name
         if exist_volume.count(True) == 0:
@@ -935,7 +936,7 @@ class KubernetesClusters(tornado.web.RequestHandler):
             logging.error("Error in posting %s 's resources from %s" %(self.coe, composed_url))
             raise tornado.web.HTTPError(response.status_code)
 
-    def _write(self, template, path):
+    def template_write(self, template, path):
         """
         This function is used just to render the templates to the new files.
 
