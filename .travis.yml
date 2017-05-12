@@ -17,6 +17,7 @@ before_install:
     - sudo cp static/auth_keystone.json /etc/dbod
     - sudo cp -r static/clusters /etc/dbod/api
     - sudo cp -r static/contenedor-apps /etc/dbod/api
+    - sudo chown -R travis /etc/dbod
     - cp static/api_missing_section.cfg /tmp/
     - cp static/api_missing_option.cfg /tmp/
     - wget https://github.com/begriffs/postgrest/releases/download/v0.3.1.1/postgrest-0.3.1.1-ubuntu.tar.xz
