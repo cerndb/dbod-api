@@ -10,10 +10,13 @@ services:
 before_install:
     # Remove IPv6 entry via https://github.com/travis-ci/travis-ci/issues/4978
     - sudo sed -i '/^::1/d' /etc/hosts && sudo sed -i '/^127.0.1.1/d' /etc/hosts && sudo sed -i '/^fe80::4001:aff:fef0:2b/d' /etc/hosts
-    - sudo mkdir /etc/dbod
+    - sudo mkdir -p /etc/dbod/api
     - sudo mkdir /var/log/dbod
     - sudo chown travis /var/log/dbod
     - sudo cp static/api.cfg /etc/dbod
+    - sudo cp static/auth_keystone.json /etc/dbod
+    - sudo cp -r static/clusters /etc/dbod/api
+    - sudo cp -r static/contenedor-apps /etc/dbod/api
     - cp static/api_missing_section.cfg /tmp/
     - cp static/api_missing_option.cfg /tmp/
     - wget https://github.com/begriffs/postgrest/releases/download/v0.3.1.1/postgrest-0.3.1.1-ubuntu.tar.xz
