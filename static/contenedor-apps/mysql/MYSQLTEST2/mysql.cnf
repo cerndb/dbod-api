@@ -1,0 +1,14 @@
+[mysqld]
+server-id=1
+port=5500
+general-log-file=/ORA/dbs03/mysqltest1/mysql/mysql.log
+socket=/var/lib/mysql/mysql.sock.mysqltest1.5500
+datadir=/ORA/dbs03/mysqltest1/mysql
+log-bin=/ORA/dbs02/mysqltest1/mysql/binlog
+slow_query_log_file=/ORA/dbs03/mysqltest1/mysql/slow_queries.log
+ssl-cert=/etc/dbod/hostcert.pem
+ssl-ca=/etc/dbod/ca.pem
+ssl-key=/etc/dbod/hostkey.pem
+ssl-cipher=DHE-RSA-AES256-SHA:AES128-SHA
+#relay-log=/ORA/dbs02/mysqltest1/mysql/relay-binlog
+#relay-log-index=/ORA/dbs02/mysqltest1/mysql/relay-bin.index

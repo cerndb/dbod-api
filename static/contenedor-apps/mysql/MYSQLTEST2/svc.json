@@ -4,17 +4,17 @@
     "type": "NodePort",
     "ports": [
       {
-        "targetPort": {{ instance_port }},
-        "port": {{ instance_port }},
+        "targetPort": 5500,
+        "port": 5500,
         "name": "p0"
       }
     ],
     "selector": {
-      "app": "{{ instance_name }}-app"
+      "app": "mysqltest1-app"
     }
   },
   "apiVersion": "v1",
   "metadata": {
-    "name": "{{ instance_name }}-svc"
+    "name": "mysqltest1-svc"
   }
 }

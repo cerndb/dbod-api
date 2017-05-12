@@ -6,7 +6,8 @@
             ],
             "password": {
                 "user": {
-                    "id": "user42",
+                    "name": "user42",
+                    "domain": { "name": "default" },
                     "password": "passofuser42"
                 }
             }
@@ -14,7 +15,7 @@
     	"scope": {
       		"project": {
         	"name": "Container Pilot",
-        	"domain": { "id": "default" }
+        	"domain": { "name": "default" }
 		}
 	}
     }

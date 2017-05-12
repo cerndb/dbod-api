@@ -5,15 +5,15 @@
       "spec": {
         "containers": [
           {
-            "image": "gitlab-registry.cern.ch/db/dbod-mysql:5.7.17",
+            "image": "jaysot/mysql",
             "imagePullPolicy": "Always",
             "volumeMounts": [
               {
-                "mountPath": "/ORA/dbs03/{{ instance_name.upper() }}",
+                "mountPath": "/ORA/dbs03/TEST",
                 "name": "volume-data"
               },
               {
-                "mountPath": "/ORA/dbs02/{{ instance_name.upper() }}",
+                "mountPath": "/ORA/dbs02/TEST",
                 "name": "volume-bin"
               },
               {
@@ -27,42 +27,37 @@
             ],
             "ports": [
               {
-                "containerPort": {{ instance_port }},
+                "containerPort": 5500,
                 "name": "p0"
               }
             ],
-            "name": "contenedor-{{ instance_name }}"
-          }
-        ],
-        "imagePullSecrets": [
-          {
-            "name": "gitlab-registry"
+            "name": "contenedor-mysqltest1"
           }
         ],
         "volumes": [
           {
-            "{{ volume_type }}": {
-              "{{ volume_ident }}": "{{ volume_ident_data }}",
-              "{{ volume_attr }}": "{{ volume_attr_data }}"
+            "cinder": {
+              "volumeID": "CINDER-ID-DATA",
+              "fsType": "ext4"
             },
             "name": "volume-data"
           },
           {
-            "{{ volume_type }}": {
-              "{{ volume_ident }}": "{{ volume_ident_bin }}",
-              "{{ volume_attr }}": "{{ volume_attr_bin }}"
+            "cinder": {
+              "volumeID": "CINDER-ID-BIN",
+              "fsType": "ext4"
             },
             "name": "volume-bin"
           },
           {
             "secret": {
-              "secretName": "{{ instance_name }}-secret-init.sql"
+              "secretName": "mysqltest1-secret-init.sql"
             },
             "name": "secret-init"
           },
           {
             "secret": {
-              "secretName": "{{ instance_name }}-secret-mysql.cnf"
+              "secretName": "mysqltest1-secret-mysql.cnf"
             },
             "name": "secret-conf"
           }
@@ -70,7 +65,7 @@
       },
       "metadata": {
         "labels": {
-          "app": "{{ instance_name }}-app"
+          "app": "mysqltest1-app"
         }
       }
     },
@@ -78,6 +73,6 @@
   },
   "apiVersion": "extensions/v1beta1",
   "metadata": {
-    "name": "{{ instance_name }}-depl"
+    "name": "mysqltest1-depl"
   }
 }

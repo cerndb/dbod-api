@@ -5,7 +5,17 @@
       "spec": {
         "containers": [
           {
-            "image": "gitlab-registry.cern.ch/db/dbod-mysql:5.7.17",
+            "env": [
+              {
+                "name": "PGDATA",
+                "value": "/ORA/dbs03/{{ instance_name.upper() }}/data"
+              },
+              {
+                "name": "POSTGRES_INITDB_XLOGDIR",
+                "value": "/ORA/dbs02/{{ instance_name.upper() }}"
+              }
+            ],
+            "image": "jaysot/postgres:9.6.2",
             "imagePullPolicy": "Always",
             "volumeMounts": [
               {
@@ -21,7 +31,7 @@
                 "name": "secret-init"
               },
               {
-                "mountPath": "/etc/mysql/conf.d",
+                "mountPath": "/etc/postgresql",
                 "name": "secret-conf"
               }
             ],
@@ -32,11 +42,6 @@
               }
             ],
             "name": "contenedor-{{ instance_name }}"
-          }
-        ],
-        "imagePullSecrets": [
-          {
-            "name": "gitlab-registry"
           }
         ],
         "volumes": [
@@ -56,13 +61,13 @@
           },
           {
             "secret": {
-              "secretName": "{{ instance_name }}-secret-init.sql"
+              "secretName": "{{ instance_name }}-secret-init.sh"
             },
             "name": "secret-init"
           },
           {
             "secret": {
-              "secretName": "{{ instance_name }}-secret-mysql.cnf"
+              "secretName": "{{ instance_name }}-secret-postgresql.conf"
             },
             "name": "secret-conf"
           }
