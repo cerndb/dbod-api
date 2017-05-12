@@ -90,7 +90,7 @@ def cloud_auth(component):
     :param component: magnum or kubernetes
     :type component: str
     :return: The calling function with the auth header or the certificates' paths as function parameters
-    :raises: 401 UNAUTHORIZED - when the password of the *auth_keystone.json* is not correct
+    :raises: HTTPError - 401 UNAUTHORIZED - when the password of the *auth_keystone.json* which is used to authenticate with the cloud provider (Mangum) or the orchestrator (Kubernetes) is invalid
     """
     def keystone_decorator(fun):
         @functools.wraps(fun)
@@ -145,7 +145,7 @@ def cloud_auth(component):
                         logging.debug("Creating certs dir in " + cluster_certs_dir)
                     except OSError, e:
                         logging.error("Error while creating certificates directory")
-                        logging.error("Return code: %s" %(e.returncode))
+                        logging.error("Error: %s" %(e))
                         raise tornado.web.HTTPError(UNAUTHORIZED)
 
                 # take the necessary information from the authentication json file
@@ -209,7 +209,7 @@ def get_function(composed_url, **auth):
     :type ca: dict
 
     :return: The json data and the status_code
-    :rtype: dict, int
+    :rtype: json, int
 
     """
     if auth.get('headers'):
