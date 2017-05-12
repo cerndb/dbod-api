@@ -108,6 +108,16 @@ class KubernetesClustersTest(AsyncHTTPTestCase, unittest.TestCase):
       }
     }
 
+    headers = {'X-Subject-Token':'Token'}
+    gfunc_return = ({'api_address': 'kube_base_url', 'projects':[{'id':'projID', 'name':'projName'}], 'volumes':[{'name':'sth'}]},200)
+    return_data = [{u'KubeData': 'KubeConf'}]
+    blistdir = ['config', 'ca.pem', 'key.pem', 'cert.pem']
+    app_type = 'mysql'
+    app_name = 'mysqltest1'
+    klistdir1 = ['init.sql', 'templates']
+    klistdir2 = [app_type + '-cnf.template', app_type + '-depl.json.template',
+                 app_type + '-secret.json.template', app_type + '-secret.yaml.template',
+                 app_type + '-svc.json.template']
 
     def get_app(self):
         return tornado.web.Application(handlers)
@@ -118,63 +128,53 @@ class KubernetesClustersTest(AsyncHTTPTestCase, unittest.TestCase):
     @patch('dbod.api.kubernetes.get_function')
     @patch('dbod.api.base.requests.post')
     @patch('dbod.api.base.check_output', return_value='valid run')
-    @patch('dbod.api.base.mkdir', return_value=True)
-    @patch('dbod.api.base.listdir')
-    @patch('dbod.api.base.path', return_value=True)
-    @patch('dbod.api.base.json.load')
-    @patch('dbod.api.base.open')
-    def test_get_clusters(self, mock_open, mock_load, mock_path, mock_listdir, mock_mdir, mock_cmd, mock_post, mock_gfunc, mock_get, mock_json, mock_write):
+    def test_get_clusters(self, mock_cmd, mock_post, mock_gfunc, mock_get, mock_json, mock_write):
         print 'test_get_clusters'
-        mock_listdir.return_value = ['config', 'ca.pem', 'key.pem', 'cert.pem']
+        test_status_code = 200
+        #mock_listdir.return_value = self.blistdir
         mock_post.return_value = MagicMock(spec=requests.models.Response,
                                            ok=True,
-                                           headers={'X-Subject-Token':'Token'}
+                                           headers=self.headers
                                            )
-        mock_gfunc.return_value = {'api_address': 'kube_base_url'},200
+        mock_gfunc.return_value = self.gfunc_return
         mock_get.return_value = MagicMock(spec=requests.models.Response,
                                           ok=True,
-                                          status_code=200,
-                                          content=[{u'KubeData': 'KubeConf'}]
+                                          status_code=test_status_code,
+                                          content=self.return_data
                                           )
-        response = self.fetch("/api/v1/beta/kubernetes/k8s-test2/namespaces/default/deployments/mysql-depl", method="GET")
-        self.assertEquals(response.code, 200)
+        response = self.fetch("/api/v1/beta/kubernetes/k8s-test2/namespaces/default/deployments/" + self.app_name, method="GET")
+        self.assertEquals(response.code, test_status_code)
 
     @patch('dbod.api.kubernetes.KubernetesClusters.write')
     @patch('dbod.api.kubernetes.json.dumps')
     @patch('dbod.api.kubernetes.requests.post')
     @patch('dbod.api.kubernetes.KubernetesClusters.postjson', side_effect=['','','id1','id2'])
     @patch('dbod.api.kubernetes.KubernetesClusters.check_ifexists', side_effect=[False, False])
-    @patch('dbod.api.kubernetes.KubernetesClusters.template_write')
-    @patch('dbod.api.kubernetes.mkdir', return_value=True)
-    @patch('dbod.api.kubernetes.path', return_value=False)
     @patch('dbod.api.kubernetes.get_function')
     @patch('dbod.api.base.requests.post')
     @patch('dbod.api.base.check_output', return_value='valid run')
-    @patch('dbod.api.base.mkdir', return_value=True)
-    @patch('dbod.api.base.listdir')
-    @patch('dbod.api.base.path', return_value=True)
-    @patch('dbod.api.base.json.load')
-    @patch('dbod.api.base.open')
-    def test_post_clusters(self, mock_open, mock_load, mock_bpath, mock_listdir, mock_bmdir, mock_cmd, mock_bpost, mock_gfunc, mock_kpath, mock_kmdir, mock_templwrite, mock_check, mock_postjson, mock_kpost, mock_json, mock_write):
+    def test_post_clusters(self, mock_cmd, mock_bpost, mock_gfunc, mock_check, mock_postjson, mock_kpost, mock_json, mock_write):
+        print 'test_post_clusters'
         body=json.dumps(self.testJson)
-        mock_listdir.return_value = ['config', 'ca.pem', 'key.pem', 'cert.pem']
+        #mock_blistdir.return_value = self.blistdir
         mock_bpost.return_value = MagicMock(spec=requests.models.Response,
                                            ok=True,
-                                           headers={'X-Subject-Token':'Token'}
+                                           headers=self.headers
                                            )
-        mock_gfunc.return_value = {'api_address': 'kube_base_url', 'projects':[{'id':'projID', 'name':'projName'}], 'volumes':[{'name':'sth'}]},200
+        mock_gfunc.return_value = self.gfunc_return
         mock_bpost.return_value = MagicMock(spec=requests.models.Response,
                                            ok=True,
                                            status_code=200,
-                                           content=[{u'KubeData': 'KubeConf'}]
+                                           content=self.return_data
                                            )
+        #mock_kpath.isdir.side_effect = [True, True, False]
+        #mock_klistdir.side_effect = [self.klistdir1, self.klistdir2]
 
-
-
-        response = self.fetch("/api/v1/kubernetes/k8s-test2/namespaces/default/deployments?app_type=mysql&vol_type=cinder&app_name=mysqltest2",
-                             method="POST",
-                             headers={'Authorization': self.authentication},
-                             body=str(body))
+        response = self.fetch("/api/v1/kubernetes/k8s-test/namespaces/default/deployments?app_type=" +
+                               self.app_type + "&vol_type=cinder&app_name=" + self.app_name,
+                               method="POST",
+                               headers={'Authorization': self.authentication},
+                               body=str(body))
         self.assertEquals(response.code, 200)
 
     '''
