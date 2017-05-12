@@ -577,8 +577,9 @@ class KubernetesClusters(tornado.web.RequestHandler):
             confFiles = set(listdir(app_conf_dir))
             templateFiles = set(listdir(templates_dir))
             conf_required = set(['init.sql', 'templates'])
-            template_required = set([app_type + '-cnf.template', app_type + '-depl.json.template',
-                                     app_type + '-secret.json.template', app_type + '-secret.yaml.template',
+            template_required = set([app_type + '-cnf.template',
+                                     app_type + '-depl.json.template',
+                                     app_type + '-secret.json.template', 
                                      app_type + '-svc.json.template'])
             if conf_required > confFiles or template_required > templateFiles:
                 logging.error("Not all conf files of %s were found in %s" %(app_type, app_conf_dir))
