@@ -576,12 +576,14 @@ class KubernetesClusters(tornado.web.RequestHandler):
         if path.isdir(app_conf_dir) and path.isdir(templates_dir):
             confFiles = set(listdir(app_conf_dir))
             templateFiles = set(listdir(templates_dir))
-            conf_required = set(['init.sql', 'templates'])
+            init_name = self.app_specifics[app_type]['init_name']
+            conf_required = set([init_name, 'templates'])
             template_required = set([app_type + '-cnf.template',
                                      app_type + '-depl.json.template',
-                                     app_type + '-secret.json.template', 
+                                     app_type + '-secret.json.template',
                                      app_type + '-svc.json.template'])
-            if conf_required > confFiles or template_required > templateFiles:
+
+            if (conf_required - confFiles) or (template_required - templateFiles):
                 logging.error("Not all conf files of %s were found in %s" %(app_type, app_conf_dir))
                 raise tornado.web.HTTPError(SERVICE_UNAVAILABLE)
         else:
