@@ -71,7 +71,14 @@ class KubernetesClusters(tornado.web.RequestHandler):
 
         You need to provide a <*username*> and a <*password*> to use
         :func:`post` and :func:`delete` methods or to provide manually the *Authorization* header.
+
     """
+    #TODO (nice to have):
+    #Make deployment of applications in Kubernetes more generic with an app configuration file.
+    #Separate secret volumes with other volumes in *volume_creation_function*
+    #If it's needed it's possible to avoid writing conf files to the filesystem, but still the certificates for accessing the clusters are needed to be present or else the requests would take much more time.
+    #Integrate the Storage API in order to create, delete and access NFS volumes.
+
 
     headers = {'Content-Type': 'application/json'}
     cloud = config.get('containers-provider', 'cloud')
