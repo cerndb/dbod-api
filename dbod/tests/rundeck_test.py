@@ -69,8 +69,8 @@ class RundeckTest(AsyncHTTPTestCase, unittest.TestCase):
         """test an execution of a registered job of an existing instance"""
         print "test_post_existing_instance"
         status_code_test = 200
-        response_output_running = '{"execState": "running"}'
-        response_output_success = '{"execState": "succeeded", "log": "[snapscript_24,snapscript_42]"}'
+        response_output_running = '{"execCompleted": false, "execState": "running"}'
+        response_output_success = '{"execCompleted": true, "execState": "succeeded", "log": "[snapscript_24,snapscript_42]"}'
         response_run = '{"id":42}'
 
         mock_get.side_effect = [MagicMock(spec=requests.models.Response,
@@ -99,7 +99,7 @@ class RundeckTest(AsyncHTTPTestCase, unittest.TestCase):
         print "test_post_job_nosuccess"
         status_code_test = 200
         response_run = '{"id":42}'
-        response_output = '{"execState": "failed", "log": "[snapscript_24,snapscript_42]"}'
+        response_output = '{"execCompleted": true, "execState": "failed", "log": "[snapscript_24,snapscript_42]"}'
 
         mock_get.return_value = MagicMock(spec=requests.models.Response,
                                            ok=True,
@@ -124,7 +124,7 @@ class RundeckTest(AsyncHTTPTestCase, unittest.TestCase):
         status_code_test = 200
         status_code_test_error = 500
         response_run = '{"id":42}'
-        response_output = '{"execState": "succeeded", "log": "[snapscript_24,snapscript_42]"}'
+        response_output = '{"execCompleted": true, "execState": "succeeded", "log": "[snapscript_24,snapscript_42]"}'
 
         mock_get.return_value = MagicMock(spec=requests.models.Response,
                                           ok=False,
