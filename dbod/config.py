@@ -34,6 +34,7 @@ requiredConfig = {
 
 optionalConfig = {
                   'rundeck' : [ 
+                      'timeout',
                       'api_run_job', 
                       'api_job_output', 
                       'api_authorization'
