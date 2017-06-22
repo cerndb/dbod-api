@@ -101,7 +101,7 @@ class RundeckJobs(tornado.web.RequestHandler):
         if response_run.ok:
             data = json.loads(response_run.text)
             exid = str(data["id"])
-            timeout = 20
+            timeout = int(config.get('rundeck', 'timeout')) * 2
             while timeout > 0:
                 response_output = self.__get_output__(exid)
                 if response_output.ok:
