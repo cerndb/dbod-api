@@ -32,20 +32,22 @@ from dbod.api.instance import Instance
 from dbod.api.attribute import Attribute
 from dbod.api.fim import Fim
 from dbod.config import config, optionalConfig
+from dbod.api.volume import Volume
 
 # This list is a global object because in needs to be accessed
 # from the test suites
 handlers = [
     (r"/", DocHandler),
-    (r"/api/v1/instance/(?P<instance>[^\/]+)/attribute/?(?P<attribute>[^\/]+)?", Attribute),
     (r"/api/v1/instance/([^/]+)", Instance),
+    (r"/api/v1/volume/([^/]+)", Volume),
     (r"/api/v1/host/aliases/([^/]+)", HostAliases),
     (r"/api/v1/host/names/([^/]+)", Host),
     (r"/api/v1/instance/alias/?(?P<db_name>[^\/]+)?", FunctionalAlias),
     (r"/api/v1/(?P<class>[^\/]+)/(?P<name>[^\/]+)/metadata", Metadata),
-    (r"/api/v1/host/aliases/([^/]+)", HostAliases),
     (r"/api/v1/rundeck/resources.xml", RundeckResources),
     (r"/api/v1/rundeck/job/(?P<job>[^\/]+)/?(?P<node>[^\/]+)?", RundeckJobs),
+    (r"/api/v1/(?P<class>[^\/]+)/(?P<entity>[^\/]+)/attribute/?(?P<attribute_name>[^\/]+)?", Attribute),
+
     # Deprecated, will be deleted in following versions
     (r"/api/v1/metadata/(?P<class>[^\/]+)/?(?P<name>[^\/]+)?", Metadata),  
     (r"/api/v1/fim/([^/]+)", Fim),
