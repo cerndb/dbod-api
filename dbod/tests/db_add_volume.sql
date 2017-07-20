@@ -1,4 +1,3 @@
-
 --VOLUME_TYPE
 CREATE TABLE IF NOT EXISTS public.volume_type (
   id   serial,
@@ -22,31 +21,6 @@ CREATE INDEX IF NOT EXISTS volume_attribute_volume_idx ON public.volume_attribut
 
 -- Modify volume table
 alter table public.volume add column if not exists volume_type_id int;
-
---- Views
--- Instance view
-CREATE OR REPLACE VIEW public.instance AS
-SELECT
-    dod_instances.id as id,
-    dod_instances.username as owner,
-    dod_instances.db_name as name,
-    dod_instances.e_group as e_group,
-    dod_instances.category as category,
-    dod_instances.creation_date as creation_date,
-    dod_instances.expiry_date as expiry_date,
-    dod_instances.db_size as "size",
-    dod_instances.no_connections as no_connections,
-    dod_instances.project as project,
-    dod_instances.description as description,
-    dod_instances.version as version,
-    dod_instances.master as master_id,
-    dod_instances.slave as slave_id,
-    dod_instances.host as host_id,
-    dod_instances.state as state,
-    dod_instances.status as status,
-    0  as cluster_id
-FROM dod_instances;
-
 
 --- Procedures
 -- Get volumes function
@@ -164,7 +138,7 @@ DECLARE
 BEGIN
   SELECT json_object_keys(in_json) INTO attr_name;
   SELECT in_json->>attr_name INTO attr_value;
-  UPDATE public.instance_attribute
+  UPDATE public.volume_attribute
   SET value = attr_value
   WHERE public.volume_attribute.volume_id = id AND public.volume_attribute.name = attr_name;
 
