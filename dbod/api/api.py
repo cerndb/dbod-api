@@ -32,6 +32,7 @@ from dbod.api.instance import Instance
 from dbod.api.attribute import Attribute
 from dbod.api.fim import Fim
 from dbod.config import config, optionalConfig
+from dbod.api.cluster import Cluster
 from dbod.api.volume import Volume
 
 # This list is a global object because in needs to be accessed
@@ -39,6 +40,7 @@ from dbod.api.volume import Volume
 handlers = [
     (r"/", DocHandler),
     (r"/api/v1/instance/([^/]+)", Instance),
+    (r"/api/v1/cluster/([^/]+)", Cluster),
     (r"/api/v1/volume/([^/]+)", Volume),
     (r"/api/v1/host/aliases/([^/]+)", HostAliases),
     (r"/api/v1/host/names/([^/]+)", Host),
