@@ -34,11 +34,13 @@ from dbod.api.fim import Fim
 from dbod.config import config, optionalConfig
 from dbod.api.cluster import Cluster
 from dbod.api.volume import Volume
+from dbod.api.auth import Resources
 
 # This list is a global object because in needs to be accessed
 # from the test suites
 handlers = [
     (r"/", DocHandler),
+    (r"/api/v1/auth/resources", Resources),
     (r"/api/v1/instance/([^/]+)", Instance),
     (r"/api/v1/cluster/([^/]+)", Cluster),
     (r"/api/v1/volume/([^/]+)", Volume),
