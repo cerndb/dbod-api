@@ -138,3 +138,31 @@ class Cluster(tornado.web.RequestHandler):
             raise tornado.web.HTTPError(response.status_code)
 
 
+class Cluster_filter(tornado.web.RequestHandler):
+    """
+    This is the handler of **/api/v1/cluster** endpoint.
+
+    The request methods implemented for this endpoint are:
+
+    * :func:`get`
+
+    """
+
+    url = config.get('postgrest', 'get_clusters_url')
+
+    def get(self, *args):
+
+        """
+        The *GET* method returns a list of e_groups owning resources
+
+        :rtype: json -- the response of the request
+        :raises: HTTPError - if there is an internal error or if the response is empty
+        """
+        response = requests.post(self.url, json=json.loads(self.request.body),
+                headers={'Prefer': 'return=representation'})
+
+        if response.ok:
+            self.write(response.text)
+            self.set_status(OK)
+        else:
+            raise tornado.web.HTTPError(response.status_code)

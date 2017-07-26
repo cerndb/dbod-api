@@ -217,7 +217,37 @@ class Instance(tornado.web.RequestHandler):
             logging.error("Error deleting the instance: " + response.text)
             raise tornado.web.HTTPError(response.status_code)
 
+class Instance_filter(tornado.web.RequestHandler):
+    """
+    This is the handler of **/api/v1/instance** endpoint.
 
-            
+    The request methods implemented for this endpoint are:
 
+    * :func:`get`
+
+    """
+
+    url = config.get('postgrest', 'get_instances_url')
+
+    def get(self, *args):
+
+        """
+        The *GET* method returns a list of e_groups owning resources
+
+        :rtype: json -- the response of the request
+        :raises: HTTPError - if there is an internal error or if the response is empty
+        """
+
+                
+        logging.debug("Rec. Body: %s" % (self.request.body))
+        logging.debug("RPC Url : %s" % (self.url))
+        response = requests.post(self.url, json=json.loads(self.request.body),
+                headers={'Prefer': 'return=representation'})
+
+        if response.ok:
+            self.write(response.text)
+            self.set_status(OK)
+        else:
+            logging.error("Response: %s" % (response))
+            raise tornado.web.HTTPError(response.status_code)
 
