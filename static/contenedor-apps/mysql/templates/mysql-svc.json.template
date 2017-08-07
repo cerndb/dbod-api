@@ -1,0 +1,20 @@
+{
+  "kind": "Service",
+  "spec": {
+    "type": "NodePort",
+    "ports": [
+      {
+        "targetPort": {{ instance_port }},
+        "port": {{ instance_port }},
+        "name": "p0"
+      }
+    ],
+    "selector": {
+      "app": "{{ instance_name }}-app"
+    }
+  },
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "{{ instance_name }}-svc"
+  }
+}

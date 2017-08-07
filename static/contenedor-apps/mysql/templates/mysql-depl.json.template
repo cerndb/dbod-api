@@ -1,0 +1,83 @@
+{
+  "kind": "Deployment",
+  "spec": {
+    "template": {
+      "spec": {
+        "containers": [
+          {
+            "image": "gitlab-registry.cern.ch/db/dbod-mysql:5.7.17",
+            "imagePullPolicy": "Always",
+            "volumeMounts": [
+              {
+                "mountPath": "/ORA/dbs03/{{ instance_name.upper() }}",
+                "name": "volume-data"
+              },
+              {
+                "mountPath": "/ORA/dbs02/{{ instance_name.upper() }}",
+                "name": "volume-bin"
+              },
+              {
+                "mountPath": "/docker-entrypoint-initdb.d",
+                "name": "secret-init"
+              },
+              {
+                "mountPath": "/etc/mysql/conf.d",
+                "name": "secret-conf"
+              }
+            ],
+            "ports": [
+              {
+                "containerPort": {{ instance_port }},
+                "name": "p0"
+              }
+            ],
+            "name": "contenedor-{{ instance_name }}"
+          }
+        ],
+        "imagePullSecrets": [
+          {
+            "name": "gitlab-registry"
+          }
+        ],
+        "volumes": [
+          {
+            "{{ volume_type }}": {
+              "{{ volume_ident }}": "{{ volume_ident_data }}",
+              "{{ volume_attr }}": "{{ volume_attr_data }}"
+            },
+            "name": "volume-data"
+          },
+          {
+            "{{ volume_type }}": {
+              "{{ volume_ident }}": "{{ volume_ident_bin }}",
+              "{{ volume_attr }}": "{{ volume_attr_bin }}"
+            },
+            "name": "volume-bin"
+          },
+          {
+            "secret": {
+              "secretName": "{{ instance_name }}-secret-init.sql"
+            },
+            "name": "secret-init"
+          },
+          {
+            "secret": {
+              "secretName": "{{ instance_name }}-secret-mysql.cnf"
+            },
+            "name": "secret-conf"
+          }
+        ]
+      },
+      "metadata": {
+        "labels": {
+          "app": "{{ instance_name }}-app"
+        }
+      }
+    },
+    "replicas": 1
+  },
+  "apiVersion": "extensions/v1beta1",
+  "metadata": {
+    "name": "{{ instance_name }}-depl"
+  }
+}

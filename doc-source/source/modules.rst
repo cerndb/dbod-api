@@ -14,4 +14,6 @@ Modules
     modules/dbod.api.instance
     modules/dbod.api.metadata
     modules/dbod.api.rundeck
+    modules/dbod.api.magnum
+    modules/dbod.api.kubernetes
     modules/dbod.config

@@ -26,5 +26,6 @@
 		<p>http://hostname:port/api/v1/metadata/host/HOSTNAME</p>
 		<p>http://hostname:port/api/v1/rundeck/resources.xml</p>
 		<p>http://hostname:port/api/v1/rundeck/job/JOB/NODE</p>
+                <p>http://hostname:port/api/v1/(beta/)kubernetes/cluster/resource/name/subresource/subname<p>
 
    :resheader Content-Type: text/html 

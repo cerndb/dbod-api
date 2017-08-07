@@ -1,0 +1,88 @@
+{
+  "kind": "Deployment",
+  "spec": {
+    "template": {
+      "spec": {
+        "containers": [
+          {
+            "env": [
+              {
+                "name": "PGDATA",
+                "value": "/ORA/dbs03/{{ instance_name.upper() }}/data"
+              },
+              {
+                "name": "POSTGRES_INITDB_XLOGDIR",
+                "value": "/ORA/dbs02/{{ instance_name.upper() }}"
+              }
+            ],
+            "image": "jaysot/postgres:9.6.2",
+            "imagePullPolicy": "Always",
+            "volumeMounts": [
+              {
+                "mountPath": "/ORA/dbs03/{{ instance_name.upper() }}",
+                "name": "volume-data"
+              },
+              {
+                "mountPath": "/ORA/dbs02/{{ instance_name.upper() }}",
+                "name": "volume-bin"
+              },
+              {
+                "mountPath": "/docker-entrypoint-initdb.d",
+                "name": "secret-init"
+              },
+              {
+                "mountPath": "/etc/postgresql",
+                "name": "secret-conf"
+              }
+            ],
+            "ports": [
+              {
+                "containerPort": {{ instance_port }},
+                "name": "p0"
+              }
+            ],
+            "name": "contenedor-{{ instance_name }}"
+          }
+        ],
+        "volumes": [
+          {
+            "{{ volume_type }}": {
+              "{{ volume_ident }}": "{{ volume_ident_data }}",
+              "{{ volume_attr }}": "{{ volume_attr_data }}"
+            },
+            "name": "volume-data"
+          },
+          {
+            "{{ volume_type }}": {
+              "{{ volume_ident }}": "{{ volume_ident_bin }}",
+              "{{ volume_attr }}": "{{ volume_attr_bin }}"
+            },
+            "name": "volume-bin"
+          },
+          {
+            "secret": {
+              "secretName": "{{ instance_name }}-secret-init.sh"
+            },
+            "name": "secret-init"
+          },
+          {
+            "secret": {
+              "secretName": "{{ instance_name }}-secret-postgresql.conf"
+            },
+            "name": "secret-conf"
+          }
+        ]
+      },
+      "metadata": {
+        "labels": {
+          "app": "{{ instance_name }}-app"
+        }
+      }
+    },
+    "replicas": 1
+  },
+  "apiVersion": "extensions/v1beta1",
+  "metadata": {
+    "name": "{{ instance_name }}-depl"
+  }
+}

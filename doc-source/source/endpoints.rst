@@ -15,6 +15,8 @@ Endpoints
    endpoints/host_metadata
    endpoints/rundeck_resources
    endpoints/rundeck_job
+   endpoints/magnum
+   endpoints/kubernetes
 
 
 

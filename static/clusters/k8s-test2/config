@@ -1,0 +1,19 @@
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority: ca.pem
+    server: https:/XXX.184.81.XXX:6443
+  name: k8s-test
+contexts:
+- context:
+    cluster: k8s-test
+    user: k8s-test
+  name: default/k8s-test
+current-context: default/k8s-test
+kind: Config
+preferences: {}
+users:
+- name: k8s-test
+  user:
+    client-certificate: cert.pem
+    client-key: key.pem

@@ -13,9 +13,9 @@ Introduction
 The main objetive of the DB On Demand API is to serve as an interface 
 between the platform data and all other platform componentes, such as,
 at the moment of writing this document:
-    - The DB On Demand `Web Interface <https://github.com/cerndb/dbod-webapp>`_
-    - The DB On Demand `Core framework <https://github.com/cerndb/dbod-Core>`_
-    - A `Rundeck <https://rundeck.org>`_ installation
+- The DB On Demand `Web Interface <https://github.com/cerndb/dbod-webapp>`_
+- The DB On Demand `Core framework <https://github.com/cerndb/dbod-Core>`_
+- A `Rundeck <https://rundeck.org>`_ installation
 
 Setup
 ^^^^^^^^^^^^^^^^^^^^^^

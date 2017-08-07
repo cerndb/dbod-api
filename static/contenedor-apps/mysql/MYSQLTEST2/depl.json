@@ -1,0 +1,78 @@
+{
+  "kind": "Deployment",
+  "spec": {
+    "template": {
+      "spec": {
+        "containers": [
+          {
+            "image": "jaysot/mysql",
+            "imagePullPolicy": "Always",
+            "volumeMounts": [
+              {
+                "mountPath": "/ORA/dbs03/TEST",
+                "name": "volume-data"
+              },
+              {
+                "mountPath": "/ORA/dbs02/TEST",
+                "name": "volume-bin"
+              },
+              {
+                "mountPath": "/docker-entrypoint-initdb.d",
+                "name": "secret-init"
+              },
+              {
+                "mountPath": "/etc/mysql/conf.d",
+                "name": "secret-conf"
+              }
+            ],
+            "ports": [
+              {
+                "containerPort": 5500,
+                "name": "p0"
+              }
+            ],
+            "name": "contenedor-mysqltest1"
+          }
+        ],
+        "volumes": [
+          {
+            "cinder": {
+              "volumeID": "CINDER-ID-DATA",
+              "fsType": "ext4"
+            },
+            "name": "volume-data"
+          },
+          {
+            "cinder": {
+              "volumeID": "CINDER-ID-BIN",
+              "fsType": "ext4"
+            },
+            "name": "volume-bin"
+          },
+          {
+            "secret": {
+              "secretName": "mysqltest1-secret-init.sql"
+            },
+            "name": "secret-init"
+          },
+          {
+            "secret": {
+              "secretName": "mysqltest1-secret-mysql.cnf"
+            },
+            "name": "secret-conf"
+          }
+        ]
+      },
+      "metadata": {
+        "labels": {
+          "app": "mysqltest1-app"
+        }
+      }
+    },
+    "replicas": 1
+  },
+  "apiVersion": "extensions/v1beta1",
+  "metadata": {
+    "name": "mysqltest1-depl"
+  }
+}
