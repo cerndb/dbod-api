@@ -19,7 +19,7 @@ import argparse
 # Dictionary with the required present fields in the config file
 requiredConfig = {
         'server' : [ 'port' ] ,
-        'logging' : [ 'path', 'level', 'stderr' ],
+        'logging' : [ 'path', 'level', 'stderr', 'fmt', 'datefmt' ],
         'api' : [ 'user', 'pass' ], 
         'postgrest': [ 
             'rundeck_resources_url', 
