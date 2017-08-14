@@ -71,6 +71,8 @@ CREATE TABLE public.dod_instances (
 
 -- DOD_JOBS
 CREATE TABLE public.dod_jobs (
+    id int NOT NULL,
+    instance_id int NOT NULL,
     username varchar(32) NOT NULL,
     db_name varchar(128) NOT NULL,
     command_name varchar(64) NOT NULL,
@@ -321,6 +323,9 @@ SELECT * FROM public.attribute;
 
 CREATE VIEW api.host AS
 SELECT * FROM public.host;
+
+CREATE OR REPLACE VIEW api.job AS
+SELECT * FROM public.dod_jobs;
 
 -- Metadata View
 CREATE OR REPLACE VIEW api.metadata AS
