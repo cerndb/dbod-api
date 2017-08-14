@@ -438,6 +438,23 @@ SELECT host.id,
        host.memory
 FROM host;
 
+CREATE OR REPLACE VIEW api.job AS
+SELECT job.id,
+       job.instance_id,
+       job.username,
+       job.db_name,
+       job.command_name,
+       job.type,
+       job.creation_date,
+       job.completion_date,
+       job.requester,
+       job.admin_action,
+       job.state,
+       job.log,
+       job.result,
+       job.email_sent
+FROM dod_jobs;
+
 -- Functional Aliases View
 CREATE OR REPLACE VIEW api.functional_aliases AS 
 SELECT functional_aliases.dns_name,
