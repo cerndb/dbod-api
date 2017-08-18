@@ -41,12 +41,13 @@ class Job(tornado.web.RequestHandler):
             if response.ok:
                 data = response.json()
                 if data:
-                    if data['instance_id'] == instance_id:
+                    logging.debug("Received data: " + data)
+                    if int(data[0]["instance_id"]) == instance_id:
                         self.write({'response' : data})
                         self.set_status(OK)
                     else:
                         logging.error("No rights to access job id: " + job_id + " from instance: " + db_name)
-                    raise tornado.web.HTTPError(UNAUTHORIZED)
+                        raise tornado.web.HTTPError(UNAUTHORIZED)
                 else: 
                     logging.error("Job id not found: " + db_name)
                     raise tornado.web.HTTPError(NOT_FOUND)
@@ -55,6 +56,7 @@ class Job(tornado.web.RequestHandler):
             response = requests.get(config.get('postgrest', 'job_url') + "?instance_id=eq." + str(instance_id))
             if response.ok:
                 data = response.json()
+                logging.debug(data)
                 if data:
                     self.write({'response' : data})
                     self.set_status(OK)
