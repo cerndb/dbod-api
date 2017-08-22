@@ -66,3 +66,22 @@ class Job(tornado.web.RequestHandler):
             else:
                 logging.error("Instance not found for name: " + db_name)
                 raise tornado.web.HTTPError(NOT_FOUND)
+
+class Job_filter(tornado.web.RequestHandler):
+
+    url = config.get('postgrest', 'get_jobs_url')
+
+    def post(self, *args):
+                
+        logging.debug("Rec. Body: %s" % (self.request.body))
+        logging.debug("RPC Url : %s" % (self.url))
+        response = requests.post(self.url, json=json.loads(self.request.body),
+                headers={'Prefer': 'return=representation'})
+
+        if response.ok:
+            self.write(response.text)
+            self.set_status(OK)
+        else:
+            logging.error("Response: %s" % (response))
+            raise tornado.web.HTTPError(response.status_code)
+

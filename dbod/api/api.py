@@ -35,7 +35,7 @@ from dbod.config import config, optionalConfig
 from dbod.api.cluster import Cluster, Cluster_filter
 from dbod.api.volume import Volume
 from dbod.api.auth import Resources
-from dbod.api.job import Job
+from dbod.api.job import Job, Job_filter
 
 # This list is a global object because in needs to be accessed
 # from the test suites
@@ -55,7 +55,7 @@ handlers = [
     (r"/api/v1/rundeck/job/(?P<job>[^\/]+)/?(?P<node>[^\/]+)?", RundeckJobs),
     (r"/api/v1/(?P<class>[^\/]+)/(?P<entity>[^\/]+)/attribute/?(?P<attribute_name>[^\/]+)?", Attribute),
     (r"/api/v1/instance/(?P<db_name>[^\/]+)/job/?(?P<id>[^\/]+)?", Job),
-    #(r"/api/v1/job", Job_filter),
+    (r"/api/v1/job", Job_filter),
 
     # Deprecated, will be deleted in following versions
     (r"/api/v1/metadata/(?P<class>[^\/]+)/?(?P<name>[^\/]+)?", Metadata),  

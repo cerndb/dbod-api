@@ -26,3 +26,19 @@ begin
 
 end
 $$ language plpgsql;
+
+drop function if exists api.get_job(owner varchar, groups json); 
+create or replace function api.get_jobs(owner varchar, groups json)
+returns setof api.job as $$
+begin
+
+  return query
+  select * from api.job
+  where instance_id in
+    (select id from api.instance 
+    where api.instance.e_group in
+      (select value from json_array_elements_text(groups))
+      or api.instance.username = owner);
+
+end
+$$ language plpgsql;
