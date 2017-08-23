@@ -150,7 +150,7 @@ class Cluster_filter(tornado.web.RequestHandler):
 
     url = config.get('postgrest', 'get_clusters_url')
 
-    def get(self, *args):
+    def post(self, *args):
 
         """
         The *GET* method returns a list of e_groups owning resources
