@@ -69,19 +69,23 @@ class Job(tornado.web.RequestHandler):
 
 class Job_filter(tornado.web.RequestHandler):
 
-    url = config.get('postgrest', 'get_jobs_url')
+    get_jobs_url = config.get('postgrest', 'get_jobs_url')
 
     def post(self, *args):
-                
-        logging.debug("Rec. Body: %s" % (self.request.body))
-        logging.debug("RPC Url : %s" % (self.url))
-        response = requests.post(self.url, json=json.loads(self.request.body),
-                headers={'Prefer': 'return=representation'})
+        logging.debug("Rec. Headers: ")
+        for k, v in self.request.headers.get_all():
+            logging.debug("\t%s = %s" % (k, v))
+        logging.debug("RPC Url : %s" % (self.get_jobs_url))
+
+        auth = json.loads(self.request.headers.get('auth'))
+        logging.debug("JSON: %s" % auth)
+
+        response = requests.post(self.get_jobs_url, json=auth, headers={'Prefer': 'return=representation'})
 
         if response.ok:
             self.write(response.text)
             self.set_status(OK)
         else:
-            logging.error("Response: %s" % (response))
+            logging.error("Response: %s" % (response.text))
             raise tornado.web.HTTPError(response.status_code)
 
