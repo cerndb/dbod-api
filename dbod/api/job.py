@@ -71,16 +71,13 @@ class Job_filter(tornado.web.RequestHandler):
 
     get_jobs_url = config.get('postgrest', 'get_jobs_url')
 
-    def post(self, *args):
-        logging.debug("Rec. Headers: ")
-        for k, v in self.request.headers.get_all():
-            logging.debug("\t%s = %s" % (k, v))
-        logging.debug("RPC Url : %s" % (self.get_jobs_url))
-
+    def get(self, *args):
         auth = json.loads(self.request.headers.get('auth'))
-        logging.debug("JSON: %s" % auth)
+        logging.debug("RPC Url : %s" % (self.get_jobs_url))
+        logging.debug("Auth Header: %s" % auth)
 
-        response = requests.post(self.get_jobs_url, json=auth, headers={'Prefer': 'return=representation'})
+        response = requests.post(self.get_jobs_url, json=auth, 
+                headers={'Prefer': 'return=representation'})
 
         if response.ok:
             self.write(response.text)

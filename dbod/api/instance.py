@@ -227,9 +227,9 @@ class Instance_filter(tornado.web.RequestHandler):
 
     """
 
-    url = config.get('postgrest', 'get_instances_url')
+    get_instances_url = config.get('postgrest', 'get_instances_url')
 
-    def post(self, *args):
+    def get(self, *args):
 
         """
         The *GET* method returns a list of e_groups owning resources
@@ -237,17 +237,17 @@ class Instance_filter(tornado.web.RequestHandler):
         :rtype: json -- the response of the request
         :raises: HTTPError - if there is an internal error or if the response is empty
         """
-
-                
-        logging.debug("Rec. Body: %s" % (self.request.body))
-        logging.debug("RPC Url : %s" % (self.url))
-        response = requests.post(self.url, json=json.loads(self.request.body),
+        auth = json.loads(self.request.headers.get('auth'))
+        logging.debug("RPC Url : %s" % (self.get_instances_url))
+        logging.debug("Auth Header: %s" % auth)
+        
+        response = requests.post(self.get_instances_url, json=auth,
                 headers={'Prefer': 'return=representation'})
 
         if response.ok:
             self.write(response.text)
             self.set_status(OK)
         else:
-            logging.error("Response: %s" % (response))
+            logging.error("Response: %s" % (response.text))
             raise tornado.web.HTTPError(response.status_code)
 
