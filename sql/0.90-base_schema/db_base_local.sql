@@ -64,8 +64,8 @@ VALUES ('NETAPP', 'NETAPP volume type'),
 -- CREATION OF TABLES
 ------------------------------
 
--- DOD_COMMAND_DEFINITION
-CREATE TABLE public.dod_command_definition (
+-- COMMAND_DEFINITION
+CREATE TABLE public.command_definition (
     command_name varchar(64) NOT NULL,
     type varchar(64) NOT NULL,
     exec varchar(2048),
@@ -73,8 +73,8 @@ CREATE TABLE public.dod_command_definition (
     PRIMARY KEY (command_name, type, category)
 );
 
--- DOD_COMMAND_PARAMS
-CREATE TABLE public.dod_command_params (
+-- COMMAND_PARAM
+CREATE TABLE public.command_param (
     username varchar(32) NOT NULL,
     db_name varchar(128) NOT NULL,
     command_name varchar(64) NOT NULL,
@@ -86,8 +86,8 @@ CREATE TABLE public.dod_command_params (
     PRIMARY KEY (username, db_name, command_name, type, creation_date, name)
 );
 
--- DOD_INSTANCE_CHANGES
-CREATE  TABLE public.dod_instance_changes (
+-- INSTANCE_CHANGE
+CREATE  TABLE public.instance_change (
     username varchar(32) NOT NULL,
     db_name varchar(128) NOT NULL,
     attribute varchar(32) NOT NULL,
@@ -98,11 +98,11 @@ CREATE  TABLE public.dod_instance_changes (
     PRIMARY KEY (username, db_name, attribute, change_date)
 );
 
--- DOD_INSTANCES
-CREATE TABLE public.dod_instances (
+-- INSTANCE
+CREATE TABLE public.instance (
     id serial,
     username varchar(32) NOT NULL,
-    db_name varchar(128) NOT NULL,
+    db_name varchar(128) UNIQUE NOT NULL,
     e_group varchar(256),
     category varchar(32) NOT NULL,
     creation_date date NOT NULL,
@@ -118,21 +118,21 @@ CREATE TABLE public.dod_instances (
     host varchar(128),
     state varchar(32),
     status varchar(32),
-    CONSTRAINT dod_instances_pkey PRIMARY KEY (id),
-    CONSTRAINT dod_instances_dbname UNIQUE (db_name)
+    PRIMARY KEY (id)
 );
 
+-- INSTANCE_ATTRIBUTE
 CREATE TABLE public.instance_attribute (
-  id serial,
-  instance_id integer NOT NULL,
-  name varchar(32) NOT NULL,
-  value varchar(250) NOT NULL,
-  CONSTRAINT attribute_pkey PRIMARY KEY (id),
-  CONSTRAINT attribute_instance_id_name_key UNIQUE (instance_id, name)
+    id serial,
+    instance_id integer NOT NULL,
+    name varchar(32) NOT NULL,
+    value varchar(250) NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE (instance_id, name)
 );
 
--- DOD_JOBS
-CREATE TABLE public.dod_jobs (
+-- JOB
+CREATE TABLE public.job (
     id int NOT NULL,
     instance_id int NOT NULL,
     username varchar(32) NOT NULL,
@@ -151,8 +151,8 @@ CREATE TABLE public.dod_jobs (
     PRIMARY KEY (username, db_name, command_name, type, creation_date)
 );
 
--- DOD_UPGRADES
-CREATE TABLE public.dod_upgrades (
+-- UPGRADE
+CREATE TABLE public.upgrade (
     db_type varchar(32) NOT NULL,
     category varchar(32) NOT NULL,
     version_from varchar(128) NOT NULL,
@@ -160,7 +160,7 @@ CREATE TABLE public.dod_upgrades (
     PRIMARY KEY (db_type, category, version_from)
 );
 
--- FIM TABLE
+-- FIM_DATA
 CREATE TABLE public.fim_data (
     internal_id varchar(36) NOT NULL,
     instance_name varchar(64),
@@ -193,80 +193,69 @@ CREATE TABLE public.volume (
 
 -- VOLUME ATTRIBUTE
 CREATE TABLE public.volume_attribute (
-  id serial,
-  volume_id integer NOT NULL,
-  name varchar(32) NOT NULL,
-  value varchar(250) NOT NULL,
-  CONSTRAINT volume_attribute_pkey PRIMARY KEY (id),
-  CONSTRAINT volume_attribute_volume_fk FOREIGN KEY (volume_id)
-      REFERENCES public.volume (id) MATCH SIMPLE
-      ON UPDATE NO ACTION ON DELETE CASCADE,
-  CONSTRAINT volume_attribute_volume_id_name_key UNIQUE (volume_id, name)
+    id serial,
+    volume_id integer NOT NULL,
+    name varchar(32) NOT NULL,
+    value varchar(250) NOT NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT volume_attribute_volume_fk FOREIGN KEY (volume_id) REFERENCES public.volume (id) ON DELETE CASCADE,
+    UNIQUE (volume_id, name)
 );
 
 -- HOST
 CREATE TABLE public.host (
     id serial,
-    name varchar(63) NOT NULL,
+    name varchar(63) UNIQUE NOT NULL,
     memory integer NOT NULL,
-    PRIMARY KEY (id),
-    CONSTRAINT name_con UNIQUE (name)
+    PRIMARY KEY (id)
 );
 
 -- FUNCTIONAL ALIASES
 CREATE TABLE public.functional_aliases (
     dns_name varchar(256) NOT NULL,
-    db_name varchar(8),
+    db_name varchar(8) UNIQUE,
     alias varchar(256),
-    CONSTRAINT functional_aliases_pkey PRIMARY KEY (dns_name),
-    CONSTRAINT db_name_con UNIQUE (db_name)
+    PRIMARY KEY (dns_name)
 );
 
 -- CLUSTER
 CREATE TABLE public.cluster (
-  id serial,
-  owner varchar(32) NOT NULL,
-  name varchar(128) NOT NULL,
-  e_group varchar(256),
-  category instance_category NOT NULL,
-  creation_date date NOT NULL,
-  expiry_date date,
-  type_id integer NOT NULL,
-  project varchar(128),
-  description varchar(1024),
-  version varchar(128),
-  master_id integer,
-  state instance_state NOT NULL,
-  status instance_status NOT NULL,
-  CONSTRAINT cluster_pkey PRIMARY KEY (id),
-  CONSTRAINT cluster_instance_type_fk FOREIGN KEY (type_id)
-      REFERENCES public.instance_type (id) MATCH SIMPLE
-      ON UPDATE NO ACTION ON DELETE NO ACTION,
-  CONSTRAINT cluster_master_fk FOREIGN KEY (master_id)
-      REFERENCES public.cluster (id) MATCH SIMPLE
-      ON UPDATE NO ACTION ON DELETE NO ACTION,
-  CONSTRAINT cluster_name_key UNIQUE (name)
+    id serial,
+    owner varchar(32) NOT NULL,
+    name varchar(128) UNIQUE NOT NULL,
+    e_group varchar(256),
+    category instance_category NOT NULL,
+    creation_date date NOT NULL,
+    expiry_date date,
+    type_id integer NOT NULL,
+    project varchar(128),
+    description varchar(1024),
+    version varchar(128),
+    master_id integer,
+    state instance_state NOT NULL,
+    status instance_status NOT NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT cluster_instance_type_fk FOREIGN KEY (type_id) REFERENCES public.instance_type (id),
+    CONSTRAINT cluster_master_fk FOREIGN KEY (master_id) REFERENCES public.cluster (id)
 );
 
 CREATE TABLE public.cluster_attribute (
-  id serial,
-  cluster_id integer NOT NULL,
-  name varchar(32) NOT NULL,
-  value varchar(250) NOT NULL,
-  CONSTRAINT cluster_attribute_pkey PRIMARY KEY (id),
-  CONSTRAINT cluster_attribute_cluster_fk FOREIGN KEY (cluster_id)
-      REFERENCES public.cluster (id) MATCH SIMPLE
-      ON UPDATE NO ACTION ON DELETE CASCADE,
-  CONSTRAINT cluster_attribute_cluster_id_name_key UNIQUE (cluster_id, name)
+    id serial,
+    cluster_id integer NOT NULL,
+    name varchar(32) NOT NULL,
+    value varchar(250) NOT NULL,
+    CONSTRAINT cluster_attribute_pkey PRIMARY KEY (id),
+    CONSTRAINT cluster_attribute_cluster_fk FOREIGN KEY (cluster_id) REFERENCES public.cluster (id) ON DELETE CASCADE,
+    UNIQUE (cluster_id, name)
 );
 
 -- Job stats view
 CREATE OR REPLACE VIEW public.job_stats AS 
 SELECT db_name, command_name, COUNT(*) as COUNT, ROUND(AVG(completion_date - creation_date) * 24*60*60) AS mean_duration
-FROM dod_jobs GROUP BY command_name, db_name;
+FROM public.job GROUP BY command_name, db_name;
 
 -- Command stats view
 CREATE OR REPLACE VIEW public.command_stats AS
 SELECT command_name, COUNT(*) AS COUNT, ROUND(AVG(completion_date - creation_date) * 24*60*60) AS mean_duration
-FROM dod_jobs GROUP BY command_name;
+FROM public.job GROUP BY command_name;
 
