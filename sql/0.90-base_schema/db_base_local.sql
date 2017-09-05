@@ -87,7 +87,7 @@ CREATE TABLE public.command_param (
 );
 
 -- INSTANCE_CHANGE
-CREATE  TABLE public.instance_change (
+CREATE TABLE public.instance_change (
     username varchar(32) NOT NULL,
     db_name varchar(128) NOT NULL,
     attribute varchar(32) NOT NULL,
@@ -98,28 +98,48 @@ CREATE  TABLE public.instance_change (
     PRIMARY KEY (username, db_name, attribute, change_date)
 );
 
+-- HOST
+CREATE TABLE public.host (
+    id serial,
+    name varchar(63) UNIQUE NOT NULL,
+    memory integer NOT NULL,
+    PRIMARY KEY (id)
+);
+
 -- INSTANCE
 CREATE TABLE public.instance (
     id serial,
-    username varchar(32) NOT NULL,
-    db_name varchar(128) UNIQUE NOT NULL,
+    owner varchar(32) NOT NULL,
+    name varchar(128) NOT NULL,
     e_group varchar(256),
-    category varchar(32) NOT NULL,
+    category instance_category NOT NULL,
     creation_date date NOT NULL,
     expiry_date date,
-    db_type varchar(32) NOT NULL,
-    db_size int NOT NULL,
-    no_connections int,
+    type_id integer NOT NULL,
+    size integer,
+    no_connections integer,
     project varchar(128),
     description varchar(1024),
     version varchar(128),
-    master varchar(32),
-    slave varchar(32),
-    host varchar(128),
-    state varchar(32),
-    status varchar(32),
-    PRIMARY KEY (id)
+    master_id integer,
+    slave_id integer,
+    host_id integer,
+    state instance_state NOT NULL,
+    status instance_status NOT NULL,
+    cluster_id integer,
+    PRIMARY KEY (id),
+    CONSTRAINT instance_host_fk FOREIGN KEY (host_id) REFERENCES public.host (id),
+    CONSTRAINT instance_instance_type_fk FOREIGN KEY (type_id) REFERENCES public.instance_type,
+    CONSTRAINT instance_master_fk FOREIGN KEY (master_id) REFERENCES public.instance (id),
+    CONSTRAINT instance_slave_fk FOREIGN KEY (slave_id) REFERENCES public.instance (id),
+    CONSTRAINT instance_name_key UNIQUE (name)
 );
+
+--FK INDEXES for INSTANCE table
+CREATE INDEX instance_host_idx      ON public.instance (host_id);
+CREATE INDEX instance_master_idx    ON public.instance (master_id);
+CREATE INDEX instance_slave_idx     ON public.instance (slave_id);
+CREATE INDEX instance_type_idx      ON public.instance (type_id);
 
 -- INSTANCE_ATTRIBUTE
 CREATE TABLE public.instance_attribute (
@@ -188,6 +208,7 @@ CREATE TABLE public.volume (
     server varchar(63) NOT NULL,
     mount_options varchar(256) NOT NULL,
     mounting_path varchar(256) NOT NULL,
+    volume_type_id integer,
     PRIMARY KEY (id)
 );
 
@@ -202,13 +223,7 @@ CREATE TABLE public.volume_attribute (
     UNIQUE (volume_id, name)
 );
 
--- HOST
-CREATE TABLE public.host (
-    id serial,
-    name varchar(63) UNIQUE NOT NULL,
-    memory integer NOT NULL,
-    PRIMARY KEY (id)
-);
+CREATE INDEX IF NOT EXISTS volume_attribute_volume_idx ON public.volume_attribute (id);
 
 -- FUNCTIONAL ALIASES
 CREATE TABLE public.functional_aliases (
@@ -239,6 +254,11 @@ CREATE TABLE public.cluster (
     CONSTRAINT cluster_master_fk FOREIGN KEY (master_id) REFERENCES public.cluster (id)
 );
 
+--FK INDEXES for CLUSTER table
+CREATE INDEX cluster_master_idx ON public.cluster (master_id);
+CREATE INDEX cluster_type_idx ON public.cluster (type_id);
+
+
 CREATE TABLE public.cluster_attribute (
     id serial,
     cluster_id integer NOT NULL,
@@ -248,6 +268,8 @@ CREATE TABLE public.cluster_attribute (
     CONSTRAINT cluster_attribute_cluster_fk FOREIGN KEY (cluster_id) REFERENCES public.cluster (id) ON DELETE CASCADE,
     UNIQUE (cluster_id, name)
 );
+
+CREATE INDEX cluster_attribute_cluster_idx ON public.cluster_attribute (cluster_id);
 
 -- Job stats view
 CREATE OR REPLACE VIEW public.job_stats AS 
