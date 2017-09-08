@@ -47,6 +47,7 @@ CREATE OR REPLACE VIEW api.instance AS
     instance_type.type,
     instance.project,
     instance.description,
+    instance.version,
     instance_master.name AS master,
     instance_slave.name AS slave,
     host.name AS host,
