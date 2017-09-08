@@ -237,6 +237,7 @@ class Instance_filter(tornado.web.RequestHandler):
         :rtype: json -- the response of the request
         :raises: HTTPError - if there is an internal error or if the response is empty
         """
+        logging.debug(self.request.headers.get('auth'))
         auth = json.loads(self.request.headers.get('auth'))
         logging.debug("RPC Url : %s" % (self.get_instances_url))
         logging.debug("Auth Header: %s" % auth)

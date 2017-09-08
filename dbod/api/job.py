@@ -60,11 +60,11 @@ class Job(tornado.web.RequestHandler):
                 if data:
                     self.write({'response' : data})
                     self.set_status(OK)
-                else: 
-                    logging.error("Instance not found for name: " + db_name)
+                else:
+                    logging.error("No jobs found for instance: " + db_name)
                     raise tornado.web.HTTPError(NOT_FOUND)
             else:
-                logging.error("Instance not found for name: " + db_name)
+                logging.error("Error getting jobs for instance: " + db_name)
                 raise tornado.web.HTTPError(NOT_FOUND)
 
 class Job_filter(tornado.web.RequestHandler):
