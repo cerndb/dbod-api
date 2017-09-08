@@ -134,13 +134,21 @@ CREATE OR REPLACE VIEW api.metadata AS
     instance.version,
     string_to_array(host.name::text, ','::text) AS hosts,
     api.get_instance_attributes(instance.id) AS attributes,
-    api.get_instance_attribute('port'::character varying, instance.id) AS port,
+    api.get_instance_attribute('port'::varchar, instance.id) AS port,
     api.get_volumes(instance.id) AS volumes,
+    api.get_owner_data(instance.name) AS user,
+    d.basedir,
+    d.bindir,
+    d.datadir,
+    d.logdir,
+    d.socket,
     instance.cluster_id
   FROM instance
     JOIN instance_type ON instance.type_id = instance_type.id
     LEFT JOIN host ON instance.host_id = host.id,
-    LATERAL api.get_volumes(instance.id) get_volumes(get_volumes);
+    LATERAL api.get_volumes(instance.id) get_volumes(get_volumes),
+    LATERAL api.get_owner_data(instance.name) get_owner_data(get_owner_data),
+    LATERAL api.get_directories(instance.name, instance_type.type, instance.version, api.get_instance_attribute('port'::varchar, instance.id)) d(basedir, bindir, datadir, logdir, socket);
 
 -- Rundeck instances
 CREATE OR REPLACE VIEW api.rundeck_instances AS 
