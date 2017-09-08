@@ -89,7 +89,7 @@ VALUES (1, 1, 'service','zookeeper'),
 ALTER SEQUENCE cluster_attribute_id_seq RESTART WITH 3;
 
 -- Insert test data for jobs
-INSERT INTO api.job 
+INSERT INTO api.job (id, instance_id, username, db_name, command_name, type, creation_date, completion_date, requester, admin_action, state, log, result, email_sent, category)
 VALUES (1,1,'user01','dbod01','CLEANUP','MYSQL','01-AUG-17','01-AUG-17','user01','2','FINISHED_FAIL','
 Thu Aug 01 10:51:44 CEST 2017 : RunTime.CleanUpOlderThanDays: on </DATA/database/dbod01/logs> removed older than <30>.
 Thu Aug 01 10:51:44 CEST 2017 : RunTime.RunStr running find /DATA/database/dbod01/logs   -name \*  -mtime +30 -exec rm -rf {} \;
@@ -152,3 +152,8 @@ Thu Aug 10 10:49:06 CEST 2017 : Main: Success creating snapshot: <snapscript_553
 Thu Aug 10 10:49:06 CEST 2017 : Main: postnap actions completed successfully.
 Thu Aug 10 10:49:06 CEST 2017 : Main: mysql_snapshot is over.
 Thu Aug 10 10:49:06 CEST 2017 : mysql_snapshot.Main: State: [0]',NULL,NULL);
+
+INSERT INTO public.fim_data (internal_id, instance_name, description, owner_account_type, owner_first_name, owner_last_name, owner_login, owner_mail, owner_phone1, owner_phone2, owner_portable_phone, owner_department, owner_group, owner_section)
+VALUES ('abc1', 'dbod01', 'Test database 01', 'Personal', 'Alice', 'Lastname', 'user01', 'alice@cern.ch', '77550', NULL, NULL, 'ITC', 'DBC', 'EEC'),
+       ('bcd2', 'dbod02', 'Test database 02', 'Personal', 'Alice', 'Lastname', 'user01', 'alice@cern.ch', '77550', NULL, NULL, 'ITC', 'DBC', 'EEC'),
+       ('cde3', 'dbod04', 'Test database 02', 'System', 'Account', 'Services', 'user03', 'accounts@cern.ch', '88000', NULL, NULL, 'ACC', 'SSE', NULL);
