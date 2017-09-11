@@ -132,6 +132,10 @@ CREATE OR REPLACE VIEW api.metadata AS
     instance.category AS class,
     instance_type.type,
     instance.version,
+    instance.creation_date,
+    instance.expiry_date,
+    instance.e_group egroup,
+    instance.project,
     string_to_array(host.name::text, ','::text) AS hosts,
     api.get_instance_attributes(instance.id) AS attributes,
     api.get_instance_attribute('port'::varchar, instance.id) AS port,
@@ -142,7 +146,10 @@ CREATE OR REPLACE VIEW api.metadata AS
     d.datadir,
     d.logdir,
     d.socket,
-    instance.cluster_id
+    instance.cluster_id,
+    instance.state,
+    instance.status,
+    instance.description
   FROM instance
     JOIN instance_type ON instance.type_id = instance_type.id
     LEFT JOIN host ON instance.host_id = host.id,
