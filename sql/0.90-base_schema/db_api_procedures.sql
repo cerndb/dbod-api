@@ -602,6 +602,13 @@ BEGIN
       ('/ORA/dbs03/' || upper(inst_name) )::VARCHAR datadir,
       ('/ORA/dbs02/' || upper(inst_name) )::VARCHAR logdir,
       ('/ORA/dbs01/oracle/product/rdbms/network/admin')::VARCHAR socket; -- tnsnames
+  ELSE
+    RETURN QUERY SELECT
+      NULL::VARCHAR basedir,
+      NULL::VARCHAR bindir,
+      NULL::VARCHAR datadir,
+      NULL::VARCHAR logdir,
+      NULL::VARCHAR socket;
   END IF;
 END
 $$ LANGUAGE plpgsql;
@@ -612,7 +619,18 @@ CREATE OR REPLACE FUNCTION api.get_owner_data(db_name varchar)
 DECLARE
   owner JSON;
 BEGIN
-  SELECT row_to_json(t) FROM (SELECT * FROM public.fim_data WHERE instance_name = db_name) t INTO owner;
+  SELECT row_to_json(t) FROM (
+    SELECT owner_first_name first_name,
+      owner_last_name last_name,
+      owner_login login,
+      owner_mail email,
+      owner_phone1 phone1,
+      owner_phone2 phone2,
+      owner_portable_phone portable,
+      owner_department department,
+      owner_group "group",
+      owner_section section
+    FROM public.fim_data WHERE instance_name = db_name) t INTO owner;
   return owner;
 END
 $$ LANGUAGE plpgsql;
