@@ -95,31 +95,31 @@ Thu Aug 01 10:51:44 CEST 2017 : RunTime.CleanUpOlderThanDays: on </DATA/database
 Thu Aug 01 10:51:44 CEST 2017 : RunTime.RunStr running find /DATA/database/dbod01/logs   -name \*  -mtime +30 -exec rm -rf {} \;
 Thu Aug 01 10:51:45 CEST 2017 : RunTime.CleanUpOlderThanDays: done.
 Thu Aug 01 10:51:45 CEST 2017 : Main: Starting
-Thu Aug 01 10:51:47 CEST 2017 : RunTime.RunStr running hostname',NULL,NULL),
+Thu Aug 01 10:51:47 CEST 2017 : RunTime.RunStr running hostname',NULL,NULL,NULL),
        (2,1,'user01','dbod01','BACKUP','MYSQL','02-AUG-17','02-AUG-17','user01','2','PENDING','
 Thu Aug 02 10:51:44 CEST 2017 : RunTime.CleanUpOlderThanDays: on </DATA/database/dbod01/logs> removed older than <30>.
 Thu Aug 02 10:51:44 CEST 2017 : RunTime.RunStr running find /DATA/database/dbod01/logs   -name \*  -mtime +30 -exec rm -rf {} \;
 Thu Aug 02 10:51:45 CEST 2017 : RunTime.CleanUpOlderThanDays: done.
 Thu Aug 02 10:51:45 CEST 2017 : Main: Starting
-Thu Aug 02 10:51:47 CEST 2017 : RunTime.RunStr running hostname',NULL,NULL),
+Thu Aug 02 10:51:47 CEST 2017 : RunTime.RunStr running hostname',NULL,NULL,NULL),
        (3,1,'user01','dbod01','CLEANUP','MYSQL','03-AUG-17','03-AUG-17','user01','2','FINISHED_OK','
 Thu Aug 03 10:51:44 CEST 2017 : RunTime.CleanUpOlderThanDays: on </DATA/database/dbod01/logs> removed older than <30>.
 Thu Aug 03 10:51:44 CEST 2017 : RunTime.RunStr running find /DATA/database/dbod01/logs   -name \*  -mtime +30 -exec rm -rf {} \;
 Thu Aug 03 10:51:45 CEST 2017 : RunTime.CleanUpOlderThanDays: done.
 Thu Aug 03 10:51:45 CEST 2017 : Main: Starting
-Thu Aug 03 10:51:47 CEST 2017 : RunTime.RunStr running hostname',NULL,NULL),
+Thu Aug 03 10:51:47 CEST 2017 : RunTime.RunStr running hostname',NULL,NULL,NULL),
        (4,1,'user01','dbod01','BACKUP','MYSQL','04-AUG-17','04-AUG-17','user01','2','FINISHED_OK','
 Thu Aug 04 10:51:44 CEST 2017 : RunTime.CleanUpOlderThanDays: on </DATA/database/dbod01/logs> removed older than <30>.
 Thu Aug 04 10:51:44 CEST 2017 : RunTime.RunStr running find /DATA/database/dbod01/logs   -name \*  -mtime +30 -exec rm -rf {} \;
 Thu Aug 04 10:51:45 CEST 2017 : RunTime.CleanUpOlderThanDays: done.
 Thu Aug 04 10:51:45 CEST 2017 : Main: Starting
-Thu Aug 04 10:51:47 CEST 2017 : RunTime.RunStr running hostname',NULL,NULL),
+Thu Aug 04 10:51:47 CEST 2017 : RunTime.RunStr running hostname',NULL,NULL,NULL),
        (5,1,'user01','dbod01','CLEANUP','MYSQL','05-AUG-17','05-AUG-17','user01','2','FINISHED_OK','
 Thu Aug 05 10:51:44 CEST 2017 : RunTime.CleanUpOlderThanDays: on </DATA/database/dbod01/logs> removed older than <30>.
 Thu Aug 05 10:51:44 CEST 2017 : RunTime.RunStr running find /DATA/database/dbod01/logs   -name \*  -mtime +30 -exec rm -rf {} \;
 Thu Aug 05 10:51:45 CEST 2017 : RunTime.CleanUpOlderThanDays: done.
 Thu Aug 05 10:51:45 CEST 2017 : Main: Starting
-Thu Aug 05 10:51:47 CEST 2017 : RunTime.RunStr running hostname',NULL,NULL),
+Thu Aug 05 10:51:47 CEST 2017 : RunTime.RunStr running hostname',NULL,NULL,NULL),
        (6,2,'user02','dbod02','CLEANUP','MYSQL','10-AUG-17','10-AUG-17','user02','2','FINISHED_OK','
 Thu Aug 10 10:48:08 CEST 2017 : Main: Starting
 Thu Aug 10 10:48:09 CEST 2017 : RunTime.RunStr running hostname
@@ -151,7 +151,7 @@ Thu Aug 10 10:49:06 CEST 2017 : RunTime_Zapi::SnapCreate: Created!!
 Thu Aug 10 10:49:06 CEST 2017 : Main: Success creating snapshot: <snapscript_553> on volume: <dbod02>.!
 Thu Aug 10 10:49:06 CEST 2017 : Main: postnap actions completed successfully.
 Thu Aug 10 10:49:06 CEST 2017 : Main: mysql_snapshot is over.
-Thu Aug 10 10:49:06 CEST 2017 : mysql_snapshot.Main: State: [0]',NULL,NULL);
+Thu Aug 10 10:49:06 CEST 2017 : mysql_snapshot.Main: State: [0]',NULL,NULL,NULL);
 
 INSERT INTO public.fim_data (internal_id, instance_name, description, owner_account_type, owner_first_name, owner_last_name, owner_login, owner_mail, owner_phone1, owner_phone2, owner_portable_phone, owner_department, owner_group, owner_section)
 VALUES ('abc1', 'dbod01', 'Test database 01', 'Personal', 'Alice', 'Lastname', 'user01', 'alice@cern.ch', '77550', NULL, NULL, 'ITC', 'DBC', 'EEC'),
