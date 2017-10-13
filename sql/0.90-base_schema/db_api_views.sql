@@ -80,8 +80,8 @@ CREATE OR REPLACE VIEW api.job AS
     job.requester,
     job.admin_action,
     job.state,
-    job.log,
-    job.result,
+    --job.log,
+    --job.result,
     job.email_sent,
     job.category
   FROM job;
