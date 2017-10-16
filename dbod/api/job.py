@@ -37,11 +37,11 @@ class Job(tornado.web.RequestHandler):
 
         if job_id:
             # Get an specific job
-            response = requests.get(config.get('postgrest', 'job_url') + "?id=eq." + job_id)
+            response = requests.get(config.get('postgrest', 'job_log_url') + "?id=eq." + job_id)
             if response.ok:
                 data = response.json()
                 if data:
-                    logging.debug("Received data: " + data)
+                    logging.debug("Received data: " + str(data))
                     if int(data[0]["instance_id"]) == instance_id:
                         self.write({'response' : data})
                         self.set_status(OK)

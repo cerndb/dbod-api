@@ -85,6 +85,25 @@ CREATE OR REPLACE VIEW api.job AS
     job.email_sent,
     job.category
   FROM job;
+  
+-- Jobs logs
+CREATE OR REPLACE VIEW api.job_log AS 
+  SELECT job.id,
+    job.instance_id,
+    job.username,
+    job.db_name,
+    job.command_name,
+    job.type,
+    job.creation_date,
+    job.completion_date,
+    job.requester,
+    job.admin_action,
+    job.state,
+    job.log,
+    job.result,
+    job.email_sent,
+    job.category
+  FROM job;
 
 -- Volumes
 CREATE OR REPLACE VIEW api.volume AS 
