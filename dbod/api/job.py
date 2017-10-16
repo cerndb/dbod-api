@@ -43,7 +43,7 @@ class Job(tornado.web.RequestHandler):
                 if data:
                     logging.debug("Received data: " + str(data))
                     if int(data[0]["instance_id"]) == instance_id:
-                        self.write({'response' : data})
+                        self.write({'response' : data[0]})
                         self.set_status(OK)
                     else:
                         logging.error("No rights to access job id: " + job_id + " from instance: " + db_name)
