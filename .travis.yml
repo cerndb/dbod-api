@@ -4,7 +4,7 @@ dist: trusty
 python:
     - "2.7"
 addons:
-    postgresql: "9.4"
+    postgresql: "9.6"
 services:
     - postgresql
 before_install:
@@ -24,6 +24,7 @@ install:
     - python setup.py install
 before_script:
     - psql -c 'CREATE DATABASE dbod;' -U postgres
+    - psql -d dbod -f sql/0.90-base_schema/create_local_db.sql
     - psql -d dbod -f dbod/tests/db_test.sql -U postgres
     - ./postgrest postgres://postgres@localhost/dbod -a postgres -s api &
     - sleep 5
