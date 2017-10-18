@@ -49,7 +49,7 @@ class Job(tornado.web.RequestHandler):
                         logging.error("No rights to access job id: " + job_id + " from instance: " + db_name)
                         raise tornado.web.HTTPError(UNAUTHORIZED)
                 else: 
-                    logging.error("Job id not found: " + db_name)
+                    logging.error("Job id not found: " + job_id)
                     raise tornado.web.HTTPError(NOT_FOUND)
         else:
             # Get all jobs for this instance starting from the most recent one

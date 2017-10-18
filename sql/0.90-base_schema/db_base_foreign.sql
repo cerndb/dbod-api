@@ -5,6 +5,59 @@
 -- granted to it by virtue of its status as Intergovernmental Organization
 -- or submit itself to any jurisdiction.
 
+------------------------------------------
+-- TYPES
+------------------------------------------
+CREATE TYPE public.instance_state AS ENUM (
+  'RUNNING',
+  'MAINTENANCE',
+  'AWATING-APPROVAL',
+  'JOB-PENDING'
+);
+
+CREATE TYPE public.instance_status AS ENUM (
+  'ACTIVE',
+  'NON-ACTIVE'
+);
+
+CREATE TYPE public.instance_category AS ENUM (
+  'PROD',
+  'DEV',
+  'TEST',
+  'QA',
+  'REF'
+);
+
+CREATE TYPE public.job_state AS ENUM (
+  'FINISHED_FAIL',
+  'FINISHED_OK'
+);
+
+-- INSTANCE_TYPE
+CREATE TABLE public.instance_type (
+  id serial,
+  type             varchar(64) UNIQUE NOT NULL,
+  description      varchar(1024),
+  CONSTRAINT instance_type_pkey PRIMARY KEY (id)
+);
+
+INSERT INTO public.instance_type (type, description)
+VALUES ('ZOOKEEPER', 'Zookeeper instance type'),
+       ('MYSQL'    , 'MySQL database type'),
+       ('PG'       , 'PostgreSQL database type');
+     
+-- VOLUME TYPE     
+CREATE TABLE public.volume_type (
+  id serial,
+  type            varchar(64) UNIQUE NOT NULL,
+  description     varchar(1024),
+  CONSTRAINT volume_type_pkey PRIMARY KEY (id)
+);
+
+INSERT INTO public.volume_type (type, description)
+VALUES ('NETAPP', 'NETAPP volume type'),
+       ('CEPTH' , 'CEPTH volume type');
+
 ------------------------------
 -- CREATION OF FOREIGN TABLES
 ------------------------------
@@ -252,43 +305,3 @@ CREATE OR REPLACE VIEW public.command_stats AS
 SELECT command_name, COUNT(*) AS COUNT, ROUND(AVG(completion_date - creation_date) * 24*60*60) AS mean_duration
 FROM dod_jobs GROUP BY command_name;
 
-------------------------------------------
--- TYPES
-------------------------------------------
-CREATE TYPE public.instance_state AS ENUM (
-  'RUNNING',
-  'MAINTENANCE',
-  'AWATING-APPROVAL',
-  'JOB-PENDING'
-);
-
-CREATE TYPE public.instance_status AS ENUM (
-  'ACTIVE',
-  'NON-ACTIVE'
-);
-
-CREATE TYPE public.instance_category AS ENUM (
-  'PROD',
-  'DEV',
-  'TEST',
-  'QA',
-  'REF'
-);
-
-CREATE TYPE public.job_state AS ENUM (
-  'FINISHED_FAIL',
-  'FINISHED_OK'
-);
-
---INSTANCE_TYPE
-CREATE TABLE public.instance_type (
-  id serial,
-  type             varchar(64) UNIQUE NOT NULL,
-  description      varchar(1024),
-  CONSTRAINT instance_type_pkey PRIMARY KEY (id)
-);
-
-INSERT INTO public.instance_type (type, description)
-VALUES ('ZOOKEEPER', 'Zookeeper instance type'),
-       ('MYSQL'    , 'MySQL database type'),
-       ('PG'       , 'PostgreSQL database type');
