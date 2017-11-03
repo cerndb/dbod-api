@@ -89,7 +89,7 @@ VALUES (1, 1, 'service','zookeeper'),
 ALTER SEQUENCE cluster_attribute_id_seq RESTART WITH 3;
 
 -- Insert test data for jobs
-INSERT INTO api.job (id, instance_id, username, db_name, command_name, type, creation_date, completion_date, requester, admin_action, state, log, result, email_sent, category)
+INSERT INTO public.job (id, instance_id, username, db_name, command_name, type, creation_date, completion_date, requester, admin_action, state, log, result, email_sent, category)
 VALUES (1,1,'user01','dbod01','CLEANUP','MYSQL','01-AUG-17','01-AUG-17','user01','2','FINISHED_FAIL','
 Thu Aug 01 10:51:44 CEST 2017 : RunTime.CleanUpOlderThanDays: on </DATA/database/dbod01/logs> removed older than <30>.
 Thu Aug 01 10:51:44 CEST 2017 : RunTime.RunStr running find /DATA/database/dbod01/logs   -name \*  -mtime +30 -exec rm -rf {} \;
