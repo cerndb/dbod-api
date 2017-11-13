@@ -13,13 +13,14 @@ CREATE SCHEMA IF NOT EXISTS public;
 CREATE TYPE public.instance_state AS ENUM (
   'RUNNING',
   'MAINTENANCE',
-  'AWATING-APPROVAL',
-  'JOB-PENDING'
+  'AWAITING_APPROVAL',
+  'JOB_PENDING',
+  'STOPPED'
 );
 
 CREATE TYPE public.instance_status AS ENUM (
   'ACTIVE',
-  'NON-ACTIVE'
+  'NON_ACTIVE'
 );
 
 CREATE TYPE public.instance_category AS ENUM (
@@ -46,8 +47,11 @@ CREATE TABLE public.instance_type (
 INSERT INTO public.instance_type (type, description)
 VALUES ('ZOOKEEPER', 'Zookeeper instance type'),
        ('MYSQL'    , 'MySQL database type'),
-       ('PG'       , 'PostgreSQL database type');
-     
+       ('PG'       , 'PostgreSQL database type'),
+       ('ORA'      , 'Oracle 12 database type'),
+       ('ORACLE'   , 'Oracle 11 database type'),
+       ('InfluxDB' , 'InfluxDB instance type');
+    
 -- VOLUME TYPE     
 CREATE TABLE public.volume_type (
   id serial,
@@ -79,7 +83,7 @@ CREATE TABLE public.command_param (
     db_name varchar(128) NOT NULL,
     command_name varchar(64) NOT NULL,
     type varchar(64) NOT NULL,
-    creation_date date NOT NULL,
+    creation_date timestamp NOT NULL,
     name varchar(64) NOT NULL,
     value text,
     category varchar(20),
@@ -91,7 +95,7 @@ CREATE TABLE public.instance_change (
     username varchar(32) NOT NULL,
     db_name varchar(128) NOT NULL,
     attribute varchar(32) NOT NULL,
-    change_date date NOT NULL,
+    change_date timestamp NOT NULL,
     requester varchar(32) NOT NULL,
     old_value varchar(1024),
     new_value varchar(1024),
@@ -113,8 +117,8 @@ CREATE TABLE public.instance (
     name varchar(128) NOT NULL,
     e_group varchar(256),
     category instance_category NOT NULL,
-    creation_date date NOT NULL,
-    expiry_date date,
+    creation_date timestamp NOT NULL,
+    expiry_date timestamp,
     type_id integer NOT NULL,
     size integer,
     no_connections integer,
@@ -153,20 +157,20 @@ CREATE TABLE public.instance_attribute (
 
 -- JOB
 CREATE TABLE public.job (
-    id int NOT NULL,
+    id serial,
     instance_id int NOT NULL,
     username varchar(32) NOT NULL,
     db_name varchar(128) NOT NULL,
     command_name varchar(64) NOT NULL,
     type varchar(64) NOT NULL,
-    creation_date date NOT NULL,
-    completion_date date,
+    creation_date timestamp NOT NULL,
+    completion_date timestamp,
     requester varchar(32) NOT NULL,
     admin_action int NOT NULL,
     state varchar(32) NOT NULL,
     log text,
     result varchar(2048),
-    email_sent date,
+    email_sent timestamp,
     category varchar(20),
     PRIMARY KEY (username, db_name, command_name, type, creation_date)
 );
