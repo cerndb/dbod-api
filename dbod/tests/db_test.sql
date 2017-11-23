@@ -5,189 +5,70 @@
 -- granted to it by virtue of its status as Intergovernmental Organization
 -- or submit itself to any jurisdiction.
 
-------------------------------------------------
--- Create the structure for the test database --
-------------------------------------------------
+------------------------------
+-- DATA TO RUN TESTS
+------------------------------
 
-CREATE SCHEMA IF NOT EXISTS public;
+-- Insert types
+INSERT INTO public.volume_type (id, type, description)
+VALUES (1, 'NETAPP', 'NETAPP volume type'),
+       (2, 'CEPTH',  'CEPTH volume type');
+ALTER SEQUENCE volume_type_id_seq RESTART WITH 3;
 
--- DOD_COMMAND_DEFINITION
-CREATE TABLE public.dod_command_definition (
-    command_name varchar(64) NOT NULL,
-    type varchar(64) NOT NULL,
-    exec varchar(2048),
-    category varchar(20),
-    PRIMARY KEY (command_name, type, category)
-);
+INSERT INTO public.instance_type (id, type, description)
+VALUES (1, 'ZOOKEEPER', 'Zookeeper instance type'),
+       (2, 'MYSQL'    , 'MySQL database type'),
+       (3, 'PG'       , 'PostgreSQL database type');
+ALTER SEQUENCE instance_type_id_seq RESTART WITH 4;
 
--- DOD_COMMAND_PARAMS
-CREATE TABLE public.dod_command_params (
-    username varchar(32) NOT NULL,
-    db_name varchar(128) NOT NULL,
-    command_name varchar(64) NOT NULL,
-    type varchar(64) NOT NULL,
-    creation_date date NOT NULL,
-    name varchar(64) NOT NULL,
-    value text,
-    category varchar(20),
-    PRIMARY KEY (username, db_name, command_name, type, creation_date, name)
-);
+-- Insert test data for volumes
+INSERT INTO public.volume (id, instance_id, volume_type_id, file_mode, owner, "group", server, mount_options, mounting_path)
+VALUES (1, 1, 1, '0755', 'TSM', 'ownergroup', 'NAS-server', 'rw,bg,hard', '/MNT/data1'),
+       (2, 1, 1, '0755', 'TSM', 'ownergroup', 'NAS-server', 'rw', '/MNT/bin'),
+       (3, 2, 1, '0755', 'TSM', 'ownergroup', 'NAS-server', 'rw,bg,hard', '/MNT/data2'),
+       (4, 4, 1, '0755', 'TSM', 'ownergroup', 'NAS-server', 'rw,bg,hard,tcp', '/MNT/data4'),
+       (5, 5, 1, '0755', 'TSM', 'ownergroup', 'NAS-server', 'rw,bg,hard', '/MNT/data5'),
+       (6, 5, 1, '0755', 'TSM', 'ownergroup', 'NAS-server', 'rw', '/MNT/bin'),
+       (7, 6, 1, '0755', 'TSM', 'ownergroup', 'NAS-server', 'rw', '/MNT/zk'),
+       (8, 7, 1, '0755', 'TSM', 'ownergroup', 'NAS-server', 'rw', '/MNT/zk'),
+       (9, 7, 2, '0755', 'TSM', 'ownergroup', 'NAS-server', 'rw,bg,hard', '/MNT/data01');
+ALTER SEQUENCE volume_id_seq RESTART WITH 10;
 
--- DOD_INSTANCE_CHANGES
-CREATE TABLE public.dod_instance_changes (
-    username varchar(32) NOT NULL,
-    db_name varchar(128) NOT NULL,
-    attribute varchar(32) NOT NULL,
-    change_date date NOT NULL,
-    requester varchar(32) NOT NULL,
-    old_value varchar(1024),
-    new_value varchar(1024),
-    PRIMARY KEY (username, db_name, attribute, change_date)
-);
+INSERT INTO public.volume_attribute (id, volume_id, name, value)
+VALUES (1, 8, 'ro', 'TRUE'),
+       (2, 8, 'fw', 'TRUE'),
+       (3, 9, 'ro', 'FALSE');
+ALTER SEQUENCE volume_attribute_id_seq RESTART WITH 4;
 
--- DOD_INSTANCES
-CREATE TABLE public.dod_instances (
-    id serial,
-    username varchar(32) NOT NULL,
-    db_name varchar(128) NOT NULL,
-    e_group varchar(256),
-    category varchar(32) NOT NULL,
-    creation_date date NOT NULL,
-    expiry_date date,
-    db_type varchar(32) NOT NULL,
-    db_size int,
-    no_connections int,
-    project varchar(128),
-    description varchar(1024),
-    version varchar(128),
-    master varchar(32),
-    slave varchar(32),
-    host varchar(128),
-    state varchar(32),
-    status varchar(32),
-    CONSTRAINT dod_instances_pkey PRIMARY KEY (id),
-    CONSTRAINT dod_instances_dbname UNIQUE (db_name)
-);
-
--- DOD_JOBS
-CREATE TABLE public.dod_jobs (
-    username varchar(32) NOT NULL,
-    db_name varchar(128) NOT NULL,
-    command_name varchar(64) NOT NULL,
-    type varchar(64) NOT NULL,
-    creation_date date NOT NULL,
-    completion_date date,
-    requester varchar(32) NOT NULL,
-    admin_action int NOT NULL,
-    state varchar(32) NOT NULL,
-    log text,
-    result varchar(2048),
-    email_sent date,
-    category varchar(20),
-    PRIMARY KEY (username, db_name, command_name, type, creation_date)
-);
-
--- DOD_UPGRADES
-CREATE TABLE public.dod_upgrades (
-    db_type varchar(32) NOT NULL,
-    category varchar(32) NOT NULL,
-    version_from varchar(128) NOT NULL,
-    version_to varchar(128) NOT NULL,
-    PRIMARY KEY (db_type, category, version_from)
-);
-
--- VOLUME
-CREATE TABLE public.volume (
-    id serial,
-    instance_id integer NOT NULL,
-    file_mode char(4) NOT NULL,
-    owner varchar(32) NOT NULL,
-    "group" varchar(32) NOT NULL,
-    server varchar(63) NOT NULL,
-    mount_options varchar(256) NOT NULL,
-    mounting_path varchar(256) NOT NULL,
-    PRIMARY KEY (id)
-);
-
--- HOST
-CREATE TABLE public.host (
-    id serial,
-    name varchar(63) NOT NULL,
-    memory integer NOT NULL,
-    PRIMARY KEY (id),
-    CONSTRAINT name_con UNIQUE (name)
-);
-
--- ATTRIBUTE
-CREATE TABLE public.attribute (
-    id serial,
-    instance_id integer NOT NULL,
-    name varchar(32) NOT NULL,
-    value varchar(250) NOT NULL,
-    PRIMARY KEY (id),
-    UNIQUE (instance_id, name)
-);
-
--- FUNCTIONAL ALIASES
-CREATE TABLE public.functional_aliases (
-    dns_name character varying(256) NOT NULL,
-    db_name character varying(8),
-    alias character varying(256),
-    CONSTRAINT functional_aliases_pkey PRIMARY KEY (dns_name),
-    CONSTRAINT db_name_con UNIQUE (db_name)
-);
-
--- FIM TABLE
-CREATE TABLE public.fim_data (
-    internal_id character varying(36) NOT NULL,
-    instance_name character varying(64),
-    description character varying(450),
-    owner_account_type character varying(20),
-    owner_first_name character varying(24),
-    owner_last_name character varying(40),
-    owner_login character varying(64),
-    owner_mail character varying(128),
-    owner_phone1 character varying(5),
-    owner_phone2 character varying(5),
-    owner_portable_phone character varying(7),
-    owner_department character varying(3),
-    owner_group character varying(3),
-    owner_section character varying(3),
-    PRIMARY KEY (internal_id)
-);
+-- Insert test data for hosts
+INSERT INTO public.host (id, name, memory)
+VALUES (1, 'host01', 12),
+       (2, 'host02', 24),
+       (3, 'host03', 64),
+       (4, 'host04', 256);
+ALTER SEQUENCE host_id_seq RESTART WITH 5;
 
 -- Insert test data for instances
-INSERT INTO public.dod_instances (username, db_name, e_group, category, creation_date, expiry_date, db_type, db_size, no_connections, project, description, version, master, slave, host, state, status)
-VALUES ('user01', 'dbod01', 'testgroupA', 'TEST', now(), NULL, 'MYSQL', 100, 100, 'API', 'Test instance 1', '5.6.17', NULL, NULL, 'host01', 'RUNNING', 1),
-       ('user01', 'dbod02', 'testgroupB', 'PROD', now(), NULL, 'PG', 50, 500, 'API', 'Test instance 2', '9.4.4', NULL, NULL, 'host03', 'RUNNING', 1),
-       ('user02', 'dbod03', 'testgroupB', 'TEST', now(), NULL, 'MYSQL', 100, 200, 'WEB', 'Expired instance 1', '5.5', NULL, NULL, 'host01', 'RUNNING', 0),
-       ('user03', 'dbod04', 'testgroupA', 'PROD', now(), NULL, 'PG', 250, 10, 'LCC', 'Test instance 3', '9.4.5', NULL, NULL, 'host01', 'RUNNING', 1),
-       ('user04', 'dbod05', 'testgroupC', 'TEST', now(), NULL, 'MYSQL', 300, 200, 'WEB', 'Test instance 4', '5.6.17', NULL, NULL, 'host01', 'RUNNING', 1);
-       
--- Insert test data for volumes
-INSERT INTO public.volume (instance_id, file_mode, owner, "group", server, mount_options, mounting_path)
-VALUES (1, '0755', 'TSM', 'ownergroup', 'NAS-server', 'rw,bg,hard', '/MNT/data1'),
-       (1, '0755', 'TSM', 'ownergroup', 'NAS-server', 'rw', '/MNT/bin'),
-       (2, '0755', 'TSM', 'ownergroup', 'NAS-server', 'rw,bg,hard', '/MNT/data2'),
-       (4, '0755', 'TSM', 'ownergroup', 'NAS-server', 'rw,bg,hard,tcp', '/MNT/data4'),
-       (5, '0755', 'TSM', 'ownergroup', 'NAS-server', 'rw,bg,hard', '/MNT/data5'),
-       (5, '0755', 'TSM', 'ownergroup', 'NAS-server', 'rw', '/MNT/bin');
+INSERT INTO public.instance (id, owner, name, e_group, category, creation_date, type_id, size, no_connections, project, description, version, master_id, slave_id, host_id, state, status, cluster_id)
+VALUES (1, 'user01', 'dbod01', 'testgroupA', 'TEST', now(), 2 , 100 , 100 , 'API' , 'Test instance 1'      , '5.6.17', NULL, NULL, 1, 'RUNNING', 'ACTIVE',     NULL),
+       (2, 'user01', 'dbod02', 'testgroupB', 'PROD', now(), 3 , 50  , 500 , 'API' , 'Test instance 2'      , '9.4.4' , NULL, NULL, 3, 'RUNNING', 'ACTIVE',     NULL),
+       (3, 'user02', 'dbod03', 'testgroupB', 'TEST', now(), 2 , 100 , 200 , 'WEB' , 'Expired instance 1'   , '5.5'   , NULL, NULL, 1, 'RUNNING', 'NON-ACTIVE', NULL),
+       (4, 'user03', 'dbod04', 'testgroupA', 'PROD', now(), 3 , 250 , 10  , 'LCC' , 'Test instance 3'      , '9.4.5' , NULL, NULL, 1, 'RUNNING', 'ACTIVE',     NULL),
+       (5, 'user04', 'dbod05', 'testgroupC', 'TEST', now(), 2 , 300 , 200 , 'WEB' , 'Test instance 4'      , '5.6.17', NULL, NULL, 1, 'RUNNING', 'ACTIVE',     NULL),
+       (6, 'user04', 'dbod06', 'testgroupC', 'TEST', now(), 2 , 300 , 200 , 'WEB' , 'Test instance 4'      , '5.6.17', NULL, NULL, 1, 'RUNNING', 'ACTIVE',     NULL),
+       (7, 'user05', 'node01', 'testgroupZ', 'DEV' , now(), 1 , NULL, NULL, 'NILE', 'Test zookeeper inst 1', '3.4.9' , NULL, NULL, 4, 'RUNNING', 'ACTIVE',     1),
+       (8, 'user05', 'node02', 'testgroupZ', 'DEV' , now(), 1 , NULL, NULL, 'NILE', 'Test zookeeper inst 2', '3.4.9' , NULL, NULL, 4, 'RUNNING', 'ACTIVE',     1);
+ALTER SEQUENCE instance_id_seq RESTART WITH 9;
 
 -- Insert test data for attributes
-INSERT INTO public.attribute (instance_id, name, value)
+INSERT INTO public.instance_attribute (instance_id, name, value)
 VALUES (1, 'port', '5501'),
        (2, 'port', '6603'),
        (3, 'port', '5510'),
        (4, 'port', '6601'),
        (5, 'port', '5500');
-        
--- Insert test data for hosts
-INSERT INTO public.host (name, memory)
-VALUES ('host01', 12),
-       ('host02', 24),
-       ('host03', 64),
-       ('host04', 256);
-       
+ALTER SEQUENCE instance_attribute_id_seq RESTART WITH 6;
+
 -- Insert test data for database aliases
 INSERT INTO public.functional_aliases (dns_name, db_name, alias)
 VALUES ('db-dbod-dns01','dbod01','dbod-dbod-01.cern.ch'),
@@ -196,186 +77,83 @@ VALUES ('db-dbod-dns01','dbod01','dbod-dbod-01.cern.ch'),
        ('db-dbod-dns04','dbod04','dbod-dbod-04.cern.ch'),
        ('db-dbod-dns05', NULL, NULL);
 
--- Schema API
-CREATE SCHEMA IF NOT EXISTS api;
+-- Insert test data from clusters
+INSERT INTO public.cluster (id, owner, name, e_group, category, creation_date, expiry_date, type_id, project, description, version, master_id, state, status)
+VALUES (1, 'user05','cluster01','testgroupZ','DEV',now(),NULL,1,'NILE','Test zookeeper cluster 1', '3.4.9',NULL,'RUNNING','ACTIVE');
+ALTER SEQUENCE cluster_id_seq RESTART WITH 2;
 
--- Dod_instances view
-CREATE OR REPLACE VIEW api.dod_instances AS
-SELECT id, username, db_name, e_group, category, creation_date, expiry_date, db_type, db_size, no_connections, project, description, version, master, slave, host, state, status
-FROM dod_instances;
-       
--- Job stats view
-CREATE OR REPLACE VIEW api.job_stats AS 
-SELECT db_name, command_name, COUNT(*) as COUNT, ROUND(AVG(completion_date - creation_date) * 24*60*60) AS mean_duration
-FROM dod_jobs GROUP BY command_name, db_name;
+-- Insert test data for cluster attributes
+INSERT INTO public.cluster_attribute (id, cluster_id, name, value)
+VALUES (1, 1, 'service','zookeeper'),
+       (2, 1, 'user'   ,'zookeeper');
+ALTER SEQUENCE cluster_attribute_id_seq RESTART WITH 3;
 
--- Command stats view
-CREATE OR REPLACE VIEW api.command_stats AS
-SELECT command_name, COUNT(*) AS COUNT, ROUND(AVG(completion_date - creation_date) * 24*60*60) AS mean_duration
-FROM dod_jobs GROUP BY command_name;
-       
--- Get hosts function
-CREATE OR REPLACE FUNCTION get_hosts(host_ids INTEGER[])
-RETURNS VARCHAR[] AS $$
-DECLARE
-  hosts VARCHAR := '';
-BEGIN
-  SELECT ARRAY (SELECT name FROM host WHERE id = ANY(host_ids)) INTO hosts;
-  RETURN hosts;
-END
-$$ LANGUAGE plpgsql;
+-- Insert test data for jobs
+INSERT INTO public.job (id, instance_id, username, db_name, command_name, type, creation_date, completion_date, requester, admin_action, state, log, result, email_sent, category)
+VALUES (1,1,'user01','dbod01','CLEANUP','MYSQL','01-AUG-17','01-AUG-17','user01','2','FINISHED_FAIL','
+Thu Aug 01 10:51:44 CEST 2017 : RunTime.CleanUpOlderThanDays: on </DATA/database/dbod01/logs> removed older than <30>.
+Thu Aug 01 10:51:44 CEST 2017 : RunTime.RunStr running find /DATA/database/dbod01/logs   -name \*  -mtime +30 -exec rm -rf {} \;
+Thu Aug 01 10:51:45 CEST 2017 : RunTime.CleanUpOlderThanDays: done.
+Thu Aug 01 10:51:45 CEST 2017 : Main: Starting
+Thu Aug 01 10:51:47 CEST 2017 : RunTime.RunStr running hostname',NULL,NULL,NULL),
+       (2,1,'user01','dbod01','BACKUP','MYSQL','02-AUG-17','02-AUG-17','user01','2','PENDING','
+Thu Aug 02 10:51:44 CEST 2017 : RunTime.CleanUpOlderThanDays: on </DATA/database/dbod01/logs> removed older than <30>.
+Thu Aug 02 10:51:44 CEST 2017 : RunTime.RunStr running find /DATA/database/dbod01/logs   -name \*  -mtime +30 -exec rm -rf {} \;
+Thu Aug 02 10:51:45 CEST 2017 : RunTime.CleanUpOlderThanDays: done.
+Thu Aug 02 10:51:45 CEST 2017 : Main: Starting
+Thu Aug 02 10:51:47 CEST 2017 : RunTime.RunStr running hostname',NULL,NULL,NULL),
+       (3,1,'user01','dbod01','CLEANUP','MYSQL','03-AUG-17','03-AUG-17','user01','2','FINISHED_OK','
+Thu Aug 03 10:51:44 CEST 2017 : RunTime.CleanUpOlderThanDays: on </DATA/database/dbod01/logs> removed older than <30>.
+Thu Aug 03 10:51:44 CEST 2017 : RunTime.RunStr running find /DATA/database/dbod01/logs   -name \*  -mtime +30 -exec rm -rf {} \;
+Thu Aug 03 10:51:45 CEST 2017 : RunTime.CleanUpOlderThanDays: done.
+Thu Aug 03 10:51:45 CEST 2017 : Main: Starting
+Thu Aug 03 10:51:47 CEST 2017 : RunTime.RunStr running hostname',NULL,NULL,NULL),
+       (4,1,'user01','dbod01','BACKUP','MYSQL','04-AUG-17','04-AUG-17','user01','2','FINISHED_OK','
+Thu Aug 04 10:51:44 CEST 2017 : RunTime.CleanUpOlderThanDays: on </DATA/database/dbod01/logs> removed older than <30>.
+Thu Aug 04 10:51:44 CEST 2017 : RunTime.RunStr running find /DATA/database/dbod01/logs   -name \*  -mtime +30 -exec rm -rf {} \;
+Thu Aug 04 10:51:45 CEST 2017 : RunTime.CleanUpOlderThanDays: done.
+Thu Aug 04 10:51:45 CEST 2017 : Main: Starting
+Thu Aug 04 10:51:47 CEST 2017 : RunTime.RunStr running hostname',NULL,NULL,NULL),
+       (5,1,'user01','dbod01','CLEANUP','MYSQL','05-AUG-17','05-AUG-17','user01','2','FINISHED_OK','
+Thu Aug 05 10:51:44 CEST 2017 : RunTime.CleanUpOlderThanDays: on </DATA/database/dbod01/logs> removed older than <30>.
+Thu Aug 05 10:51:44 CEST 2017 : RunTime.RunStr running find /DATA/database/dbod01/logs   -name \*  -mtime +30 -exec rm -rf {} \;
+Thu Aug 05 10:51:45 CEST 2017 : RunTime.CleanUpOlderThanDays: done.
+Thu Aug 05 10:51:45 CEST 2017 : Main: Starting
+Thu Aug 05 10:51:47 CEST 2017 : RunTime.RunStr running hostname',NULL,NULL,NULL),
+       (6,2,'user02','dbod02','CLEANUP','MYSQL','10-AUG-17','10-AUG-17','user02','2','FINISHED_OK','
+Thu Aug 10 10:48:08 CEST 2017 : Main: Starting
+Thu Aug 10 10:48:09 CEST 2017 : RunTime.RunStr running hostname
+Thu Aug 10 10:48:13 CEST 2017 : RunTime_Zapi.GetVolInfoCmode : working with volume: </DATA/database/dbod02>
+Thu Aug 10 10:48:13 CEST 2017 : RunTime_Zapi.GetVolInfoCmode: query looks like: 
+ <volume-get-iter>
+	<max-records>10</max-records>
+	<query>
+		<volume-attributes>
+			<volume-id-attributes>
+				<junction-path>/DATA/database/dbod02</junction-path>
+			</volume-id-attributes>
+		</volume-attributes>
+	</query>
+	<desired-attributes>
+		<volume-autosize-attributes></volume-autosize-attributes>
+		<volume-id-attributes></volume-id-attributes>
+		<volume-space-attributes></volume-space-attributes>
+		<volume-state-attributes></volume-state-attributes>
+	</desired-attributes>
+</volume-get-iter>
+Thu Aug 10 10:49:02 CEST 2017 : Main: presnap actions completed successfully.
+Thu Aug 10 10:49:02 CEST 2017 : Main: Master status:
+ File	Position	Binlog_Do_DB	Binlog_Ignore_DB	Executed_Gtid_Set
+ binlog.001940	120			
 
--- Get volumes function
-CREATE OR REPLACE FUNCTION get_volumes(pid INTEGER)
-RETURNS JSON[] AS $$
-DECLARE
-  volumes JSON[];
-BEGIN
-  SELECT ARRAY (SELECT row_to_json(t) FROM (SELECT * FROM public.volume WHERE instance_id = pid) t) INTO volumes;
-  return volumes;
-END
-$$ LANGUAGE plpgsql;
+Thu Aug 10 10:49:02 CEST 2017 : RunTime::GetVersionDB: version <5617>.
+Thu Aug 10 10:49:06 CEST 2017 : RunTime_Zapi::SnapCreate: Created!!
+Thu Aug 10 10:49:06 CEST 2017 : Main: Success creating snapshot: <snapscript_553> on volume: <dbod02>.!
+Thu Aug 10 10:49:06 CEST 2017 : Main: postnap actions completed successfully.
+Thu Aug 10 10:49:06 CEST 2017 : Main: mysql_snapshot is over.
+Thu Aug 10 10:49:06 CEST 2017 : mysql_snapshot.Main: State: [0]',NULL,NULL,NULL);
 
--- Get port function
-CREATE OR REPLACE FUNCTION get_attribute(attr_name VARCHAR, inst_id INTEGER)
-RETURNS VARCHAR AS $$
-DECLARE
-  res VARCHAR;
-BEGIN
-  SELECT value FROM public.attribute A WHERE A.instance_id = inst_id AND A.name = attr_name INTO res;
-  return res;
-END
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION api.get_attributes(inst_id INTEGER)
-RETURNS JSON AS $$
-DECLARE
-  attributes JSON;
-BEGIN
-  SELECT json_object(j.body::text[]) FROM                                                                                                                                   
-    (SELECT '{' || string_agg( buf, ',' ) || '}' body                                                                                                                         
-      FROM                                                                                                                                                                  
-      (SELECT  name::text || ', ' || value::text buf                                                                                                                        
-        FROM public.attribute                                                                                                                                                    
-        WHERE instance_id = inst_id) t) j INTO attributes;
-  return attributes;
-END
-$$ LANGUAGE plpgsql;
-
--- Get directories function
-CREATE OR REPLACE FUNCTION get_directories(inst_name VARCHAR, type VARCHAR, version VARCHAR, port VARCHAR)
-RETURNS TABLE (basedir VARCHAR, bindir VARCHAR, datadir VARCHAR, logdir VARCHAR, socket VARCHAR) AS $$
-BEGIN
-  IF type = 'MYSQL' THEN
-    RETURN QUERY SELECT 
-      ('/usr/local/mysql/mysql-' || version)::VARCHAR basedir, 
-      ('/usr/local/mysql/mysql-' || version || '/bin')::VARCHAR bindir, 
-      ('/ORA/dbs03/' || upper(inst_name) || '/mysql')::VARCHAR datadir, 
-      ('/ORA/dbs02/' || upper(inst_name) || '/mysql')::VARCHAR logdir, 
-      ('/var/lib/mysql/mysql.sock.' || lower(inst_name) || '.' || port)::VARCHAR socket;
-  ELSIF type = 'PG' THEN
-    RETURN QUERY SELECT 
-      ('/usr/local/pgsql/pgsql-' || version)::VARCHAR basedir, 
-      ('/usr/local/mysql/mysql-' || version || '/bin')::VARCHAR bindir, 
-      ('/ORA/dbs03/' || upper(inst_name) || '/data')::VARCHAR datadir, 
-      ('/ORA/dbs02/' || upper(inst_name) || '/pg_xlog')::VARCHAR logdir, 
-      ('/var/lib/pgsql/')::VARCHAR socket;
-  END IF;
-END
-$$ LANGUAGE plpgsql;
-       
-CREATE OR REPLACE VIEW api.instance AS 
-SELECT dod_instances.id,
-       dod_instances.username,
-       dod_instances.db_name,
-       dod_instances.e_group,
-       dod_instances.category "class",
-       dod_instances.creation_date,
-       dod_instances.expiry_date,
-       dod_instances.db_type,
-       dod_instances.db_size,
-       dod_instances.no_connections,
-       dod_instances.project,
-       dod_instances.description,
-       dod_instances.version,
-       dod_instances.master,
-       dod_instances.slave,
-       dod_instances.host,
-       dod_instances.state,
-       dod_instances.status
-FROM dod_instances;
-
-CREATE OR REPLACE VIEW api.volume AS 
-SELECT volume.id,
-       volume.instance_id,
-       volume.file_mode,
-       volume.owner,
-       volume.group,
-       volume.server,
-       volume.mount_options,
-       volume.mounting_path
-FROM volume;
-
-CREATE VIEW api.attribute AS
-SELECT * FROM public.attribute;
-
-CREATE VIEW api.host AS
-SELECT * FROM public.host;
-
--- Metadata View
-CREATE OR REPLACE VIEW api.metadata AS
-SELECT 
-    id, 
-    username, 
-    db_name, 
-    category "class", 
-    db_type, 
-    version, 
-    string_to_array(dod_instances.host::text, ','::text) AS hosts, 
-    api.get_attributes(id) attributes,
-    public.get_attribute('port', id) port, 
-    get_volumes volumes, 
-    d.*
-FROM public.dod_instances, public.get_volumes(id), public.get_directories(db_name, db_type, version, public.get_attribute('port', id)) d;
-
--- Rundeck instances View
-CREATE OR REPLACE VIEW api.rundeck_instances AS
-SELECT public.dod_instances.db_name, 
-       public.functional_aliases.alias hostname,
-       public.get_attribute('port', public.dod_instances.id) port,
-       'dbod' username,
-       public.dod_instances.db_type db_type,
-       public.dod_instances.category category,
-       db_type || ',' || category tags
-FROM public.dod_instances JOIN public.functional_aliases ON
-public.dod_instances.db_name = public.functional_aliases.db_name;
-
--- Host aliases View
-CREATE OR REPLACE VIEW api.host_aliases AS
-SELECT host, string_agg('dbod-' || db_name || 'domain', E',') aliases 
-FROM dod_instances 
-GROUP BY host;
-
--- Functional aliases view
-CREATE OR REPLACE VIEW api.functional_aliases AS
-SELECT * 
-FROM functional_aliases;
-
--- Fim data view
-CREATE OR REPLACE VIEW api.fim_data AS
-SELECT 
-    internal_id,
-    instance_name,
-    description,
-    owner_account_type,
-    owner_first_name,
-    owner_last_name,
-    owner_login,
-    owner_mail,
-    owner_phone1,
-    owner_phone2,
-    owner_portable_phone,
-    owner_department,
-    owner_group,
-    owner_section
-FROM public.db_on_demand;
+INSERT INTO public.fim_data (internal_id, instance_name, description, owner_account_type, owner_first_name, owner_last_name, owner_login, owner_mail, owner_phone1, owner_phone2, owner_portable_phone, owner_department, owner_group, owner_section)
+VALUES ('abc1', 'dbod01', 'Test database 01', 'Personal', 'Alice', 'Lastname', 'user01', 'alice@cern.ch', '77550', NULL, NULL, 'ITC', 'DBC', 'EEC'),
+       ('bcd2', 'dbod02', 'Test database 02', 'Personal', 'Alice', 'Lastname', 'user01', 'alice@cern.ch', '77550', NULL, NULL, 'ITC', 'DBC', 'EEC'),
+       ('cde3', 'dbod04', 'Test database 02', 'System', 'Account', 'Services', 'user03', 'accounts@cern.ch', '88000', NULL, NULL, 'ACC', 'SSE', NULL);

@@ -24,7 +24,7 @@ from dbod.config import config
 class Attribute(tornado.web.RequestHandler):
 
     """
-    This is the handler of **/instance/<database name>/attribute/<attribute name>** endpoint.
+    This is the handler of **/<class>/<name>/attribute/<attribute_name>** endpoint.
 
     Things that are given for the development of this endpoint:
 
@@ -63,14 +63,13 @@ class Attribute(tornado.web.RequestHandler):
 
     """
 
-
     def get(self, **args):
         """
         The *GET* method returns an attribute value from a certain *instance*.
         The parameter <attribute name> is optional. If it's not set the method
         will return all the attributes referred to the instance.  (No any
         special headers for this request)
-
+        
         :param inst_name: the database name which is given in the url
         :type inst_name: str
         :param attr_name: the attribute name to return
@@ -81,33 +80,43 @@ class Attribute(tornado.web.RequestHandler):
             if in case of an internal error 
 
         """
-        instance_n = args.get('instance')
-        attribute_n = args.get('attribute')
-        entid = get_instance_id_by_name(instance_n)
-        if entid:
-            if attribute_n:
-                response = requests.get(config.get('postgrest', 'attribute_url') + "?select=value&instance_id=eq." + str(entid) + "&name=eq." + attribute_n)
-                if response.ok:
-                    data = response.json()
-                    if data:
-                        self.write(data[0]["value"])
-                        self.set_status(OK)
-                    else:
-                        logging.error("Attribute '" + attribute_n + "' not found for instance: " + instance_n)
-                        raise tornado.web.HTTPError(NOT_FOUND)
-            else:
-                filter = json.loads('{"inst_id": ' + str(entid) + '}')
-                response = requests.post(config.get('postgrest', 'get_attributes_url'), json=filter)
-                if response.ok:
-                    data = response.json()
-                    if data:
-                        self.write(data[0]["get_attributes"])
-                        self.set_status(OK)
-                    else:
-                        logging.error("Attributes not found for instance: " + instance_n)
-                        raise tornado.web.HTTPError(NOT_FOUND)
+        instance_name = args.get('entity')
+        attribute_name = args.get('attribute_name')
+        class_n = args.get('class')
+        url = None
+        input = None
+        pg_method_name = None
+        if attribute_name:
+            url = config.get('postgrest', class_n + '_attribute_url')
+            input = {
+                    'instance_name': instance_name, 
+                    'attribute_name': attribute_name
+                    }
+            pg_method_name = 'get_instance_attribute'
         else:
-            logging.error("Instance not found: " + instance_n)
+            url = config.get('postgrest', class_n + '_attributes_url')
+            input = { 'instance_name': instance_name }
+            pg_method_name = 'get_instance_attributes'
+        
+        logging.debug("Requesting %s (%s)" % (url, input))
+        response = requests.post(url, json=input, headers ={'Prefer': 'return=representation'})
+
+        if response.ok:
+            data = response.json()
+            logging.debug("Response data: %s" % (data))
+            resp = data[0].get(pg_method_name)
+            if resp:
+                logging.debug("Returning data: %s" % (resp))
+                if attribute_name:
+                    resbody = json.dumps({'value': resp.strip('\"')})
+                    self.write(resbody)
+                else:
+                    self.write(resp)
+                self.set_status(OK)
+            else:
+                self.set_status(NOT_FOUND)
+        else:
+            logging.error("Attributes not found for " + class_n + ": " + instance_name)
             raise tornado.web.HTTPError(NOT_FOUND)
 
     @http_basic_auth
@@ -128,73 +137,75 @@ class Attribute(tornado.web.RequestHandler):
                 * if there is any internal error
                 * if the format of the request body is not right or if there is no *database name* field
 
-        :param name: the name of the database to insert the attributes
+        :param instance_name: the name of the entity to insert the attributes to
         :type name: str
         :raises: HTTPError - in case of an internal error
         :request body:  json
 
         """
+        instance_name = args.get('entity')
+        class_n = args.get('class')
+        
         logging.debug(self.request.body)
-        if not self.request.body:
-            logging.error("The request contains no valid data")
-            raise tornado.web.HTTPError(BAD_REQUEST)
-            
-        attributes = json.loads(self.request.body)
-        instance_n = args.get('instance')
-        entid = get_instance_id_by_name(instance_n)
-        if attributes:
-            if entid:
-                insert_attributes = []
-                for attribute in attributes:
-                    insert_attr = {'instance_id': entid, 'name': attribute, 'value': attributes[attribute]}
-                    logging.debug("Inserting attribute: " + json.dumps(insert_attr))
-                    insert_attributes.append(insert_attr)
-                
-                response = requests.post(config.get('postgrest', 'attribute_url'), json=insert_attributes)
-                if response.ok:
-                    self.set_status(CREATED)
-                else:
-                    logging.error("Error inserting attributes: " + response.text)
-                    raise tornado.web.HTTPError(response.status_code)
-            else:
-                logging.error("Instance not found: " + instance_n)
-                raise tornado.web.HTTPError(NOT_FOUND)
+        in_json = json.loads(self.request.body)
+        # Raise error if the attribute is Null
+        for k, v in in_json.items():
+            if v == None:
+                raise tornado.web.HTTPError(BAD_REQUEST)
+
+        attribute = {'instance_name': instance_name, 'in_json': in_json}
+
+        # Insert the instance in database using PostREST
+        response = requests.post(config.get('postgrest', 'insert_' + class_n + '_attribute_url'), json=attribute, headers={'Prefer': 'return=representation'})
+        if response.ok:
+            logging.info("Created attribute " + json.dumps(in_json) + " for " + class_n + " " + instance_name)
+            logging.debug(response.text)
+            self.set_status(CREATED)
         else:
-            logging.error("The request contains no valid data")
-            raise tornado.web.HTTPError(BAD_REQUEST)
+            code = None
+            if response.status_code == 400:
+                # Instance doesn't exist, id is null and the insert fails with this code
+                code = NOT_FOUND
+            else:
+                code = response.status_code
+            logging.error("Error creating the attribute for " + class_n + " " + instance_name + ": " + response.text)
+            raise tornado.web.HTTPError(response.status_code)
             
     @http_basic_auth
     def put(self, **args):
         """
-        The *PUT* method updates an attribute into the database wih all the information that is needed.
-        The name of the instance and the attribute are set in the URL. The new value of the attribute must be sent in the *request body*.
+        The *PUT* method updates an attribute into the database wih all the
+        information that is needed.  The name of the instance and the attribute
+        are set in the URL. The new value of the attribute must be sent in the
+        *request body*.
 
-        :param instance: the database name which is given in the url
+        :param instance_name: the database name which is given in the url
         :type instance: str
-        :param attribute: the attribute name which is given in the url
+        :param attribute_name: the attribute name which is given in the url
         :type attribute: str
         :raises: HTTPError - when the *request body* format is not right or in case of internall error
 
         """
+        
+        instance_name = args.get('entity')
+        attribute_name = args.get('attribute_name')
+        class_n = args.get('class')
+        
         logging.debug(self.request.body)
-        if not self.request.body:
-            logging.error("The request contains no valid data")
-            raise tornado.web.HTTPError(BAD_REQUEST)
-            
-        new_value = self.request.body
-        instance_n = args.get('instance')
-        attribute_n = args.get('attribute')
-        entid = get_instance_id_by_name(instance_n)
-        if not entid:
-            logging.error("Instance '" + instance_n + "' doest not exist.")
-            raise tornado.web.HTTPError(NOT_FOUND)
-            
-        body = json.loads('{"value":"' + new_value + '"}')
-        response = requests.patch(config.get('postgrest', 'attribute_url') + "?instance_id=eq." + str(entid) + "&name=eq." + attribute_n, json=body)
+        in_json = {
+                'instance_name': instance_name, 
+                'attribute_name': attribute_name,
+                'attribute_value': self.request.body
+                }
+
+        logging.debug("BODY: %s" % (self.request.body))
+
+        response = requests.post(config.get('postgrest', 'update_' + class_n + '_attribute_url'), json=in_json, headers={'Prefer': 'return=representation'})
         if response.ok:
-            self.set_status(NO_CONTENT)
+            logging.info("Updated " + class_n + " attribute: " + attribute_name)
+            self.set_status(OK)
         else:
-            logging.error("Error editing the attribute: " + response.text)
+            logging.error("Error updating the " + class_n + " " + instance_name + " attribute: " + response.text)
             raise tornado.web.HTTPError(response.status_code)
 
     @http_basic_auth
@@ -202,28 +213,25 @@ class Attribute(tornado.web.RequestHandler):
         """
         The *DELETE* method deletes an attribute by *instance name* and *attribute name*.
         
-        :param instance: the database name which is given in the url
+        :param instance_name: the database name which is given in the url
         :type instance: str
-        :param attribute: the attribute name which is given in the url
+        :param attribute_name: the attribute name which is given in the url
         :type attribute: str
         :raises: HTTPError - when the given database name cannot be found
 
         """
-        instance_n = args.get('instance')
-        attribute_n = args.get('attribute')
+        instance_name = args.get('entity')
+        attribute_n = args.get('attribute_name')
+        class_n = args.get('class')
         
-        if not instance_n:
-            logging.error("No instance specified")
-            raise tornado.web.HTTPError(BAD_REQUEST)
-        if not attribute_n:
-            logging.error("No attribute specified")
-            raise tornado.web.HTTPError(BAD_REQUEST)
+        json = {'instance_name': instance_name, 'attribute_name': attribute_n}
         
-        entid = get_instance_id_by_name(instance_n)
-        if entid:
-            response = requests.delete(config.get('postgrest', 'attribute_url') + "?instance_id=eq." + str(entid) + "&name=eq." + attribute_n)
-            self.set_status(response.status_code)
+        # Delete the attribute in database using PostREST
+        response = requests.post(config.get('postgrest', 'delete_' + class_n + '_attribute_url'), json=json, headers={'Prefer': 'return=representation'})
+        if response.ok:
+            logging.info("Delete " + class_n + " attribute: " + attribute_n)
+            logging.debug(response.text)
+            self.set_status(NO_CONTENT)
         else:
-            logging.error("Instance not found: " + instance_n)
-            raise tornado.web.HTTPError(NOT_FOUND)
-            
+            logging.error("Error deleting the " + class_n + " " + instance_name + " attribute: " + response.text)
+            raise tornado.web.HTTPError(response.status_code)

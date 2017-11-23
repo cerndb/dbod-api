@@ -28,24 +28,35 @@ from dbod.api.metadata import Metadata
 from dbod.api.functionalalias import FunctionalAlias
 from dbod.api.hostaliases import HostAliases
 from dbod.api.host import Host
-from dbod.api.instance import Instance
+from dbod.api.instance import Instance, Instance_filter
 from dbod.api.attribute import Attribute
 from dbod.api.fim import Fim
 from dbod.config import config, optionalConfig
+from dbod.api.cluster import Cluster, Cluster_filter
+from dbod.api.volume import Volume
+from dbod.api.auth import Resources
+from dbod.api.job import Job, Job_filter
 
 # This list is a global object because in needs to be accessed
 # from the test suites
 handlers = [
     (r"/", DocHandler),
-    (r"/api/v1/instance/(?P<instance>[^\/]+)/attribute/?(?P<attribute>[^\/]+)?", Attribute),
+    (r"/api/v1/auth/resources", Resources),
     (r"/api/v1/instance/([^/]+)", Instance),
+    (r"/api/v1/instance", Instance_filter),
+    (r"/api/v1/cluster/([^/]+)", Cluster),
+    (r"/api/v1/cluster", Cluster_filter),
+    (r"/api/v1/volume/([^/]+)", Volume),
     (r"/api/v1/host/aliases/([^/]+)", HostAliases),
     (r"/api/v1/host/names/([^/]+)", Host),
     (r"/api/v1/instance/alias/?(?P<db_name>[^\/]+)?", FunctionalAlias),
     (r"/api/v1/(?P<class>[^\/]+)/(?P<name>[^\/]+)/metadata", Metadata),
-    (r"/api/v1/host/aliases/([^/]+)", HostAliases),
     (r"/api/v1/rundeck/resources.xml", RundeckResources),
     (r"/api/v1/rundeck/job/(?P<job>[^\/]+)/?(?P<node>[^\/]+)?", RundeckJobs),
+    (r"/api/v1/(?P<class>[^\/]+)/(?P<entity>[^\/]+)/attribute/?(?P<attribute_name>[^\/]+)?", Attribute),
+    (r"/api/v1/instance/(?P<db_name>[^\/]+)/job/?(?P<id>[^\/]+)?", Job),
+    (r"/api/v1/job", Job_filter),
+
     # Deprecated, will be deleted in following versions
     (r"/api/v1/metadata/(?P<class>[^\/]+)/?(?P<name>[^\/]+)?", Metadata),  
     (r"/api/v1/fim/([^/]+)", Fim),

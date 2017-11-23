@@ -45,19 +45,7 @@ class MetadataTest(AsyncHTTPTestCase):
         self.assertTrue(data[0]["volumes"] != None)
         self.assertEquals(data[0]["hosts"][0], "host03")
     
-    @timeout(5)
-    def test_multiple_instances_by_host(self):
-        response = self.fetch("/api/v1/host/host01/metadata")
-        data = json.loads(response.body)["response"]
-        self.assertEquals(response.code, 200)
-        self.assertEquals(len(data), 4)
-        list = []
-        for i in range(4):
-            self.assertEquals(data[i]["hosts"][0], "host01")
-            self.assertTrue(data[i]["volumes"] != None)
-            self.assertNotIn(data[i]["db_name"], list)
-            list.append(data[i]["db_name"])
-        self.assertEquals(len(list), 4)
+
     
     @timeout(5)
     def test_no_instance_by_host(self):

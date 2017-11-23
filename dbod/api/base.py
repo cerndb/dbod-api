@@ -77,7 +77,7 @@ def http_basic_auth(fun):
     
 def get_instance_id_by_name(name):
     """Common function to get the ID of an instance by its name."""
-    response = requests.get(config.get('postgrest', 'instance_url') + "?db_name=eq." + name)
+    response = requests.get(config.get('postgrest', 'instance_url') + "?name=eq." + name)
     if response.ok:
         data = response.json()
         if data:
