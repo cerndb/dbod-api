@@ -9,6 +9,27 @@
 -- DATA TO RUN TESTS
 ------------------------------
 
+-- Clean all the tables!
+TRUNCATE TABLE public.volume_attribute CASCADE;
+TRUNCATE TABLE public.instance_attribute CASCADE;
+TRUNCATE TABLE public.cluster_attribute CASCADE;
+TRUNCATE TABLE public.cluster CASCADE;
+TRUNCATE TABLE public.volume CASCADE;
+TRUNCATE TABLE public.job CASCADE;
+TRUNCATE TABLE public.instance CASCADE;
+TRUNCATE TABLE public.host CASCADE;
+TRUNCATE TABLE public.functional_aliases CASCADE;
+TRUNCATE TABLE public.fim_data CASCADE;
+
+ALTER SEQUENCE volume_id_seq RESTART WITH 1;
+ALTER SEQUENCE volume_attribute_id_seq RESTART WITH 1;
+ALTER SEQUENCE host_id_seq RESTART WITH 1;
+ALTER SEQUENCE instance_id_seq RESTART WITH 1;
+ALTER SEQUENCE instance_attribute_id_seq RESTART WITH 1;
+ALTER SEQUENCE cluster_id_seq RESTART WITH 1;
+ALTER SEQUENCE cluster_attribute_id_seq RESTART WITH 1;
+ALTER SEQUENCE job_id_seq RESTART WITH 1;
+
 -- Insert test data for volumes
 INSERT INTO public.volume (id, instance_id, volume_type_id, file_mode, owner, "group", server, mount_options, mounting_path)
 VALUES (1, 1, 1, '0755', 'TSM', 'ownergroup', 'NAS-server', 'rw,bg,hard', '/MNT/data1'),
@@ -20,13 +41,13 @@ VALUES (1, 1, 1, '0755', 'TSM', 'ownergroup', 'NAS-server', 'rw,bg,hard', '/MNT/
        (7, 6, 1, '0755', 'TSM', 'ownergroup', 'NAS-server', 'rw', '/MNT/zk'),
        (8, 7, 1, '0755', 'TSM', 'ownergroup', 'NAS-server', 'rw', '/MNT/zk'),
        (9, 7, 2, '0755', 'TSM', 'ownergroup', 'NAS-server', 'rw,bg,hard', '/MNT/data01');
-ALTER SEQUENCE volume_id_seq RESTART WITH 10;
+SELECT setval('volume_id_seq', (SELECT MAX(id) from public.volume));
 
 INSERT INTO public.volume_attribute (id, volume_id, name, value)
 VALUES (1, 8, 'ro', 'TRUE'),
        (2, 8, 'fw', 'TRUE'),
        (3, 9, 'ro', 'FALSE');
-ALTER SEQUENCE volume_attribute_id_seq RESTART WITH 4;
+SELECT setval('volume_attribute_id_seq', (SELECT MAX(id) from public.volume_attribute));
 
 -- Insert test data for hosts
 INSERT INTO public.host (id, name, memory)
@@ -34,7 +55,7 @@ VALUES (1, 'host01', 12),
        (2, 'host02', 24),
        (3, 'host03', 64),
        (4, 'host04', 256);
-ALTER SEQUENCE host_id_seq RESTART WITH 5;
+SELECT setval('host_id_seq', (SELECT MAX(id) from public.host));
 
 -- Insert test data for instances
 INSERT INTO public.instance (id, owner, name, e_group, category, creation_date, type_id, size, no_connections, project, description, version, master_id, slave_id, host_id, state, status, cluster_id)
@@ -46,7 +67,7 @@ VALUES (1, 'user01', 'dbod01', 'testgroupA', 'TEST', now(), 2 , 100 , 100 , 'API
        (6, 'user04', 'dbod06', 'testgroupC', 'TEST', now(), 2 , 300 , 200 , 'WEB' , 'Test instance 4'      , '5.6.17', NULL, NULL, 1, 'RUNNING', 'ACTIVE',     NULL),
        (7, 'user05', 'node01', 'testgroupZ', 'DEV' , now(), 1 , NULL, NULL, 'NILE', 'Test zookeeper inst 1', '3.4.9' , NULL, NULL, 4, 'RUNNING', 'ACTIVE',     1),
        (8, 'user05', 'node02', 'testgroupZ', 'DEV' , now(), 1 , NULL, NULL, 'NILE', 'Test zookeeper inst 2', '3.4.9' , NULL, NULL, 4, 'RUNNING', 'ACTIVE',     1);
-ALTER SEQUENCE instance_id_seq RESTART WITH 9;
+SELECT setval('instance_id_seq', (SELECT MAX(id) from public.instance));
 
 -- Insert test data for attributes
 INSERT INTO public.instance_attribute (instance_id, name, value)
@@ -55,7 +76,7 @@ VALUES (1, 'port', '5501'),
        (3, 'port', '5510'),
        (4, 'port', '6601'),
        (5, 'port', '5500');
-ALTER SEQUENCE instance_attribute_id_seq RESTART WITH 6;
+SELECT setval('instance_attribute_id_seq', (SELECT MAX(id) from public.instance_attribute));
 
 -- Insert test data for database aliases
 INSERT INTO public.functional_aliases (dns_name, db_name, alias)
@@ -68,13 +89,13 @@ VALUES ('db-dbod-dns01','dbod01','dbod-dbod-01.cern.ch'),
 -- Insert test data from clusters
 INSERT INTO public.cluster (id, owner, name, e_group, category, creation_date, expiry_date, type_id, project, description, version, master_id, state, status)
 VALUES (1, 'user05','cluster01','testgroupZ','DEV',now(),NULL,1,'NILE','Test zookeeper cluster 1', '3.4.9',NULL,'RUNNING','ACTIVE');
-ALTER SEQUENCE cluster_id_seq RESTART WITH 2;
+SELECT setval('cluster_id_seq', (SELECT MAX(id) from public.cluster));
 
 -- Insert test data for cluster attributes
 INSERT INTO public.cluster_attribute (id, cluster_id, name, value)
 VALUES (1, 1, 'service','zookeeper'),
        (2, 1, 'user'   ,'zookeeper');
-ALTER SEQUENCE cluster_attribute_id_seq RESTART WITH 3;
+SELECT setval('cluster_attribute_id_seq', (SELECT MAX(id) from public.cluster_attribute));
 
 -- Insert test data for jobs
 INSERT INTO public.job (id, instance_id, username, db_name, command_name, type, creation_date, completion_date, requester, admin_action, state, log, result, email_sent, category)
@@ -140,6 +161,7 @@ Thu Aug 10 10:49:06 CEST 2017 : Main: Success creating snapshot: <snapscript_553
 Thu Aug 10 10:49:06 CEST 2017 : Main: postnap actions completed successfully.
 Thu Aug 10 10:49:06 CEST 2017 : Main: mysql_snapshot is over.
 Thu Aug 10 10:49:06 CEST 2017 : mysql_snapshot.Main: State: [0]',NULL,NULL,NULL);
+SELECT setval('job_id_seq', (SELECT MAX(id) from public.job));
 
 INSERT INTO public.fim_data (internal_id, instance_name, description, owner_account_type, owner_first_name, owner_last_name, owner_login, owner_mail, owner_phone1, owner_phone2, owner_portable_phone, owner_department, owner_group, owner_section)
 VALUES ('abc1', 'dbod01', 'Test database 01', 'Personal', 'Alice', 'Lastname', 'user01', 'alice@cern.ch', '77550', NULL, NULL, 'ITC', 'DBC', 'EEC'),
