@@ -78,3 +78,5 @@ FROM source.dod_instance_changes;
 
 -- Make sure all the sequences are properly set, as manual inserts were done
 SELECT setval('instance_id_seq', (SELECT MAX(id) from public.instance));
+SELECT setval('instance_attribute_id_seq', (SELECT MAX(id) from public.instance_attribute));
+SELECT setval('volume_id_seq', (SELECT MAX(id) from public.volume));
