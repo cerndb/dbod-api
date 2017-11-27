@@ -11,6 +11,7 @@
 import logging
 import unittest
 import sys
+import os.path
 
 from dbod.config import load
 
@@ -24,11 +25,13 @@ class ConfigTest(unittest.TestCase):
             config = load('/path/to/unexisting/file')
         self.assertEqual(cm.exception.code, 1)
 
+    @unittest.skipUnless(os.path.isfile('/tmp/api_missing_section.cfg'),'Skipping as no missing section file was found')
     def test_config_missing_section(self):
         with self.assertRaises(SystemExit) as cm:
             config = load('/tmp/api_missing_section.cfg')
         self.assertEqual(cm.exception.code, 2)
     
+    @unittest.skipUnless(os.path.isfile('/tmp/api_missing_option.cfg'),'Skipping as no missing section file was found')
     def test_config_missing_option(self):
         with self.assertRaises(SystemExit) as cm:
             config = load('/tmp/api_missing_option.cfg')
