@@ -9,18 +9,6 @@
 -- DATA TO RUN TESTS
 ------------------------------
 
--- Insert types
-INSERT INTO public.volume_type (id, type, description)
-VALUES (1, 'NETAPP', 'NETAPP volume type'),
-       (2, 'CEPTH',  'CEPTH volume type');
-ALTER SEQUENCE volume_type_id_seq RESTART WITH 3;
-
-INSERT INTO public.instance_type (id, type, description)
-VALUES (1, 'ZOOKEEPER', 'Zookeeper instance type'),
-       (2, 'MYSQL'    , 'MySQL database type'),
-       (3, 'PG'       , 'PostgreSQL database type');
-ALTER SEQUENCE instance_type_id_seq RESTART WITH 4;
-
 -- Insert test data for volumes
 INSERT INTO public.volume (id, instance_id, volume_type_id, file_mode, owner, "group", server, mount_options, mounting_path)
 VALUES (1, 1, 1, '0755', 'TSM', 'ownergroup', 'NAS-server', 'rw,bg,hard', '/MNT/data1'),
@@ -52,7 +40,7 @@ ALTER SEQUENCE host_id_seq RESTART WITH 5;
 INSERT INTO public.instance (id, owner, name, e_group, category, creation_date, type_id, size, no_connections, project, description, version, master_id, slave_id, host_id, state, status, cluster_id)
 VALUES (1, 'user01', 'dbod01', 'testgroupA', 'TEST', now(), 2 , 100 , 100 , 'API' , 'Test instance 1'      , '5.6.17', NULL, NULL, 1, 'RUNNING', 'ACTIVE',     NULL),
        (2, 'user01', 'dbod02', 'testgroupB', 'PROD', now(), 3 , 50  , 500 , 'API' , 'Test instance 2'      , '9.4.4' , NULL, NULL, 3, 'RUNNING', 'ACTIVE',     NULL),
-       (3, 'user02', 'dbod03', 'testgroupB', 'TEST', now(), 2 , 100 , 200 , 'WEB' , 'Expired instance 1'   , '5.5'   , NULL, NULL, 1, 'RUNNING', 'NON-ACTIVE', NULL),
+       (3, 'user02', 'dbod03', 'testgroupB', 'TEST', now(), 2 , 100 , 200 , 'WEB' , 'Expired instance 1'   , '5.5'   , NULL, NULL, 1, 'RUNNING', 'NON_ACTIVE', NULL),
        (4, 'user03', 'dbod04', 'testgroupA', 'PROD', now(), 3 , 250 , 10  , 'LCC' , 'Test instance 3'      , '9.4.5' , NULL, NULL, 1, 'RUNNING', 'ACTIVE',     NULL),
        (5, 'user04', 'dbod05', 'testgroupC', 'TEST', now(), 2 , 300 , 200 , 'WEB' , 'Test instance 4'      , '5.6.17', NULL, NULL, 1, 'RUNNING', 'ACTIVE',     NULL),
        (6, 'user04', 'dbod06', 'testgroupC', 'TEST', now(), 2 , 300 , 200 , 'WEB' , 'Test instance 4'      , '5.6.17', NULL, NULL, 1, 'RUNNING', 'ACTIVE',     NULL),
