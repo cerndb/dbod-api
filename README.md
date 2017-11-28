@@ -37,20 +37,50 @@ Now you should be able to start the server by executing:
 ## Requirements 
 
 ### Configuration file
-In it's current, very initial version, the code expects a configuration file 
-*/etc/dbod/api.cfg* with the following sections and fields:
-```
-[database]
-user=
-host=
-port=
-database=
-password=
-[ssl]
-hostcert=
-hostkey=
-```
+The code expects a configuration file */etc/dbod/api.cfg*. It is also possible to provide
+a path for the config file using the argument *-c* or *--config*.
+
+A sample config file can be fount in this repository at: *static/api.cfg*
 
 ### Database
-TODO
 
+All sql files required to run the API are included in the *sql* folder. Depending on the 
+version you are running you should import the latest *base_schema.sql* file and any
+sql files with a higher version number existing in the folder *sql/updates*.
+
+The current sql schema from version 0.90 and higher is *sql/0.90qa-base-schema.sql*.
+Importing that sql file should autommatically import all the required scripts. If for
+any reason the import doesn't work you can just simply enter the folder *0.90-base_schema*
+and manually import the 4 files in numeric order.
+
+### Testing
+
+A new, empty database is required to execute the tests. Import the sql base schema from previous
+step to create it.
+When the database is ready, we can import all the test data used by the tests to check all the 
+functionality:
+
+* Note: Do NOT import this file in a production database, it will DELETE all the existing data!
+
+The file to import is: *dbod/tests/db_test.sql*.
+
+Once the file is imported and PostgREST is running on that database, we can run the tests using the 
+following command:
+
+```
+nosetests -v
+```
+
+If the config file is not in the default path */etc/dbod/api.cfg* we can specify it using the *--config*
+argument:
+
+```
+nosetests -v -c /path/to/api.cfg
+```
+
+#### Migrating from existing database
+
+To migrate from an existing database we can just import the 4 sql files inside the folder *sql/0.90-base_schema/migration*
+in numeric order.
+Please note that the first file should be edited before with the connection details of the existing databases, and this file
+should be executed with ADMIN priviledges.
