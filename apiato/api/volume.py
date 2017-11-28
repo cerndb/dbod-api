@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 # Copyright (C) 2015, CERN
 # This software is distributed under the terms of the GNU General Public
 # Licence version 3 (GPL Version 3), copied verbatim in the file "LICENSE".
@@ -17,8 +16,8 @@ import logging
 import requests
 import json
 
-from dbod.api.base import *
-from dbod.config import config
+from apiato.api.base import *
+from apiato.config import config
 
 class Volume(tornado.web.RequestHandler):
     """

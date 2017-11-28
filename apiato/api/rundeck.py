@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 # Copyright (C) 2015, CERN
 # This software is distributed under the terms of the GNU General Public
 # Licence version 3 (GPL Version 3), copied verbatim in the file "LICENSE".
@@ -18,8 +17,8 @@ import json
 import requests
 import time
 
-from dbod.api.base import *
-from dbod.config import config
+from apiato.api.base import *
+from apiato.config import config
 
 class RundeckResources(tornado.web.RequestHandler):
     """The class of /rundeck/resources.xml"""

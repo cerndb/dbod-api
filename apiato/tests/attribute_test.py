@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 # Copyright (C) 2015, CERN
 # This software is distributed under the terms of the GNU General Public
 # Licence version 3 (GPL Version 3), copied verbatim in the file "COPYING".
@@ -18,7 +17,7 @@ from tornado.testing import AsyncHTTPTestCase
 from tornado.testing import get_unused_port
 from timeout_decorator import timeout
 
-from dbod.api.api import *
+from apiato.api.api import *
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 

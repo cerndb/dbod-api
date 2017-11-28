@@ -15,7 +15,7 @@ DROP SCHEMA source CASCADE;
 CREATE EXTENSION postgres_fdw;
 
 CREATE SERVER <pg_source> FOREIGN DATA WRAPPER postgres_fdw 
-    OPTIONS (host '<pg_source>', dbname 'dbod', port '3000');
+    OPTIONS (host '<pg_source>', dbname 'apiato', port '3000');
 GRANT USAGE ON FOREIGN SERVER <pg_source> TO admin;
 
 CREATE USER MAPPING FOR admin SERVER <pg_source>

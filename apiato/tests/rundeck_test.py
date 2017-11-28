@@ -18,8 +18,8 @@ from mock import MagicMock
 from tornado.testing import AsyncHTTPTestCase
 from timeout_decorator import timeout
 
-from dbod.api.api import handlers
-from dbod.config import config
+from apiato.api.api import handlers
+from apiato.config import config
 logging.basicConfig(stream=stdout, level=logging.DEBUG)
 
 class RundeckTest(AsyncHTTPTestCase, unittest.TestCase):
@@ -32,13 +32,13 @@ class RundeckTest(AsyncHTTPTestCase, unittest.TestCase):
     def get_app(self):
         return tornado.web.Application(handlers)
 
-    @patch('dbod.api.rundeck.requests.get')
+    @patch('apiato.api.rundeck.requests.get')
     def test_get_success(self, mock_get):
         """test when get method is successful"""
         print "test_get_success"
         status_code_test = 200
-        response_text = '[{"db_name":"dbod42","hostname":"dbod42.cern.ch","port":"5500","username":"dbod","db_type":"MYSQL","category":"TEST","tags":"MYSQL,TEST"}, \
-        {"db_name":"dbod24","hostname":"dbod24.cern.ch","port":"6603","username":"dbod","db_type":"PG","category":"PROD","tags":"PG,PROD"}]'
+        response_text = '[{"db_name":"apiato42","hostname":"apiato42.cern.ch","port":"5500","username":"apiato","db_type":"MYSQL","category":"TEST","tags":"MYSQL,TEST"}, \
+        {"db_name":"apiato24","hostname":"apiato24.cern.ch","port":"6603","username":"apiato","db_type":"PG","category":"PROD","tags":"PG,PROD"}]'
 
         mock_get.return_value = MagicMock(spec=requests.models.Response,
                                           ok=True,
@@ -49,7 +49,7 @@ class RundeckTest(AsyncHTTPTestCase, unittest.TestCase):
         
         self.assertEquals(response.code, 200)
 
-    @patch('dbod.api.rundeck.requests.get')
+    @patch('apiato.api.rundeck.requests.get')
     def test_get_nosuccess(self, mock_get):
         """test when get method is not successful """
         print "test_get_nosuccess"
@@ -63,8 +63,8 @@ class RundeckTest(AsyncHTTPTestCase, unittest.TestCase):
         self.assertEquals(response.code, 404)
     
     @timeout(10)
-    @patch('dbod.api.rundeck.requests.get')
-    @patch('dbod.api.rundeck.requests.post')
+    @patch('apiato.api.rundeck.requests.get')
+    @patch('apiato.api.rundeck.requests.post')
     def test_post_job_success(self, mock_post, mock_get):
         """test an execution of a registered job of an existing instance"""
         print "test_post_existing_instance"
@@ -92,8 +92,8 @@ class RundeckTest(AsyncHTTPTestCase, unittest.TestCase):
                              body='')
         self.assertEquals(response.code, 200)
         
-    @patch('dbod.api.rundeck.requests.get')
-    @patch('dbod.api.rundeck.requests.post')
+    @patch('apiato.api.rundeck.requests.get')
+    @patch('apiato.api.rundeck.requests.post')
     def test_post_job_nosuccess(self, mock_post, mock_get):
         """test when the job execution is not successful"""
         print "test_post_job_nosuccess"
@@ -116,8 +116,8 @@ class RundeckTest(AsyncHTTPTestCase, unittest.TestCase):
                                body='')
         self.assertEquals(response.code, 502)
     
-    @patch('dbod.api.rundeck.requests.get')
-    @patch('dbod.api.rundeck.requests.post')
+    @patch('apiato.api.rundeck.requests.get')
+    @patch('apiato.api.rundeck.requests.post')
     def test_post_jobstatus_error(self, mock_post, mock_get):
         """test when the the get request of the job from rundeck status is not successful"""
         print "test_post_jobstatus_error"
@@ -141,8 +141,8 @@ class RundeckTest(AsyncHTTPTestCase, unittest.TestCase):
                                body='')
         self.assertEquals(response.code, status_code_test_error)
 
-    @patch('dbod.api.rundeck.requests.get')
-    @patch('dbod.api.rundeck.requests.post')
+    @patch('apiato.api.rundeck.requests.get')
+    @patch('apiato.api.rundeck.requests.post')
     def test_post_jobrun_error(self, mock_post, mock_get):
         """test when the the post request of the job to rundeck is not successful"""
         print "test_post_jobrun_error"

@@ -9,10 +9,10 @@
 # or submit itself to any jurisdiction.
 
 """
-DB On Demand metadata REST API server
+CERN Apiato REST API server
 """
 
-from dbod.api.api import Application
+from apiato.api.api import Application
 
 if __name__ == "__main__":
     Application()

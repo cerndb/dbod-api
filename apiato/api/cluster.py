@@ -17,8 +17,8 @@ import logging
 import requests
 import json
 
-from dbod.api.base import *
-from dbod.config import config
+from apiato.api.base import *
+from apiato.config import config
 
 class Cluster(tornado.web.RequestHandler):
     """

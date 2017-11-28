@@ -22,20 +22,20 @@ from tornado.log import LogFormatter, logging
 from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 
-from dbod.api.base import DocHandler
-from dbod.api.rundeck import RundeckResources, RundeckJobs
-from dbod.api.metadata import Metadata
-from dbod.api.functionalalias import FunctionalAlias
-from dbod.api.hostaliases import HostAliases
-from dbod.api.host import Host
-from dbod.api.instance import Instance, Instance_filter
-from dbod.api.attribute import Attribute
-from dbod.api.fim import Fim
-from dbod.config import config, optionalConfig
-from dbod.api.cluster import Cluster, Cluster_filter
-from dbod.api.volume import Volume
-from dbod.api.auth import Resources
-from dbod.api.job import Job, Job_filter
+from apiato.api.base import DocHandler
+from apiato.api.rundeck import RundeckResources, RundeckJobs
+from apiato.api.metadata import Metadata
+from apiato.api.functionalalias import FunctionalAlias
+from apiato.api.hostaliases import HostAliases
+from apiato.api.host import Host
+from apiato.api.instance import Instance, Instance_filter
+from apiato.api.attribute import Attribute
+from apiato.api.fim import Fim
+from apiato.config import config, optionalConfig
+from apiato.api.cluster import Cluster, Cluster_filter
+from apiato.api.volume import Volume
+from apiato.api.auth import Resources
+from apiato.api.job import Job, Job_filter
 
 # This list is a global object because in needs to be accessed
 # from the test suites
@@ -64,7 +64,7 @@ handlers = [
 
 class Application():
     """
-    This is the main entrypoint of the dbod-api where the main parameters are
+    This is the main entrypoint of the apiato-api where the main parameters are
     specified in order to start the server.  
     """
 

@@ -20,8 +20,8 @@ from mock import MagicMock
 from tornado.testing import AsyncHTTPTestCase
 from timeout_decorator import timeout
 
-from dbod.api.api import handlers
-from dbod.config import config
+from apiato.api.api import handlers
+from apiato.config import config
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 class JobTest(AsyncHTTPTestCase, unittest.TestCase):

@@ -1,7 +1,7 @@
-# DBOD-API
+# apiato-API
 
-[![Build Status](https://travis-ci.org/cerndb/dbod-api.svg?branch=icot_rundeck)](https://travis-ci.org/cerndb/dbod-api)
-[![Coverage Status](https://coveralls.io/repos/github/cerndb/dbod-api/badge.svg?branch=master)](https://coveralls.io/github/cerndb/dbod-api?branch=master)
+[![Build Status](https://travis-ci.org/cerndb/apiato-api.svg?branch=icot_rundeck)](https://travis-ci.org/cerndb/apiato-api)
+[![Coverage Status](https://coveralls.io/repos/github/cerndb/apiato-api/badge.svg?branch=master)](https://coveralls.io/github/cerndb/apiato-api?branch=master)
 
 ## Introduction
 
@@ -24,7 +24,7 @@ Afterwards you can clone the repository and install it and its dependencies
 in a local virtual environment (this requires the *python-virtualenv* package).
 
     $ git clone <repo_url>
-    $ cd dbod-api
+    $ cd apiato-api
     $ virtualenv venv
     $ source venv/bin/activate
     $ pip install -r requirements.pip
@@ -32,12 +32,12 @@ in a local virtual environment (this requires the *python-virtualenv* package).
 
 Now you should be able to start the server by executing:
 
-    $ bin/dbod-api
+    $ bin/apiato-api
 
 ## Requirements 
 
 ### Configuration file
-The code expects a configuration file */etc/dbod/api.cfg*. It is also possible to provide
+The code expects a configuration file */etc/apiato/api.cfg*. It is also possible to provide
 a path for the config file using the argument *-c* or *--config*.
 
 A sample config file can be fount in this repository at: [static/api.cfg](static/api.cfg)
@@ -68,10 +68,10 @@ functionality:
 
 * Note: Do NOT import this file in a production database, it will DELETE all the existing data!
 
-The file to import is: [dbod/tests/db_test.sql](dbod/tests/db_test.sql).
+The file to import is: [apiato/tests/db_test.sql](apiato/tests/db_test.sql).
 
 ```
-psql apiato apiato -f dbod/tests/db_test.sql
+psql apiato apiato -f apiato/tests/db_test.sql
 ```
 
 
@@ -82,7 +82,7 @@ following command:
 nosetests -v
 ```
 
-If the config file is not in the default path **/etc/dbod/api.cfg** we can specify it using the **--config**
+If the config file is not in the default path **/etc/apiato/api.cfg** we can specify it using the **--config**
 argument:
 
 ```

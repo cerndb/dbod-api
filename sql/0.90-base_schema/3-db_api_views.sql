@@ -132,7 +132,7 @@ CREATE OR REPLACE VIEW api.host AS
 -- Host aliases
 CREATE OR REPLACE VIEW api.host_aliases AS 
   SELECT instance.host_id,
-    string_agg(('dbod-'::text || instance.name::text) || 'domain'::text, ','::text) AS aliases
+    string_agg(('apiato-'::text || instance.name::text) || 'domain'::text, ','::text) AS aliases
   FROM instance
   GROUP BY instance.host_id;
 
@@ -181,7 +181,7 @@ CREATE OR REPLACE VIEW api.rundeck_instances AS
   SELECT instance.name,
     functional_aliases.alias AS hostname,
     api.get_instance_attribute('port'::character varying, instance.id) AS port,
-    'dbod'::character(1) AS username,
+    'apiato'::character(1) AS username,
     instance.type_id,
     instance.category,
     (instance.type_id::text || ','::text) || instance.category::text AS tags

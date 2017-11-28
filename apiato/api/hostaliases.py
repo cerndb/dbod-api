@@ -14,8 +14,8 @@ import tornado.web
 import logging
 import requests
 
-from dbod.api.base import *
-from dbod.config import config
+from apiato.api.base import *
+from apiato.config import config
 
 class HostAliases(tornado.web.RequestHandler):
     """

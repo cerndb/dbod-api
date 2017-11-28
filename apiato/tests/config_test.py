@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 # Copyright (C) 2016, CERN
 # This software is distributed under the terms of the GNU General Public
 # Licence version 3 (GPL Version 3), copied verbatim in the file "COPYING".
@@ -13,7 +12,7 @@ import unittest
 import sys
 import os.path
 
-from dbod.config import load
+from apiato.config import load
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 

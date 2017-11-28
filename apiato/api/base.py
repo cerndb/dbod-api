@@ -20,7 +20,7 @@ import requests
 import json
 import urllib
 
-from dbod.config import config
+from apiato.config import config
 
 # HTTP API status codes
 OK = 200

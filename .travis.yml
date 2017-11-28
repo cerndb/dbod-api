@@ -10,10 +10,10 @@ services:
 before_install:
     # Remove IPv6 entry via https://github.com/travis-ci/travis-ci/issues/4978
     - sudo sed -i '/^::1/d' /etc/hosts && sudo sed -i '/^127.0.1.1/d' /etc/hosts && sudo sed -i '/^fe80::4001:aff:fef0:2b/d' /etc/hosts
-    - sudo mkdir /etc/dbod
-    - sudo mkdir /var/log/dbod
-    - sudo chown travis /var/log/dbod
-    - sudo cp static/api.cfg /etc/dbod
+    - sudo mkdir /etc/apiato
+    - sudo mkdir /var/log/apiato
+    - sudo chown travis /var/log/apiato
+    - sudo cp static/api.cfg /etc/apiato
     - cp static/api_missing_section.cfg /tmp/
     - cp static/api_missing_option.cfg /tmp/
     - wget https://github.com/begriffs/postgrest/releases/download/v0.3.1.1/postgrest-0.3.1.1-ubuntu.tar.xz
@@ -23,13 +23,13 @@ install:
     - pip install coveralls
     - python setup.py install
 before_script:
-    - psql -c 'CREATE DATABASE dbod;' -U postgres
-    - psql -d dbod -f sql/0.90qa-base_schema.sql
-    - psql -d dbod -f dbod/tests/db_test.sql -U postgres
-    - ./postgrest postgres://postgres@localhost/dbod -a postgres -s api &
+    - psql -c 'CREATE DATABASE apiato;' -U postgres
+    - psql -d apiato -f sql/0.90qa-base_schema.sql
+    - psql -d apiato -f apiato/tests/db_test.sql -U postgres
+    - ./postgrest postgres://postgres@localhost/apiato -a postgres -s api &
     - sleep 5
 script:
     - curl -g http://localhost:3000
-    - nosetests --with-coverage --cover-package=dbod --cover-html -s
+    - nosetests --with-coverage --cover-package=apiato --cover-html -s
 after_success:
     coveralls 

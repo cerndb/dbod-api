@@ -18,8 +18,8 @@ import requests
 import json
 import urllib
 
-from dbod.api.base import *
-from dbod.config import config
+from apiato.api.base import *
+from apiato.config import config
 
 class Instance(tornado.web.RequestHandler):
 

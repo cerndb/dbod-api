@@ -17,8 +17,8 @@ import logging
 import requests
 import json
 
-from dbod.api.base import *
-from dbod.config import config
+from apiato.api.base import *
+from apiato.config import config
 
 class Metadata(tornado.web.RequestHandler):
     """
@@ -38,7 +38,7 @@ class Metadata(tornado.web.RequestHandler):
     +--+--------+---------+-------------+---------------------------------------+
     |id|username| db_name |    hosts    |               attributes              |
     +==+========+=========+=============+=======================================+
-    |42|  dbod  |dbod-db42|{dbod-host42}|{"port": "5432", "shared_buffers": "1"}|
+    |42|  apiato  |apiato-db42|{apiato-host42}|{"port": "5432", "shared_buffers": "1"}|
     +--+--------+---------+-------------+---------------------------------------+
 
     The request method implemented for this endpoint is just the :func:`get`.

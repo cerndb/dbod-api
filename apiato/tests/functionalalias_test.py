@@ -1,13 +1,13 @@
 #!/usr/bin/env python
-"""Testing functional alias endpoint"""
 # -*- coding: utf-8 -*-
-
 # Copyright (C) 2015, CERN
 # This software is distributed under the terms of the GNU General Public
 # Licence version 3 (GPL Version 3), copied verbatim in the file "COPYING".
 # In applying this license, CERN does not waive the privileges and immunities
 # granted to it by virtue of its status as Intergovernmental Organization
 # or submit itself to any jurisdiction.
+
+"""Testing functional alias endpoint"""
 
 import json
 import unittest
@@ -20,16 +20,16 @@ from mock import MagicMock
 from tornado.testing import AsyncHTTPTestCase
 from timeout_decorator import timeout
 
-from dbod.api.api import handlers
-from dbod.config import config
+from apiato.api.api import handlers
+from apiato.config import config
 
 class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
     """Class for testing functional alias with nosetest"""
     #headers = {'Content-Type': 'application/x-www-form-urlencoded', 
     #           'Prefer': 'return=representation',
     #           'Accept': 'text/json'}
-    db_name_test = "dbod42"
-    alias_test = "dbod-dbod-42.cern.ch"
+    db_name_test = "apiato42"
+    alias_test = "apiato-apiato-42.cern.ch"
     authentication = "basic " + \
                      base64.b64encode(config.get('api', 'user') + \
                      ":" + config.get('api', 'pass'))
@@ -41,13 +41,13 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
     def test_get_single_alias_by_name(self):
         """test for getting the right data"""
         print "test_get_single_alias_by_name"
-        db_name = 'dbod01'
+        db_name = 'apiato01'
         response = self.fetch("/api/v1/instance/alias/%s" %(db_name))
         data = json.loads(response.body)["response"]
         self.assertEquals(response.code, 200)
         #self.assertEquals(json.loads(response.headers)['Content-Type'], 'application/json')
         self.assertEquals(len(data), 1)
-        self.assertEquals(data[0]["alias"], "dbod-dbod-01.cern.ch")
+        self.assertEquals(data[0]["alias"], "apiato-apiato-01.cern.ch")
         self.assertTrue(data[0]["dns_name"] != None)
         self.assertEquals(response.headers['Content-Type'], 'application/json; charset=UTF-8')
 
@@ -62,7 +62,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
         self.assertEquals(response.headers['Content-Type'], 'text/html; charset=UTF-8')
 
     @timeout(5)
-    @patch('dbod.api.functionalalias.requests.get')
+    @patch('apiato.api.functionalalias.requests.get')
     def test_get_bad_response(self, mock_get):
         """test when the get response code is not 200. Server/api error"""
         print "test_get_bad_response"
@@ -70,7 +70,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
         mock_get.return_value = MagicMock(spec=requests.models.Response, 
                                           ok=False,
                                           status_code=status_code_test)
-        db_name = 'dbod01'
+        db_name = 'apiato01'
         response = self.fetch("/api/v1/instance/alias/%s" %(db_name))
         self.assertEquals(response.code, status_code_test)
         self.assertEquals(response.headers['Content-Type'], 'text/html; charset=UTF-8')
@@ -107,8 +107,8 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
     def test_post_duplicate(self):
         """test when there is a request to insert a db_name which already exists"""
         print "test_post_duplicate"
-        body = 'alias=dbod-dbod-01.cern.ch'
-        response = self.fetch("/api/v1/instance/alias/dbod01", 
+        body = 'alias=apiato-apiato-01.cern.ch'
+        response = self.fetch("/api/v1/instance/alias/apiato01", 
                               method="POST", 
                               headers={'Authorization': self.authentication},
                               body=body)
@@ -123,8 +123,8 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
                    method="POST", 
                    headers={'Authorization': self.authentication},
                    body=body)
-        body = 'alias=' + 'dbod-dbod-24.cern.ch'
-        response = self.fetch("/api/v1/instance/alias/dbod24", 
+        body = 'alias=' + 'apiato-apiato-24.cern.ch'
+        response = self.fetch("/api/v1/instance/alias/apiato24", 
                               method="POST", 
                               headers={'Authorization': self.authentication},
                               body=body)
@@ -158,7 +158,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
         self.assertEquals(response.code, 400)
     
     @timeout(5)
-    @patch('dbod.api.functionalalias.requests.get')
+    @patch('apiato.api.functionalalias.requests.get')
     def test_post_nextdns_failure(self, mock_get):
         """test when there is a server error when getting an available dns_name"""
         print "test_post_nextdns_failure"
@@ -204,7 +204,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
         self.assertEquals(response.code, 400)
 
     @timeout(5)
-    @patch('dbod.api.functionalalias.requests.get')
+    @patch('apiato.api.functionalalias.requests.get')
     def test_delete_getdns_failure(self, mock_get):
         """test an unsuccessful get of the dns_name"""
         print "test_delete_getdns_failure"
@@ -212,14 +212,14 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
         mock_get.return_value = MagicMock(spec=requests.models.Response,
                                           ok=False,
                                           status_code=status_code_test)
-        response = self.fetch("/api/v1/instance/alias/%s" %('dbod01'),
+        response = self.fetch("/api/v1/instance/alias/%s" %('apiato01'),
                               headers={'Authorization': self.authentication},
                               method="DELETE")
         # tornado will still give Bad Request error message -- to be improved
         self.assertEquals(response.code, 503)
 
     @timeout(5)
-    @patch('dbod.api.functionalalias.requests.patch')
+    @patch('apiato.api.functionalalias.requests.patch')
     def test_delete_nosuccess(self, mock_patch):
         """test an unsuccessful deletion"""
         print "test_delete_nosuccess_delete"
@@ -227,7 +227,7 @@ class FunctionalAliasTest(AsyncHTTPTestCase, unittest.TestCase):
         mock_patch.return_value = MagicMock(spec=requests.models.Response,
                                             ok=False,
                                             status_code=status_code_test) 
-        response = self.fetch("/api/v1/instance/alias/%s" %('dbod01'),
+        response = self.fetch("/api/v1/instance/alias/%s" %('apiato01'),
                               headers={'Authorization': self.authentication},
                               method="DELETE")
         self.assertEquals(response.code, status_code_test)

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 # Copyright (C) 2015, CERN
 # This software is distributed under the terms of the GNU General Public
 # Licence version 3 (GPL Version 3), copied verbatim in the file "LICENSE".
@@ -16,8 +15,8 @@ import json
 import requests
 import tornado.web
 import tornado.escape
-from dbod.api.base import *
-from dbod.config import config
+from apiato.api.base import *
+from apiato.config import config
 
 class Host(tornado.web.RequestHandler):
    
@@ -33,7 +32,7 @@ class Host(tornado.web.RequestHandler):
     +----+-----------+--------+
     | id |  name     | memory |
     +====+===========+========+
-    | 42 | dbod-db42 |  1024  |
+    | 42 | apiato-db42 |  1024  |
     +----+-----------+--------+
 
         * The *name* in this example is the hostname of a node

@@ -17,8 +17,8 @@ from sys import exc_info
 import requests
 import tornado.web
 import tornado.escape
-from dbod.api.base import *
-from dbod.config import config
+from apiato.api.base import *
+from apiato.config import config
 
 class FunctionalAlias(tornado.web.RequestHandler):
 

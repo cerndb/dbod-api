@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 # Copyright (C) 2015, CERN
 # This software is distributed under the terms of the GNU General Public
 # Licence version 3 (GPL Version 3), copied verbatim in the file "LICENSE".
@@ -52,7 +51,7 @@ def load( config_file = None ):
     try:
         parser = argparse.ArgumentParser()
         parser.add_argument(
-                "-c", "--config", default="/etc/dbod/api.cfg", 
+                "-c", "--config", default="/etc/apiato/api.cfg", 
                 help = "specify the location of the config file"
                 )
         args, unk = parser.parse_known_args()

@@ -14,9 +14,9 @@ DB On Demand REST API server setup file
 
 from setuptools import setup, find_packages
 
-setup(name='dbod-api',
-      version='0.9.1',
-      description='DB On Demand REST API',
+setup(name='apiato',
+      version='0.9.2',
+      description='CERN Apiato REST API',
       author='CERN',
       author_email='icot@cern.ch',
       license='GPLv3',
@@ -24,7 +24,7 @@ setup(name='dbod-api',
       maintainer_email='icot@cern.ch',
       url='https://github.com/cerndb/dbod-api',
       packages=find_packages(),
-      scripts=['bin/dbod-api'],
+      scripts=['bin/apiato'],
       test_suite="",
       install_requires=[
           'ConfigParser',

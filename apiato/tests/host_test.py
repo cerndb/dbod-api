@@ -20,8 +20,8 @@ from mock import MagicMock
 from tornado.testing import AsyncHTTPTestCase
 from timeout_decorator import timeout
 
-from dbod.api.api import handlers
-from dbod.config import config
+from apiato.api.api import handlers
+from apiato.config import config
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 class HostTest(AsyncHTTPTestCase, unittest.TestCase):
@@ -35,9 +35,9 @@ class HostTest(AsyncHTTPTestCase, unittest.TestCase):
         return tornado.web.Application(handlers)
 
     @timeout(5)
-    @patch('dbod.api.host.requests.get')
-    @patch('dbod.api.host.json.dumps')
-    @patch('dbod.api.host.Host.write')
+    @patch('apiato.api.host.requests.get')
+    @patch('apiato.api.host.json.dumps')
+    @patch('apiato.api.host.Host.write')
     def test_get_valid_name(self, mock_write, mock_json, mock_get):
         """ test a successful get method with a valid given name"""
     	print "test_get_valid_name"
@@ -66,7 +66,7 @@ class HostTest(AsyncHTTPTestCase, unittest.TestCase):
 
 
     @timeout(5)
-    @patch('dbod.api.host.requests.get', side_effect=empty_json)
+    @patch('apiato.api.host.requests.get', side_effect=empty_json)
     def test_get_empty(self, mock_get):
         """test when the response of the request is empty"""
         print "test_get_empty"
@@ -75,7 +75,7 @@ class HostTest(AsyncHTTPTestCase, unittest.TestCase):
         self.assertEquals(response.code, 404)
     
     @timeout(5)
-    @patch('dbod.api.host.requests.get')
+    @patch('apiato.api.host.requests.get')
     def test_get_notexist(self, mock_get):
         """test when the given name does not exist"""
         print "test_get_notexist"
@@ -90,7 +90,7 @@ class HostTest(AsyncHTTPTestCase, unittest.TestCase):
         self.assertEquals(response.code, status_code_test_error)
     
     @timeout(5)
-    @patch('dbod.api.host.requests.post')
+    @patch('apiato.api.host.requests.post')
     def test_post_valid(self, mock_post):
         """test when the post request is valid"""
         print "test_post_valid"
@@ -109,7 +109,7 @@ class HostTest(AsyncHTTPTestCase, unittest.TestCase):
         self.assertEquals(response.code, status_code_test)
    
     @timeout(5)
-    @patch('dbod.api.host.requests.post')
+    @patch('apiato.api.host.requests.post')
     def test_post_duplicate(self, mock_post):
         """test when the post request tries to insert a duplicate entry"""
         print "test_post_duplicate"
@@ -128,7 +128,7 @@ class HostTest(AsyncHTTPTestCase, unittest.TestCase):
         self.assertEquals(response.code, status_code_test_error)
 
     @timeout(5)
-    @patch('dbod.api.host.requests.post')
+    @patch('apiato.api.host.requests.post')
     def test_post_wrongargument(self, mock_post):
         """test when the argument in the body of post request is wrong"""
         print "test_post_duplicate"
@@ -146,7 +146,7 @@ class HostTest(AsyncHTTPTestCase, unittest.TestCase):
         self.assertEquals(response.code, status_code_test_error)
     
     @timeout(5)
-    @patch('dbod.api.host.requests.post')
+    @patch('apiato.api.host.requests.post')
     def test_post_badargument(self, mock_post):
         """test when the value of the argument of post request is string"""
         print "test_post_badargument"
@@ -164,7 +164,7 @@ class HostTest(AsyncHTTPTestCase, unittest.TestCase):
         self.assertEquals(response.code, status_code_test_error)
 
     @timeout(5)
-    @patch('dbod.api.host.requests.patch')
+    @patch('apiato.api.host.requests.patch')
     def test_put_valid(self, mock_patch):
         """test when the put request is valid"""
         print "test_put_valid"
@@ -184,7 +184,7 @@ class HostTest(AsyncHTTPTestCase, unittest.TestCase):
         self.assertEquals(response.code, status_code_test)
 
     @timeout(5)
-    @patch('dbod.api.host.requests.patch')
+    @patch('apiato.api.host.requests.patch')
     def test_put_notexist(self, mock_patch):
         """test when the name to update with put request does not exist"""
         print "test_put_notexist"
@@ -205,7 +205,7 @@ class HostTest(AsyncHTTPTestCase, unittest.TestCase):
 
 
     @timeout(5)
-    @patch('dbod.api.host.requests.patch')
+    @patch('apiato.api.host.requests.patch')
     def test_put_wrongargument(self, mock_patch):
         """test when the argument in the body of put request is wrong"""
         print "test_put_wrongargument"
@@ -224,7 +224,7 @@ class HostTest(AsyncHTTPTestCase, unittest.TestCase):
         self.assertEquals(response.code, status_code_test_error)
     
     @timeout(5)
-    @patch('dbod.api.host.requests.patch')
+    @patch('apiato.api.host.requests.patch')
     def test_put_badargument(self, mock_patch):
         """test when the value of the argument of put request is string"""
         print "test_put_badargument"
@@ -243,7 +243,7 @@ class HostTest(AsyncHTTPTestCase, unittest.TestCase):
         self.assertEquals(response.code, status_code_test_error)
     
     @timeout(5)
-    @patch('dbod.api.host.requests.delete')
+    @patch('apiato.api.host.requests.delete')
     def test_delete_valid(self, mock_delete):
         """test when the delete request is valid"""
         print "test_delete_valid"
@@ -261,7 +261,7 @@ class HostTest(AsyncHTTPTestCase, unittest.TestCase):
         self.assertEquals(response.code, status_code_test)
 
     @timeout(5)
-    @patch('dbod.api.host.requests.delete')
+    @patch('apiato.api.host.requests.delete')
     def test_delete_notexist(self, mock_delete):
         """test when the name to delete with delete request does not exist"""
         print "test_delete_notexist"

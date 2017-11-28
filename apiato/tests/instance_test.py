@@ -18,7 +18,7 @@ from tornado.testing import AsyncHTTPTestCase
 from tornado.testing import get_unused_port
 from timeout_decorator import timeout
 
-from dbod.api.api import *
+from apiato.api.api import *
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
@@ -116,7 +116,7 @@ class InstanceTest(AsyncHTTPTestCase):
         self.assertEquals(response.code, 201)
 
         # Check the metadata for this instance
-        response = self.fetch("/api/v1/metadata/instance/dbod01")
+        response = self.fetch("/api/v1/metadata/instance/apiato01")
         self.assertEquals(response.code, 200)
         data = json.loads(response.body)["response"]
         self.assertEquals(data[0]["username"], "newuser")
@@ -129,7 +129,7 @@ class InstanceTest(AsyncHTTPTestCase):
     def test_edit_instance_dbname(self):
         """Edit the dbname correctly"""
         instance = """{"name": "newdb01"}"""
-        restore = """{"name": "dbod01"}"""
+        restore = """{"name": "apiato01"}"""
 
         # Edit the instance
         response = self.fetch("/api/v1/instance/1", method='PUT', headers={'Authorization': self.authentication}, body=instance)
