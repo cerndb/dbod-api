@@ -5,7 +5,14 @@
 -- granted to it by virtue of its status as Intergovernmental Organization
 -- or submit itself to any jurisdiction.
 
-\ir 0.90-base_schema/1-db_base_local.sql
-\ir 0.90-base_schema/2-db_api_procedures.sql
-\ir 0.90-base_schema/3-db_api_views.sql
-\ir 0.90-base_schema/4-db_auth.sql
+-- This optional file connects the FIM Table from Oracle to the current schema.
+
+DROP TABLE public.fim_data;
+
+CREATE VIEW public.fim_data AS 
+    SELECT * FROM fim.db_on_demand;
+    
+CREATE VIEW api.fim_data AS 
+    SELECT * FROM fim.db_on_demand;
+
+

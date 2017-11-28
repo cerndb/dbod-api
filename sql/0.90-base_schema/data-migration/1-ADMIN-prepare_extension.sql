@@ -1,11 +1,16 @@
+-- Copyright (C) 2017, CERN
+-- This software is distributed under the terms of the GNU General Public
+-- Licence version 3 (GPL Version 3), copied verbatim in the file "COPYING".
+-- In applying this license, CERN does not waive the privileges and immunities
+-- granted to it by virtue of its status as Intergovernmental Organization
+-- or submit itself to any jurisdiction.
 
--- DESTROY EVERYTHING
-DROP SCHEMA public CASCADE;
+-- This script MUST be run as ADMINISTRATOR
+
+-- Destroy schemas from previous migration (if any)
 DROP SCHEMA fim CASCADE;
 DROP SCHEMA source CASCADE;
 ----------------------------
-
-CREATE SCHEMA IF NOT EXISTS public;
 
 CREATE EXTENSION postgres_fdw;
 
