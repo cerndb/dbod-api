@@ -181,7 +181,7 @@ CREATE OR REPLACE VIEW api.rundeck_instances AS
   SELECT instance.name,
     functional_aliases.alias AS hostname,
     api.get_instance_attribute('port'::character varying, instance.id) AS port,
-    'apiato'::character(1) AS username,
+    'apiato'::varchar AS username,
     instance.type_id,
     instance.category,
     (instance.type_id::text || ','::text) || instance.category::text AS tags
