@@ -30,7 +30,7 @@ class RundeckResources(tornado.web.RequestHandler):
             data = json.loads(response.text)
             d = {}
             for entry in data:
-                d[entry[u'db_name']] = entry
+                d[entry[u'name']] = entry
             self.set_header('Content-Type', 'text/xml')
             # Page Header
             logging.debug('<?xml version="1.0" encoding="UTF-8"?>')

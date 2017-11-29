@@ -37,8 +37,8 @@ class RundeckTest(AsyncHTTPTestCase, unittest.TestCase):
         """test when get method is successful"""
         print "test_get_success"
         status_code_test = 200
-        response_text = '[{"db_name":"apiato42","hostname":"apiato42.cern.ch","port":"5500","username":"apiato","db_type":"MYSQL","category":"TEST","tags":"MYSQL,TEST"}, \
-        {"db_name":"apiato24","hostname":"apiato24.cern.ch","port":"6603","username":"apiato","db_type":"PG","category":"PROD","tags":"PG,PROD"}]'
+        response_text = '[{"name":"apiato42","hostname":"apiato42.cern.ch","port":"5500","username":"apiato","db_type":"MYSQL","category":"TEST","tags":"MYSQL,TEST"}, \
+        {"name":"apiato24","hostname":"apiato24.cern.ch","port":"6603","username":"apiato","db_type":"PG","category":"PROD","tags":"PG,PROD"}]'
 
         mock_get.return_value = MagicMock(spec=requests.models.Response,
                                           ok=True,
