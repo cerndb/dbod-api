@@ -292,7 +292,7 @@ CREATE OR REPLACE FUNCTION api.get_instance_attribute(
 DECLARE
   res VARCHAR;
 BEGIN
-  SELECT name, value FROM public.instance_attribute A WHERE A.instance_id = iid AND A.name = attribute_name INTO res;
+  SELECT value FROM public.instance_attribute A WHERE A.instance_id = iid AND A.name = attribute_name INTO res;
   return res;
 END
 $$ LANGUAGE plpgsql;
