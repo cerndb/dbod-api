@@ -165,3 +165,16 @@ class JobTest(AsyncHTTPTestCase, unittest.TestCase):
         
         response = self.fetch("/api/v1/instance", headers={'Authorization': self.authentication, 'Auth':auth_header })
         self.assertEquals(response.code, 400)
+
+    @timeout(5)
+    def test_instance_no_auth_header(self):
+        """Get the list of instances sending no auth header"""
+        response = self.fetch("/api/v1/instance", headers={'Authorization': self.authentication })
+        self.assertEquals(response.code, 400)
+
+    @timeout(5)
+    def test_instance_invalid_auth_header(self):
+        """Get the list of instances sending invalid auth header"""
+        auth_header = '{"owner": "no_exists", "groups": [], "admin": true'  # Missing closing bracket
+        response = self.fetch("/api/v1/instance", headers={'Authorization': self.authentication, 'Auth':auth_header })
+        self.assertEquals(response.code, 400)

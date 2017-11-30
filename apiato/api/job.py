@@ -71,9 +71,23 @@ class Job_filter(tornado.web.RequestHandler):
     get_jobs_url = config.get('postgrest', 'get_jobs_url')
 
     def get(self, *args):
-        auth = json.loads(self.request.headers.get('auth'))
+        """
+        The *GET* method returns a list of e_groups owning resources
+
+        :rtype: json -- the response of the request
+        :raises: HTTPError - if there is an internal error or if the response is empty
+        """
+        auth_header = self.request.headers.get('auth')
+        logging.debug("Auth header : %s" % (auth_header))
+        if auth_header is None:
+            raise tornado.web.HTTPError(BAD_REQUEST, "No 'auth' header found.")
+        
+        try:
+            auth = json.loads(auth_header)
+        except:
+            raise tornado.web.HTTPError(BAD_REQUEST, "Error parsing JSON 'auth' header.")
+
         logging.debug("RPC Url : %s" % (self.get_jobs_url))
-        logging.debug("Auth Header: %s" % auth)
 
         response = requests.post(self.get_jobs_url, json=auth, 
                 headers={'Prefer': 'return=representation'})
