@@ -111,32 +111,46 @@ class RundeckJobs(tornado.web.RequestHandler):
         if (node is None):
             raise tornado.web.HTTPError(BAD_REQUEST, "Parameter 'node' not specified")
 
-        response_run = self.__run_job__(job, node)
+        try:
+            jobid = config.get('rundeck-jobs', job)
+            logging.debug("Found 'jobid' for " + job + " = " + jobid)
+        except:
+            raise tornado.web.HTTPError(BAD_REQUEST, "Job '{0}' is not valid".format(job))
+
+        response_run = self.__run_job__(jobid, node)
         if response_run.ok:
             try:
                 data = json.loads(response_run.text)
-                exid = str(data["id"])
-                timeout = int(config.get('rundeck', 'timeout')) * 2
-                while timeout > 0:
-                    response_output = self.__get_output__(exid)
-                    if response_output.ok:
-                        output = json.loads(response_output.text)
-                        if output["execCompleted"]:
-                            if output["execState"] == "succeeded":
-                                logging.debug("response: " + response_output.text)
-                                self.finish({'response' : output})
-                                return
-                            else:
-                                logging.warning("The job completed with errors: " + exid)
-                                raise tornado.web.HTTPError(BAD_GATEWAY)
-                        else:
-                            timeout -= 1
-                            time.sleep(0.500)
-                    else:
-                        logging.error("Error reading the job from Rundeck: " + response_output.text)
-                        raise tornado.web.HTTPError(response_output.status_code)
             except:
+                logging.debug("Reponse: " + response_run.text)
                 raise tornado.web.HTTPError(NOT_ACCEPTABLE, "Error parsing Rundeck response")
+
+            exid = str(data["id"])
+            timeout = int(config.get('rundeck', 'timeout')) * 2
+            while timeout > 0:
+                response_output = self.__get_output__(exid)
+                if response_output.ok:
+                    try:
+                        output = json.loads(response_output.text)
+                    except:
+                        continue
+                    if output["execCompleted"]:
+                        if output["execState"] == "succeeded":
+                            logging.debug("response: " + response_output.text)
+                            self.finish({'response' : output})
+                            return
+                        else:
+                            logging.warning("The job completed with errors: " + exid)
+                            raise tornado.web.HTTPError(BAD_GATEWAY)
+                    else:
+                        timeout -= 1
+                        time.sleep(0.500)
+                else:
+                    logging.error("Error reading the job from Rundeck: " + response_output.text)
+                    raise tornado.web.HTTPError(response_output.status_code)
+            if timeout <= 0:
+                logging.error("Rundeck job timed out: " + job)
+                raise tornado.web.HTTPError(GATEWAY_TIMEOUT)
         else:
             logging.error("Error running the job: " + response_run.text)
             raise tornado.web.HTTPError(response_run.status_code)
@@ -147,17 +161,11 @@ class RundeckJobs(tornado.web.RequestHandler):
         logging.debug("Sending request: " + api_job_output)
         return requests.get(api_job_output, headers={'Authorization': config.get('rundeck', 'api_authorization')}, verify=False)
         
-    def __run_job__(self, job, node):
+    def __run_job__(self, jobid, node):
         """Executes a new Rundeck job and returns the output"""
-        jobid = config.get('rundeck-jobs', job)
-        logging.debug("Found 'jobid' for " + job + " = " + jobid)
-        if jobid:
-            run_job_url = config.get('rundeck', 'api_run_job').format(jobid)
-            headers = {'Authorization': config.get('rundeck', 'api_authorization')}
-            data = {'filter':'name: ' + node}
-            logging.debug("Sending request: " + run_job_url + " with headers: " + str(headers) + " and data: " + str(data))
-            return requests.post(run_job_url, headers=headers, verify=False, data = data)
-        
-        
-        
-        
+        run_job_url = config.get('rundeck', 'api_run_job').format(jobid)
+        headers = {'Authorization': config.get('rundeck', 'api_authorization')}
+        data = {'filter':'name: ' + node}
+        logging.debug("Sending request: " + run_job_url + " with headers: " + str(headers) + " and data: " + str(data))
+        return requests.post(run_job_url, headers=headers, verify=False, data=data)
+
