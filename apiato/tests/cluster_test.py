@@ -65,7 +65,7 @@ class ClusterTest(AsyncHTTPTestCase):
 
         # Delete the created instance
         response = self.fetch("/api/v1/cluster/" + str(data[0]["id"]) , method='DELETE', headers={'Authorization': self.authentication})
-        self.assertEquals(response.code, 201)
+        self.assertEquals(response.code, 204)
 
         # Check again, the metadata should be empty
         response = self.fetch("/api/v1/cluster/testcluster")
@@ -78,7 +78,7 @@ class ClusterTest(AsyncHTTPTestCase):
         new_cluster = """{ "e_group" : "testgroupX"}"""
 
         response = self.fetch("/api/v1/cluster/1" , method='PUT', headers={'Authorization': self.authentication}, body=new_cluster)
-        self.assertEquals(response.code, 201)
+        self.assertEquals(response.code, 200)
 
         # Check the cluster update
         response = self.fetch("/api/v1/cluster/cluster01")
@@ -88,7 +88,7 @@ class ClusterTest(AsyncHTTPTestCase):
 
         # Restore the instance
         response = self.fetch("/api/v1/cluster/1", method='PUT', headers={'Authorization': self.authentication}, body=current_cluster)
-        self.assertEquals(response.code, 201)
+        self.assertEquals(response.code, 200)
 
         # Check the cluster update (restore)
         response = self.fetch("/api/v1/cluster/cluster01")

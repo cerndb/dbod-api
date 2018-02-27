@@ -59,7 +59,6 @@ class FunctionalAlias(tornado.web.RequestHandler):
     url = config.get('postgrest', 'functional_alias_url')
 
     def get(self, db_name, *args):
-
         """
         The *GET* method returns the database name's *alias* and *dns name*.
         (No any special headers for this request)
@@ -78,6 +77,7 @@ class FunctionalAlias(tornado.web.RequestHandler):
         if response.ok and data:
             logging.debug("response: " + json.dumps(data))
             self.write({'response' : data})
+            self.set_status(OK)
         elif response.ok:
             logging.warning("Functional alias not found for instance: " + db_name)
             raise tornado.web.HTTPError(NOT_FOUND)
@@ -87,7 +87,6 @@ class FunctionalAlias(tornado.web.RequestHandler):
 
     @http_basic_auth
     def post(self, db_name, *args):
-
         """
         The *POST* method inserts a new *database name* and its *alias* into the database. It
         adds the functional alias association for an instance.

@@ -19,7 +19,6 @@ from apiato.api.base import *
 from apiato.config import config
 
 class Host(tornado.web.RequestHandler):
-   
     """
     This is the handler of **/host/names/<name>** endpoint.
 
@@ -56,7 +55,6 @@ class Host(tornado.web.RequestHandler):
     url = config.get('postgrest', 'host_url')
 
     def get(self, name, *args):
-
         """
         The *GET* method returns the host's memory according to the example given above.
         (No any special headers for this request)
@@ -85,7 +83,6 @@ class Host(tornado.web.RequestHandler):
 
     @http_basic_auth
     def post(self, name, *args):
-
         """
         The *POST* method inserts a new *name* and its *memory* size according to the example above. 
         You don't have to specify anything about the *id* since this field should be specified as *serial*.
@@ -106,45 +103,42 @@ class Host(tornado.web.RequestHandler):
         """
 
         logging.debug('Arguments:' + str(self.request.arguments))
-	try:
-		memory = int(self.get_argument('memory'))
-		logging.debug("memory: %s" %(memory))
+        try:
+            memory = int(self.get_argument('memory'))
+            logging.debug("memory: %s" %(memory))
 
-                headers = {'Prefer': 'return=representation', 
-                           'Content-Type': 'application/json'}
-                insert_data = {"name": name,
-                               "memory": memory}
-                logging.debug("Data to insert: %s" %(insert_data))
-                composed_url = self.url + '?name=eq.' + name
-                logging.debug('Requesting insertion: ' + composed_url)
-                
-                response = requests.post(composed_url, 
-                                         json=insert_data, 
-                                         headers=headers)
-                if response.ok:
-                        logging.info('Data inserted in the table')
-                        logging.debug(response.text)
-                        self.set_status(CREATED)
-                else:
-                        logging.error("Duplicate entry or backend problem: " + response.text)
-                        self.set_status(response.status_code)
-                        raise tornado.web.HTTPError(response.status_code)
+            headers = {'Prefer': 'return=representation', 
+                        'Content-Type': 'application/json'}
+            insert_data = {"name": name,
+                           "memory": memory}
+            logging.debug("Data to insert: %s" %(insert_data))
+            composed_url = self.url + '?name=eq.' + name
+            logging.debug('Requesting insertion: ' + composed_url)
+            
+            response = requests.post(composed_url, json=insert_data, headers=headers)
+            if response.ok:
+                    logging.info('Data inserted in the table')
+                    logging.debug(response.text)
+                    self.set_status(CREATED)
+            else:
+                    logging.error("Duplicate entry or backend problem: " + response.text)
+                    self.set_status(response.status_code)
+                    raise tornado.web.HTTPError(response.status_code)
 
-	except tornado.web.MissingArgumentError:
-		logging.error("Bad argument given in the POST body request")
-		logging.error("Try entering 'memory=<memory_int_MB>'")
-		logging.error("Or try adding this header: \
-			      'Content-Type: application/x-www-form-urlencoded'")
-		self.set_status(BAD_REQUEST)
-                raise tornado.web.HTTPError(BAD_REQUEST)
-	except ValueError:
-		logging.error("The value of the argument in the request body \
-			       should be an integer")
-		logging.error("Try entering 'memory=<memory_int_MB>'")
-		self.set_status(BAD_REQUEST)
-                raise tornado.web.HTTPError(BAD_REQUEST)
+        except tornado.web.MissingArgumentError:
+            logging.error("Bad argument given in the POST body request")
+            logging.error("Try entering 'memory=<memory_int_MB>'")
+            logging.error("Or try adding this header: \
+                          'Content-Type: application/x-www-form-urlencoded'")
+            self.set_status(BAD_REQUEST)
+            raise tornado.web.HTTPError(BAD_REQUEST)
+        except ValueError:
+            logging.error("The value of the argument in the request body \
+                        should be an integer")
+            logging.error("Try entering 'memory=<memory_int_MB>'")
+            self.set_status(BAD_REQUEST)
+            raise tornado.web.HTTPError(BAD_REQUEST)
 
-	
     @http_basic_auth   
     def put(self, name, *args):
         """
@@ -170,44 +164,42 @@ class Host(tornado.web.RequestHandler):
         :request body: memory=<memory_int_MB> - the memory (integer in MB) to be inserted for the given *name* which is given in the *body* of the request
         """
 
-    	logging.debug('Arguments:' + str(self.request.arguments))
-	try:
-		memory = int(self.get_argument('memory'))
-		logging.debug("memory: %s" %(memory))
-            
-                headers = {'Prefer': 'return=representation', 
-                           'Content-Type': 'application/json'}
-                update_data = {"name": name,
-                               "memory": memory}
-                logging.debug("Data to insert: %s" %(update_data))
-                composed_url = self.url + '?name=eq.' + name
-                logging.debug('Requesting insertion: ' + composed_url)
-                response = requests.patch(composed_url, 
-                                          json=update_data, 
-                                          headers=headers)
-                if response.ok:
-                        logging.info('Data updated in the table')
-                        logging.debug(response.text)
-                        self.set_status(OK)
-                else:
-                        logging.error("Error while updating the new name: " + response.text)
-                        self.set_status(response.status_code)
-                        raise tornado.web.HTTPError(response.status_code)
+        logging.debug('Arguments:' + str(self.request.arguments))
+        try:
+            memory = int(self.get_argument('memory'))
+            logging.debug("memory: %s" %(memory))
+                
+            headers = {'Prefer': 'return=representation', 
+                    'Content-Type': 'application/json'}
+            update_data = {"name": name,
+                        "memory": memory}
+            logging.debug("Data to insert: %s" %(update_data))
+            composed_url = self.url + '?name=eq.' + name
+            logging.debug('Requesting insertion: ' + composed_url)
+            response = requests.patch(composed_url, json=update_data, headers=headers)
+            if response.ok:
+                logging.info('Data updated in the table')
+                logging.debug(response.text)
+                self.set_status(OK)
+            else:
+                logging.error("Error while updating the new name: " + response.text)
+                self.set_status(response.status_code)
+                raise tornado.web.HTTPError(response.status_code)
 
-	except tornado.web.MissingArgumentError:
-		logging.error("Bad argument given in the POST body request")
-		logging.error("Try entering 'memory=<memory_int_MB>'")
-		logging.error("Or try adding this header: \
-                        'Content-Type: application/x-www-form-urlencoded'")
-		self.set_status(BAD_REQUEST)
-                raise tornado.web.HTTPError(BAD_REQUEST)
+        except tornado.web.MissingArgumentError:
+            logging.error("Bad argument given in the POST body request")
+            logging.error("Try entering 'memory=<memory_int_MB>'")
+            logging.error("Or try adding this header: \
+                            'Content-Type: application/x-www-form-urlencoded'")
+            self.set_status(BAD_REQUEST)
+            raise tornado.web.HTTPError(BAD_REQUEST)
 
-	except ValueError:
-		logging.error("The value of the argument in the request body \
-			       should be an integer")
-		logging.error("Try entering 'memory=<memory_int_MB>'")
-		self.set_status(BAD_REQUEST)
-                raise tornado.web.HTTPError(BAD_REQUEST)
+        except ValueError:
+            logging.error("The value of the argument in the request body \
+                    should be an integer")
+            logging.error("Try entering 'memory=<memory_int_MB>'")
+            self.set_status(BAD_REQUEST)
+            raise tornado.web.HTTPError(BAD_REQUEST)
 
     @http_basic_auth
     def delete(self, name, *args):
@@ -229,20 +221,18 @@ class Host(tornado.web.RequestHandler):
         :raises: HTTPError - when there is an internal error or the requested name does not exist
         :request body: memory=<memory_int_MB> - the memory (integer in MB) to be inserted for the given *name* which is given in the *body* of the request
         """
-	headers = {'Prefer': 'return=representation',
-		   'Content-Type': 'application/json'}
-	composed_url = self.url + '?name=eq.' + name
-	response = requests.delete(composed_url,
-				   headers=headers)
-	logging.info("Requesting deletion of: " + name)
-	if response.ok:
-		logging.info("Data deleted")
-		logging.debug(response.text)
-		self.set_status(OK)
-	else:
-		logging.error("Error during deletion with code %s: %s" \
-			      %(response.status_code, response.text) )
-		logging.error("The given name does not exist in the table")
-		self.set_status(response.status_code)
-                raise tornado.web.HTTPError(response.status_code)
+        headers = {'Prefer': 'return=representation',
+            'Content-Type': 'application/json'}
+        composed_url = self.url + '?name=eq.' + name
+        response = requests.delete(composed_url, headers=headers)
+        logging.info("Requesting deletion of: " + name)
+        if response.ok:
+            logging.info("Data deleted")
+            logging.debug(response.text)
+            self.set_status(NO_CONTENT)
+        else:
+            logging.error("Error during deletion with code %s: %s" \
+                    %(response.status_code, response.text) )
+            logging.error("The given name does not exist in the table")
+            raise tornado.web.HTTPError(response.status_code)
 

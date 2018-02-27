@@ -61,7 +61,7 @@ class ClusterTest(AsyncHTTPTestCase):
 
         # Delete the created instance
         response = self.fetch("/api/v1/volume/" + str(data[0]["id"]) , method='DELETE', headers={'Authorization': self.authentication})
-        self.assertEquals(response.code, 201)
+        self.assertEquals(response.code, 204)
 
         # Check again, the metadata should be empty
         response = self.fetch("/api/v1/volume/apiato03")

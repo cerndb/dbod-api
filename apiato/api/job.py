@@ -67,6 +67,14 @@ class Job(tornado.web.RequestHandler):
                 raise tornado.web.HTTPError(BAD_REQUEST)
 
 class Job_filter(tornado.web.RequestHandler):
+    """
+    This is the handler of **/api/v1/job** endpoint.
+
+    The request methods implemented for this endpoint are:
+
+    * :func:`get`
+
+    """
 
     get_jobs_url = config.get('postgrest', 'get_jobs_url')
 

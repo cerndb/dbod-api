@@ -109,7 +109,7 @@ class Cluster(tornado.web.RequestHandler):
         if response.ok:
             logging.info("Update Cluster: " + id)
             logging.debug(response.text)
-            self.set_status(CREATED)
+            self.set_status(OK)
         else:
             logging.error("Error updating the cluster: " + response.text)
             raise tornado.web.HTTPError(response.status_code)
@@ -132,7 +132,7 @@ class Cluster(tornado.web.RequestHandler):
         if response.ok:
             logging.info("Delete cluster: " + id)
             logging.debug(response.text)
-            self.set_status(CREATED)
+            self.set_status(NO_CONTENT)
         else:
             logging.error("Error delete the cluster: " + response.text)
             raise tornado.web.HTTPError(response.status_code)

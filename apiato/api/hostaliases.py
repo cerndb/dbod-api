@@ -59,6 +59,7 @@ class HostAliases(tornado.web.RequestHandler):
         if response.ok and data:
             logging.debug("response: " + response.text)
             self.write({'response' : data})
+            self.status(OK)
         elif response.ok:
             logging.warning("Host aliases not found: " + host)
             raise tornado.web.HTTPError(NOT_FOUND)

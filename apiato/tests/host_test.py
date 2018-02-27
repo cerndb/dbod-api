@@ -40,7 +40,7 @@ class HostTest(AsyncHTTPTestCase, unittest.TestCase):
     @patch('apiato.api.host.Host.write')
     def test_get_valid_name(self, mock_write, mock_json, mock_get):
         """ test a successful get method with a valid given name"""
-    	print "test_get_valid_name"
+        print "test_get_valid_name"
         status_code_test = 200
         response_output = [{u'memory': 512}]
         mock_get.return_value = MagicMock(spec=requests.models.Response,
@@ -248,7 +248,7 @@ class HostTest(AsyncHTTPTestCase, unittest.TestCase):
         """test when the delete request is valid"""
         print "test_delete_valid"
 
-        status_code_test = 200
+        status_code_test = 204
         memory_test = '512'
         body_test = 'memory=' + memory_test
         mock_delete.return_value = MagicMock(spec=requests.models.Response,

@@ -50,6 +50,7 @@ class RundeckResources(tornado.web.RequestHandler):
                           ))
                 logging.debug(text)
                 self.write(text)
+                self.set_status(OK)
             logging.debug('</project>')
             self.write('</project>')
         else: 
@@ -82,6 +83,7 @@ class RundeckJobs(tornado.web.RequestHandler):
             logging.debug("response: " + response.text)
             try:
                 self.write({'response' : json.loads(response.text)})
+                self.set_status(OK)
             except:
                 raise tornado.web.HTTPError(NOT_ACCEPTABLE, "Error parsing Rundeck response")
         else:
@@ -137,6 +139,7 @@ class RundeckJobs(tornado.web.RequestHandler):
                     if output["execCompleted"]:
                         if output["execState"] == "succeeded":
                             logging.debug("response: " + response_output.text)
+                            self.set_status(OK)
                             self.finish({'response' : output})
                             return
                         else:

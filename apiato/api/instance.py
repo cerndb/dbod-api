@@ -22,7 +22,6 @@ from apiato.api.base import *
 from apiato.config import config
 
 class Instance(tornado.web.RequestHandler):
-
     """
     This is the handler of **/instance/<database name>** endpoint.
 
@@ -182,7 +181,7 @@ class Instance(tornado.web.RequestHandler):
         if response.ok:
             logging.info("Update instance: " + id)
             logging.debug(response.text)
-            self.set_status(CREATED)
+            self.set_status(OK)
         else:
             logging.error("Error updating the instance: " + response.text)
             raise tornado.web.HTTPError(response.status_code)
