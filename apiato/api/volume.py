@@ -131,7 +131,7 @@ class Volume(tornado.web.RequestHandler):
         if response.ok:
             logging.info("Delete volume " + volume["id"])
             logging.debug(response.text)
-            self.set_status(CREATED)
+            self.set_status(NO_CONTENT)
         else:
             logging.error("Error delete the volume: " + response.text)
             raise tornado.web.HTTPError(response.status_code)

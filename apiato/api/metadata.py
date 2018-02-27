@@ -77,6 +77,7 @@ class Metadata(tornado.web.RequestHandler):
             if response.ok and data:
                 logging.debug("response: " + json.dumps(data))
                 self.write({'response' : data})
+                self.set_status(OK)
             elif response.ok:
                 logging.warning("Instance metadata not found: " + name)
                 raise tornado.web.HTTPError(NOT_FOUND)

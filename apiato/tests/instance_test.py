@@ -113,7 +113,7 @@ class InstanceTest(AsyncHTTPTestCase):
 
         # Edit the instance
         response = self.fetch("/api/v1/instance/1", method='PUT', headers={'Authorization': self.authentication}, body=instance)
-        self.assertEquals(response.code, 201)
+        self.assertEquals(response.code, 200)
 
         # Check the metadata for this instance
         response = self.fetch("/api/v1/metadata/instance/apiato01")
@@ -123,7 +123,7 @@ class InstanceTest(AsyncHTTPTestCase):
 
         # Restore the instance
         response = self.fetch("/api/v1/instance/1", method='PUT', headers={'Authorization': self.authentication}, body=restore)
-        self.assertEquals(response.code, 201)
+        self.assertEquals(response.code, 200)
 
     @timeout(5)
     def test_edit_instance_dbname(self):
@@ -133,7 +133,7 @@ class InstanceTest(AsyncHTTPTestCase):
 
         # Edit the instance
         response = self.fetch("/api/v1/instance/1", method='PUT', headers={'Authorization': self.authentication}, body=instance)
-        self.assertEquals(response.code, 201)
+        self.assertEquals(response.code, 200)
 
         # Check the metadata for this instance
         response = self.fetch("/api/v1/metadata/instance/newdb01")
@@ -143,6 +143,6 @@ class InstanceTest(AsyncHTTPTestCase):
 
         # Restore the instance
         response = self.fetch("/api/v1/instance/1", method='PUT', headers={'Authorization': self.authentication}, body=restore)
-        self.assertEquals(response.code, 201)
+        self.assertEquals(response.code, 200)
 
 

@@ -21,7 +21,6 @@ from apiato.api.base import *
 from apiato.config import config
 
 class Attribute(tornado.web.RequestHandler):
-
     """
     This is the handler of **/<class>/<name>/attribute/<attribute_name>** endpoint.
 

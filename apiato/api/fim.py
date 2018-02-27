@@ -53,6 +53,7 @@ class Fim(tornado.web.RequestHandler):
             if data:
                 logging.debug("data: " + json.dumps(data))
                 self.write({'data' : data})
+                self.set_status(OK)
             else:
                 logging.error("Instance not found in FIM: " + name)
                 raise tornado.web.HTTPError(NOT_FOUND)
