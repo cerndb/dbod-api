@@ -72,8 +72,8 @@ SELECT db_type, category, version_from, version_to
 FROM source.dod_upgrades;
 
 -- Migrate jobs
-INSERT INTO public.job (username, db_name, command_name, type, creation_date, completion_date, requester, admin_action, state, log, result, email_sent, category, instance_id)
-SELECT j.username, j.db_name, j.command_name, j.type, j.creation_date, j.completion_date, j.requester, j.admin_action, j.state, j.log, j.result, j.email_sent, j.category, i.id
+INSERT INTO public.job (username, db_name, command_name, type, creation_date, completion_date, requester, admin_action, state, log, result, email_sent, id, instance_id)
+SELECT j.username, j.db_name, j.command_name, j.type, j.creation_date, j.completion_date, j.requester, j.admin_action, j.state, j.log, j.result, j.email_sent, j.id, i.id
 FROM source.dod_jobs j, source.dod_instances i
 WHERE j.db_name = i.db_name;
 
