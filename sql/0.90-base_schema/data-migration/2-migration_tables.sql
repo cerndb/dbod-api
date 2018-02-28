@@ -125,7 +125,8 @@ CREATE FOREIGN TABLE source.dod_jobs (
     log text,
     result varchar(2048),
     email_sent timestamp,
-    category varchar(20)
+    id int NOT NULL,
+    instance_id int NOT NULL
 )
 SERVER <oracle_source>
 OPTIONS (
