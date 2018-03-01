@@ -67,7 +67,7 @@ class Host(tornado.web.RequestHandler):
         """
 
         logging.debug('Arguments:' + str(self.request.arguments))
-        composed_url = self.url + '?name=eq.' + name + '&select=memory'
+        composed_url = self.url + '?name=eq.' + name + '&select=memory,id'
         logging.info("Requesting " + composed_url)
         response = requests.get(composed_url)
         data = response.json()
@@ -236,3 +236,49 @@ class Host(tornado.web.RequestHandler):
             logging.error("The given name does not exist in the table")
             raise tornado.web.HTTPError(response.status_code)
 
+class HostList(tornado.web.RequestHandler):
+    """
+    This is the handler of **/host** endpoint.
+
+    Things that are given for the development of this endpoint:
+
+    * We request indirectly a `Postgres <https://www.postgresql.org/>`_ database through `PostgREST <http://postgrest.com/>`_ which returns a response in JSON format
+    * The database's table that is used for this endpoint is called *host* and provides information for the functional alias association with an instance.
+    * The columns of this table are like that:
+
+    +----+-----------+--------+
+    | id |  name     | memory |
+    +====+===========+========+
+    | 42 | apiato-db42 |  1024  |
+    +----+-----------+--------+
+
+        * The *name* in this example is the hostname of a node
+        * The *memory* is the memory of the node expressed as integer in megabytes
+
+    The request methods implemented for this endpoint are:
+
+    * :func:`get`
+
+    """
+
+    url = config.get('postgrest', 'host_url')
+
+    def get(self, *args):
+        """
+        The *GET* method returns the full list of hosts, with the 3 fields specified above.
+        (No any special headers for this request)
+
+        :rtype: json -- the response of the request
+        :raises: HTTPError - when the requested name does not exist or if there is an internal 
+        error or if the response is empty
+        """
+
+        logging.info("Requesting " + self.url)
+        response = requests.get(self.url)
+        data = response.json()
+        if response.ok and data:
+            logging.debug("List of hosts returned")
+            self.write({'response' : data})
+        else:
+            logging.error("Error fetching hosts: " + response.text)
+            raise tornado.web.HTTPError(response.status_code)

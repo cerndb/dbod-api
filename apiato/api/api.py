@@ -27,7 +27,7 @@ from apiato.api.rundeck import RundeckResources, RundeckJobs
 from apiato.api.metadata import Metadata
 from apiato.api.functionalalias import FunctionalAlias
 from apiato.api.hostaliases import HostAliases
-from apiato.api.host import Host
+from apiato.api.host import Host, HostList
 from apiato.api.instance import Instance, Instance_filter
 from apiato.api.attribute import Attribute
 from apiato.api.fim import Fim
@@ -49,6 +49,7 @@ handlers = [
     (r"/api/v1/volume/([^/]+)", Volume),
     (r"/api/v1/host/aliases/([^/]+)", HostAliases),
     (r"/api/v1/host/names/([^/]+)", Host),
+    (r"/api/v1/host", HostList),
     (r"/api/v1/instance/alias/?(?P<db_name>[^\/]+)?", FunctionalAlias),
     (r"/api/v1/(?P<class>[^\/]+)/(?P<name>[^\/]+)/metadata", Metadata),
     (r"/api/v1/rundeck/resources.xml", RundeckResources),
