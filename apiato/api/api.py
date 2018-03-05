@@ -36,12 +36,14 @@ from apiato.api.cluster import Cluster, Cluster_filter
 from apiato.api.volume import Volume
 from apiato.api.auth import Resources
 from apiato.api.job import Job, Job_filter
+from apiato.api.type import Type
 
 # This list is a global object because in needs to be accessed
 # from the test suites
 handlers = [
     (r"/", DocHandler),
     (r"/api/v1/auth/resources", Resources),
+    (r"/api/v1/(?P<class>[^\/]+)/type", Type),
     (r"/api/v1/instance/([^/]+)", Instance),
     (r"/api/v1/instance", Instance_filter),
     (r"/api/v1/cluster/([^/]+)", Cluster),
