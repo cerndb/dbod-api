@@ -132,9 +132,11 @@ CREATE OR REPLACE VIEW api.host AS
 -- Host aliases
 CREATE OR REPLACE VIEW api.host_aliases AS 
   SELECT instance.host_id,
-    string_agg(('apiato-'::text || instance.name::text) || 'domain'::text, ','::text) AS aliases
+    host.name, 
+    string_agg(('dbod-'::text || instance.name::text) || '.cern.ch'::text, ','::text) AS aliases
   FROM instance
-  GROUP BY instance.host_id;
+  JOIN host ON instance.host_id = host.id
+  GROUP BY instance.host_id, host.name;
 
 -- Functional aliases
 CREATE OR REPLACE VIEW api.functional_aliases AS 

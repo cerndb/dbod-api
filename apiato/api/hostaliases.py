@@ -27,11 +27,11 @@ class HostAliases(tornado.web.RequestHandler):
     * The database's table/view that is used for this endpoint is called *host_aliases* and provides information for the instance aliases association with a host.
     * The columns of this table are like that:
 
-    +-------------+----------------------------------------------------------+
-    |    host     |                         aliases                          |
-    +=============+==========================================================+
-    | dbod-host42 | dbod-alias42-user1.cern.ch, dbod-alias42-user2.cern.ch   |
-    +-------------+----------------------------------------------------------+
+    +----+-------------+----------------------------------------------------------+
+    | id |    name     |                         aliases                          |
+    +====+=============+==========================================================+
+    | 41 | dbod-host42 | dbod-alias42-user1.cern.ch, dbod-alias42-user2.cern.ch   |
+    +----+-------------+----------------------------------------------------------+
 
         * The *host* is the hostname of the machine that the database instances has been created
         * The *aliases* are the aliases of the databases that exist in this host/machine 
@@ -52,14 +52,14 @@ class HostAliases(tornado.web.RequestHandler):
 
         """
 
-        composed_url = config.get('postgrest', 'host_aliases_url') + '?host=eq.' + host
+        composed_url = config.get('postgrest', 'host_aliases_url') + '?name=eq.' + host
         logging.info('Requesting ' + composed_url )
         response = requests.get(composed_url)
         data = response.json()
         if response.ok and data:
             logging.debug("response: " + response.text)
             self.write({'response' : data})
-            self.status(OK)
+            self.set_status(OK)
         elif response.ok:
             logging.warning("Host aliases not found: " + host)
             raise tornado.web.HTTPError(NOT_FOUND)
