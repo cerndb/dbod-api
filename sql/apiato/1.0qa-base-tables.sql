@@ -55,6 +55,7 @@ CREATE TABLE apiato.cluster (
   owner                varchar(32) NOT NULL,
   name                 varchar(128) UNIQUE NOT NULL,
   e_group              varchar(256),
+  lb_alias             varchar(256),
   category             apiato.instance_category NOT NULL,
   creation_date        date NOT NULL,
   expiry_date          date,
@@ -137,7 +138,7 @@ CREATE TABLE apiato.cluster_attribute (
   cluster_id   integer NOT NULL,
   name         varchar(32) NOT NULL,
   value        varchar(250) NOT NULL,
-  CONSTRAINT cluster_attribute_pkey       PRIMARY KEY (attribute_id),
+  CONSTRAINT cluster_attribute_pkey        PRIMARY KEY (attribute_id),
   CONSTRAINT cluster_attribute_cluster_fk FOREIGN KEY (cluster_id) REFERENCES apiato.cluster (cluster_id) ON DELETE CASCADE,
   UNIQUE (cluster_id, name)
 );
@@ -175,7 +176,7 @@ CREATE TABLE apiato.volume (
   mounting_path   varchar(256) NOT NULL,
   volume_type_id  int NOT NULL,
   CONSTRAINT volume_pkey           PRIMARY KEY (volume_id),
-  CONSTRAINT volume_instance_fk    FOREIGN KEY (instance_id)    REFERENCES apiato.instance (instance_id),
+  CONSTRAINT volume_instance_fk    FOREIGN KEY (instance_id)    REFERENCES apiato.instance (instance_id) ON DELETE CASCADE,
   CONSTRAINT volume_volume_type_fk FOREIGN KEY (volume_type_id) REFERENCES apiato.volume_type (volume_type_id)
 );
 CREATE INDEX volume_instance_idx    ON apiato.volume (instance_id);

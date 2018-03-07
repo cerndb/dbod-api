@@ -69,7 +69,7 @@ FROM apiato.volume
   JOIN apiato.instance ON apiato.volume.instance_id = apiato.instance.instance_id;
 
 -- Metadata View
-CREATE OR REPLACE VIEW apiato_ro.metadata AS
+CREATE OR REPLACE VIEW apiato_ro.instance_metadata AS
   SELECT
     instance.instance_id AS id,
     instance.owner AS username,
@@ -89,6 +89,33 @@ CREATE OR REPLACE VIEW apiato_ro.metadata AS
 
 
 -- cluster View
+CREATE OR REPLACE VIEW apiato_ro.metadata AS
+  SELECT
+    cluster.cluster_id AS id,
+    cluster.owner AS username,
+    cluster.name AS name,
+    cluster.lb_alias,
+    cluster.e_group,
+    cluster.project,
+    cluster.description,
+    cluster.category "class",
+    instance_type.type AS type,
+    cluster.version,
+    cluster_master.name AS master_name,
+    cluster_slave.name AS slave_name,
+    get_cluster_instances as instances,
+    apiato.get_cluster_hosts(apiato.cluster.cluster_id) AS hosts,
+    apiato.get_cluster_hosts(apiato.cluster.master_cluster_id) AS master_hosts,
+    apiato.get_cluster_hosts(cluster_slave.cluster_id) AS slave_hosts,
+    apiato.get_cluster_attributes(apiato.cluster.cluster_id) as attributes,
+    apiato.get_cluster_attribute('port', cluster_master.cluster_id) as master_port
+  FROM apiato.cluster
+    JOIN apiato.instance_type ON apiato.cluster.instance_type_id = apiato.instance_type.instance_type_id
+    LEFT JOIN apiato.cluster AS cluster_master ON apiato.cluster.master_cluster_id = cluster_master.cluster_id
+    LEFT JOIN apiato.cluster AS cluster_slave ON cluster_slave.master_cluster_id = apiato.cluster.cluster_id,
+      apiato.get_cluster_instances(apiato.cluster.cluster_id);
+
+-- cluster View
 CREATE OR REPLACE VIEW apiato_ro.cluster AS
   SELECT
     cluster.cluster_id AS id,
@@ -101,14 +128,11 @@ CREATE OR REPLACE VIEW apiato_ro.cluster AS
     instance_type.type AS type,
     cluster.version,
     cluster_master.name AS master_name,
-    get_cluster_instances as instances,
     apiato.get_cluster_attributes(apiato.cluster.cluster_id) as attributes,
     apiato.get_cluster_attribute('port', apiato.cluster.cluster_id ) port
   FROM apiato.cluster
     JOIN apiato.instance_type ON apiato.cluster.instance_type_id = apiato.instance_type.instance_type_id
-    LEFT JOIN apiato.cluster AS cluster_master ON apiato.cluster.cluster_id = cluster_master.master_cluster_id,
-      apiato.get_cluster_instances(apiato.cluster.cluster_id);
-
+    LEFT JOIN apiato.cluster AS cluster_master ON apiato.cluster.cluster_id = cluster_master.master_cluster_id;
 
 -- Functional Aliases View
 CREATE OR REPLACE VIEW apiato_ro.functional_alias AS

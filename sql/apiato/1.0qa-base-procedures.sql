@@ -106,18 +106,27 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 
--- Get attributes function
+-- Get clusters instances function
 CREATE OR REPLACE FUNCTION apiato.get_cluster_instances(clus_id INTEGER)
 RETURNS JSON[] AS $$
 DECLARE
   instances JSON[];
 BEGIN
-  SELECT ARRAY (SELECT row_to_json(t) FROM (SELECT * FROM apiato_ro.metadata WHERE cluster_id = clus_id) t) INTO instances;
+  SELECT ARRAY (SELECT row_to_json(t) FROM (SELECT * FROM apiato_ro.instance_metadata WHERE cluster_id = clus_id) t) INTO instances;
   return instances;
 END
 $$ LANGUAGE plpgsql;
 
-
+-- Get clusters hosts function
+CREATE OR REPLACE FUNCTION apiato.get_cluster_hosts(clus_id INTEGER)
+RETURNS VARCHAR[] AS $$
+DECLARE
+  hosts VARCHAR := '';
+BEGIN
+  SELECT ARRAY (SELECT array_to_string(apiato_ro.instance_metadata.hosts,',') FROM apiato_ro.instance_metadata WHERE cluster_id = clus_id) t INTO hosts;
+  return hosts;
+END
+$$ LANGUAGE plpgsql;
 
 --------------------------------
 -- INSERT PROCEDURES
@@ -137,7 +146,7 @@ BEGIN
 
    --Inserting Attributes
    attributes_json := cluster_json::json->'attributes';
-   PERFORM apiato_ro.insert_cluster_attributes(cluster_id,(json_array_elements(attributes_json)::jsonb)::json);
+   PERFORM apiato_ro.insert_cluster_attribute(cluster_id,(json_array_elements(attributes_json)::jsonb)::json);
 
   RETURN cluster_id;
 END
@@ -175,23 +184,6 @@ BEGIN
 END
 $$ LANGUAGE plpgsql;
 
---Instance Attributes
-CREATE OR REPLACE FUNCTION apiato_ro.insert_instance_attributes(in_json JSON) RETURNS INTEGER AS $$
-DECLARE
-  attribute_id    int;
-  instance_id      int;
-  attributes_json json;
-BEGIN
-
-   --Get the new cluster_id to be used in the insertion
-   SELECT nextval(pg_get_serial_sequence('apiato.instance_attribute', 'attribute_id')) INTO attribute_id;
-   attributes_json := in_json::jsonb || ('{ "attribute_id" :' || attribute_id || '}')::jsonb;
-
-   INSERT INTO apiato.instance_attribute SELECT * FROM json_populate_record(null::apiato.instance_attribute,attributes_json);
-
-  RETURN attribute_id;
-END
-$$ LANGUAGE plpgsql;
 
 --Functional Alias
 CREATE OR REPLACE FUNCTION apiato_ro.insert_functional_alias(in_json JSON) RETURNS bool AS $$
@@ -249,7 +241,7 @@ DECLARE
 
 BEGIN
 
-  --Get the new cluster_id to be used in the insertion
+  --Get the new volume_id to be used in the insertion
   SELECT nextval(pg_get_serial_sequence('apiato.volume_attribute', 'attribute_id')) INTO attribute_id;
   attributes_json := in_json::jsonb || ('{ "attribute_id" :' || attribute_id || '}')::jsonb;
 
@@ -282,7 +274,7 @@ BEGIN
 
    --Inserting Attributes
    attributes_json := instance_json::json->'attributes';
-   PERFORM apiato_ro.insert_instance_attributes((json_array_elements(attributes_json)::jsonb)::json);
+   PERFORM apiato_ro.insert_instance_attribute(instance_id,(json_array_elements(attributes_json)::jsonb)::json);
 
    --Inserting Volumes
    volumes_json := instance_json::json->'volumes';
@@ -312,7 +304,7 @@ BEGIN
   attributes_json := attributes_json::jsonb ||  ('{ "name" : "' || attr_name || '"}')::jsonb || ('{ "value" : "' || attr_value || '"}')::jsonb || ('{ "instance_id" :' || id || '}')::jsonb;
 
 
-  INSERT INTO apiato.instance_attribute SELECT * FROM json_populate_record(null::apiato.isntance_attribute,attributes_json);
+  INSERT INTO apiato.instance_attribute SELECT * FROM json_populate_record(null::apiato.instance_attribute,attributes_json);
 
   RETURN attribute_id;
 END
@@ -491,7 +483,7 @@ $$ LANGUAGE plpgsql;
 
 
 --Instance
-CREATE OR REPLACE FUNCTION apiato_ro.update_instance(in_json JSON) RETURNS bool AS $$
+CREATE OR REPLACE FUNCTION apiato_ro.update_instance(id int, in_json JSON) RETURNS bool AS $$
 DECLARE
  success bool;
 BEGIN
@@ -515,7 +507,7 @@ BEGIN
         cluster_id         = (CASE WHEN src.in_json::jsonb ? 'cluster_id' THEN src.cluster_id ELSE apiato.instance.cluster_id END)
      FROM (SELECT * FROM json_populate_record(null::apiato.instance,in_json)
            CROSS JOIN (SELECT in_json) AS source_json) src
-    WHERE apiato.instance.instance_id = src.instance_id;
+    WHERE apiato.instance.instance_id = id;
 
 RETURN success;
 END
@@ -552,7 +544,7 @@ BEGIN
   SELECT in_json->>attr_name INTO attr_value;
   UPDATE apiato.instance_attribute
   SET value = attr_value
-  WHERE apiato.isntance_attribute.instance_id = id AND apiato.instance_attribute.name = attr_name;
+  WHERE apiato.instance_attribute.instance_id = id AND apiato.instance_attribute.name = attr_name;
 
   RETURN TRUE;
 END
