@@ -228,7 +228,7 @@ CREATE TABLE public.volume_attribute (
     UNIQUE (volume_id, name)
 );
 
-CREATE INDEX IF NOT EXISTS volume_attribute_volume_idx ON public.volume_attribute (id);
+CREATE INDEX volume_attribute_volume_idx ON public.volume_attribute (id);
 
 -- FUNCTIONAL ALIASES
 CREATE TABLE public.functional_aliases (
