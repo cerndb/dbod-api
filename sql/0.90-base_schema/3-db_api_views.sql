@@ -189,3 +189,11 @@ CREATE OR REPLACE VIEW api.rundeck_instances AS
     (instance.type_id::text || ','::text) || instance.category::text AS tags
   FROM instance
     JOIN functional_aliases ON instance.name::text = functional_aliases.db_name::text;
+
+-- Instance types
+CREATE VIEW api.instance_type AS
+  SELECT * FROM public.instance_type;
+
+-- Volume types
+CREATE VIEW api.volume_type AS
+  SELECT * FROM public.volume_type;
