@@ -78,31 +78,6 @@ CREATE TABLE public.command_definition (
     PRIMARY KEY (command_name, type, category)
 );
 
--- COMMAND_PARAM
-CREATE TABLE public.command_param (
-    username varchar(32) NOT NULL,
-    db_name varchar(128) NOT NULL,
-    command_name varchar(64) NOT NULL,
-    type varchar(64) NOT NULL,
-    creation_date timestamp NOT NULL,
-    name varchar(64) NOT NULL,
-    value text,
-    category varchar(20),
-    PRIMARY KEY (username, db_name, command_name, type, creation_date, name)
-);
-
--- INSTANCE_CHANGE
-CREATE TABLE public.instance_change (
-    username varchar(32) NOT NULL,
-    db_name varchar(128) NOT NULL,
-    attribute varchar(32) NOT NULL,
-    change_date timestamp NOT NULL,
-    requester varchar(32) NOT NULL,
-    old_value varchar(1024),
-    new_value varchar(1024),
-    PRIMARY KEY (username, db_name, attribute, change_date)
-);
-
 -- HOST
 CREATE TABLE public.host (
     id serial,
@@ -116,13 +91,12 @@ CREATE TABLE public.instance (
     id serial,
     owner varchar(32) NOT NULL,
     name varchar(128) NOT NULL,
-    e_group varchar(256),
+    egroup varchar(256),
     category instance_category NOT NULL,
     creation_date timestamp NOT NULL,
     expiry_date timestamp,
     type_id integer NOT NULL,
     size integer,
-    no_connections integer,
     project varchar(128),
     description varchar(1024),
     version varchar(128),
@@ -137,6 +111,7 @@ CREATE TABLE public.instance (
     CONSTRAINT instance_instance_type_fk FOREIGN KEY (type_id) REFERENCES public.instance_type,
     CONSTRAINT instance_master_fk FOREIGN KEY (master_id) REFERENCES public.instance (id),
     CONSTRAINT instance_slave_fk FOREIGN KEY (slave_id) REFERENCES public.instance (id),
+    CONSTRAINT instance_cluster_fk FOREIGN KEY (cluster_id) REFERENCES public.cluster (id),
     CONSTRAINT instance_name_key UNIQUE (name)
 );
 
@@ -145,6 +120,7 @@ CREATE INDEX instance_host_idx      ON public.instance (host_id);
 CREATE INDEX instance_master_idx    ON public.instance (master_id);
 CREATE INDEX instance_slave_idx     ON public.instance (slave_id);
 CREATE INDEX instance_type_idx      ON public.instance (type_id);
+CREATE INDEX instance_name_idx      ON public.instance (name);
 
 -- INSTANCE_ATTRIBUTE
 CREATE TABLE public.instance_attribute (
@@ -153,17 +129,28 @@ CREATE TABLE public.instance_attribute (
     name varchar(32) NOT NULL,
     value varchar(250) NOT NULL,
     PRIMARY KEY (id),
+    CONSTRAINT instance_attribute_instance_fk FOREIGN KEY (instance_id) REFERENCES public.instance (id) ON DELETE CASCADE,
     UNIQUE (instance_id, name)
+);
+
+-- INSTANCE_CHANGE
+CREATE TABLE public.instance_change (
+    id serial,
+    instance_id integer NOT NULL,
+    attribute varchar(32) NOT NULL,
+    change_date timestamp NOT NULL,
+    requester varchar(32) NOT NULL,
+    old_value varchar(1024),
+    new_value varchar(1024),
+    PRIMARY KEY (id),
+    CONSTRAINT instance_change_instance_fk FOREIGN KEY (instance_id) REFERENCES public.instance (id) ON DELETE CASCADE
 );
 
 -- JOB
 CREATE TABLE public.job (
     id serial,
     instance_id int NOT NULL,
-    username varchar(32) NOT NULL,
-    db_name varchar(128) NOT NULL,
     command_name varchar(64) NOT NULL,
-    type varchar(64) NOT NULL,
     creation_date timestamp NOT NULL,
     completion_date timestamp,
     requester varchar(32) NOT NULL,
@@ -173,7 +160,19 @@ CREATE TABLE public.job (
     result varchar(2048),
     email_sent timestamp,
     category varchar(20),
-    PRIMARY KEY (username, db_name, command_name, type, creation_date)
+    PRIMARY KEY (id),
+    CONSTRAINT job_instance_fk FOREIGN KEY (instance_id) REFERENCES public.instance (id) ON DELETE CASCADE
+);
+
+-- COMMAND_PARAM
+CREATE TABLE public.command_param (
+    id serial,
+    job_id integer NOT NULL,
+    name varchar(64) NOT NULL,
+    value text,
+    category varchar(20),
+    PRIMARY KEY (id),
+    CONSTRAINT command_param_job_fk FOREIGN KEY (job_id) REFERENCES public.job (id) ON DELETE CASCADE
 );
 
 -- UPGRADE
@@ -213,8 +212,10 @@ CREATE TABLE public.volume (
     server varchar(63) NOT NULL,
     mount_options varchar(256) NOT NULL,
     mounting_path varchar(256) NOT NULL,
-    volume_type_id integer,
-    PRIMARY KEY (id)
+    type_id integer,
+    PRIMARY KEY (id),
+    CONSTRAINT volume_instance_fk FOREIGN KEY (instance_id) REFERENCES public.instance (id) ON DELETE CASCADE,
+    CONSTRAINT volume_volume_type_fk FOREIGN KEY (type_id) REFERENCES public.volume_type
 );
 
 -- VOLUME ATTRIBUTE
@@ -243,7 +244,7 @@ CREATE TABLE public.cluster (
     id serial,
     owner varchar(32) NOT NULL,
     name varchar(128) UNIQUE NOT NULL,
-    e_group varchar(256),
+    egroup varchar(256),
     category instance_category NOT NULL,
     creation_date date NOT NULL,
     expiry_date date,
@@ -275,14 +276,3 @@ CREATE TABLE public.cluster_attribute (
 );
 
 CREATE INDEX cluster_attribute_cluster_idx ON public.cluster_attribute (cluster_id);
-
--- Job stats view
-CREATE OR REPLACE VIEW public.job_stats AS 
-SELECT db_name, command_name, COUNT(*) as COUNT, ROUND(AVG(completion_date - creation_date) * 24*60*60) AS mean_duration
-FROM public.job GROUP BY command_name, db_name;
-
--- Command stats view
-CREATE OR REPLACE VIEW public.command_stats AS
-SELECT command_name, COUNT(*) AS COUNT, ROUND(AVG(completion_date - creation_date) * 24*60*60) AS mean_duration
-FROM public.job GROUP BY command_name;
-
