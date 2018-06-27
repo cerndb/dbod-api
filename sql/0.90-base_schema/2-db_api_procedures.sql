@@ -17,7 +17,7 @@ CREATE OR REPLACE FUNCTION api.get_cluster_instances(clus_id integer)
 DECLARE
   instances JSON[];
 BEGIN
-  SELECT ARRAY (SELECT row_to_json(t) FROM (SELECT * FROM api.metadata WHERE cluster_id = clus_id) t) INTO instances;
+  SELECT ARRAY (SELECT row_to_json(t) FROM (SELECT * FROM api.instance WHERE cluster_id = clus_id) t) INTO instances;
   return instances;
 END
 $$ LANGUAGE plpgsql;
@@ -55,7 +55,7 @@ BEGIN
    UPDATE public.cluster
     SET owner         = (CASE WHEN src.in_json::jsonb ? 'owner' THEN src.owner ELSE public.cluster.owner END),
         name          = (CASE WHEN src.in_json::jsonb ? 'name' THEN src.name ELSE public.cluster.name END),
-        e_group       = (CASE WHEN src.in_json::jsonb ? 'e_group' THEN src.e_group ELSE public.cluster.e_group END),
+        egroup        = (CASE WHEN src.in_json::jsonb ? 'egroup' THEN src.egroup ELSE public.cluster.egroup END),
         category      = (CASE WHEN src.in_json::jsonb ? 'category' THEN src.category ELSE public.cluster.category END),
         creation_date = (CASE WHEN src.in_json::jsonb ? 'creation_date' THEN src.creation_date ELSE public.cluster.creation_date END),
         expiry_date   = (CASE WHEN src.in_json::jsonb ? 'expiry_date' THEN src.expiry_date ELSE public.cluster.expiry_date END),
@@ -129,7 +129,7 @@ BEGIN
   SELECT nextval(pg_get_serial_sequence('public.cluster_attribute', 'id')) INTO attribute_id;
   attributes_json := in_json::jsonb || ('{ "id" :' || attribute_id || '}')::jsonb;
 
-  --Tranform key value to table format
+  --Transform key value to table format
   SELECT json_object_keys(in_json) INTO attr_name;
   SELECT in_json->>attr_name INTO attr_value;
   attributes_json := attributes_json::jsonb ||  ('{ "name" : "' || attr_name || '"}')::jsonb || ('{ "value" : "' || attr_value || '"}')::jsonb || ('{ "cluster_id" :' || id || '}')::jsonb;
@@ -239,11 +239,12 @@ BEGIN
    UPDATE public.instance
     SET owner         = (CASE WHEN src.in_json::jsonb ? 'owner' THEN src.owner ELSE public.instance.owner END),
         name          = (CASE WHEN src.in_json::jsonb ? 'name' THEN src.name ELSE public.instance.name END),
-        e_group       = (CASE WHEN src.in_json::jsonb ? 'e_group' THEN src.e_group ELSE public.instance.e_group END),
+        egroup        = (CASE WHEN src.in_json::jsonb ? 'egroup' THEN src.egroup ELSE public.instance.egroup END),
         category      = (CASE WHEN src.in_json::jsonb ? 'category' THEN src.category ELSE public.instance.category END),
         creation_date = (CASE WHEN src.in_json::jsonb ? 'creation_date' THEN src.creation_date ELSE public.instance.creation_date END),
         expiry_date   = (CASE WHEN src.in_json::jsonb ? 'expiry_date' THEN src.expiry_date ELSE public.instance.expiry_date END),
         type_id       = (CASE WHEN src.in_json::jsonb ? 'type_id' THEN src.type_id ELSE public.instance.type_id END),
+        size          = (CASE WHEN src.in_json::jsonb ? 'size' THEN src.size ELSE public.instance.size END),
         project       = (CASE WHEN src.in_json::jsonb ? 'project' THEN src.project ELSE public.instance.project END),
         description   = (CASE WHEN src.in_json::jsonb ? 'description' THEN src.description ELSE public.instance.description END),
         version       = (CASE WHEN src.in_json::jsonb ? 'version' THEN src.version ELSE public.instance.version END),
