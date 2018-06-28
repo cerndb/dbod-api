@@ -74,8 +74,7 @@ CREATE TABLE public.command_definition (
     command_name varchar(64) NOT NULL,
     type varchar(64) NOT NULL,
     exec varchar(2048),
-    category varchar(20),
-    PRIMARY KEY (command_name, type, category)
+    PRIMARY KEY (command_name, type)
 );
 
 -- HOST
@@ -159,7 +158,6 @@ CREATE TABLE public.job (
     log text,
     result varchar(2048),
     email_sent timestamp,
-    category varchar(20),
     PRIMARY KEY (id),
     CONSTRAINT job_instance_fk FOREIGN KEY (instance_id) REFERENCES public.instance (id) ON DELETE CASCADE
 );
@@ -170,7 +168,6 @@ CREATE TABLE public.command_param (
     job_id integer NOT NULL,
     name varchar(64) NOT NULL,
     value text,
-    category varchar(20),
     PRIMARY KEY (id),
     CONSTRAINT command_param_job_fk FOREIGN KEY (job_id) REFERENCES public.job (id) ON DELETE CASCADE
 );
