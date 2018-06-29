@@ -69,6 +69,43 @@ VALUES ('NETAPP', 'NETAPP volume type'),
 -- CREATION OF TABLES
 ------------------------------
 
+-- CLUSTER
+CREATE TABLE public.cluster (
+    id serial,
+    owner varchar(32) NOT NULL,
+    name varchar(128) UNIQUE NOT NULL,
+    egroup varchar(256),
+    category instance_category NOT NULL,
+    creation_date date NOT NULL,
+    expiry_date date,
+    type_id integer NOT NULL,
+    project varchar(128),
+    description varchar(1024),
+    version varchar(128),
+    master_id integer,
+    state instance_state NOT NULL,
+    status instance_status NOT NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT cluster_instance_type_fk FOREIGN KEY (type_id) REFERENCES public.instance_type (id),
+    CONSTRAINT cluster_master_fk FOREIGN KEY (master_id) REFERENCES public.cluster (id)
+);
+
+--FK INDEXES for CLUSTER table
+CREATE INDEX cluster_master_idx ON public.cluster (master_id);
+CREATE INDEX cluster_type_idx ON public.cluster (type_id);
+
+CREATE TABLE public.cluster_attribute (
+    id serial,
+    cluster_id integer NOT NULL,
+    name varchar(32) NOT NULL,
+    value varchar(250) NOT NULL,
+    CONSTRAINT cluster_attribute_pkey PRIMARY KEY (id),
+    CONSTRAINT cluster_attribute_cluster_fk FOREIGN KEY (cluster_id) REFERENCES public.cluster (id) ON DELETE CASCADE,
+    UNIQUE (cluster_id, name)
+);
+
+CREATE INDEX cluster_attribute_cluster_idx ON public.cluster_attribute (cluster_id);
+
 -- COMMAND_DEFINITION
 CREATE TABLE public.command_definition (
     command_name varchar(64) NOT NULL,
@@ -155,8 +192,6 @@ CREATE TABLE public.job (
     requester varchar(32) NOT NULL,
     admin_action int NOT NULL,
     state varchar(32) NOT NULL,
-    log text,
-    result varchar(2048),
     email_sent timestamp,
     PRIMARY KEY (id),
     CONSTRAINT job_instance_fk FOREIGN KEY (instance_id) REFERENCES public.instance (id) ON DELETE CASCADE
@@ -236,40 +271,3 @@ CREATE TABLE public.functional_aliases (
     PRIMARY KEY (dns_name)
 );
 
--- CLUSTER
-CREATE TABLE public.cluster (
-    id serial,
-    owner varchar(32) NOT NULL,
-    name varchar(128) UNIQUE NOT NULL,
-    egroup varchar(256),
-    category instance_category NOT NULL,
-    creation_date date NOT NULL,
-    expiry_date date,
-    type_id integer NOT NULL,
-    project varchar(128),
-    description varchar(1024),
-    version varchar(128),
-    master_id integer,
-    state instance_state NOT NULL,
-    status instance_status NOT NULL,
-    PRIMARY KEY (id),
-    CONSTRAINT cluster_instance_type_fk FOREIGN KEY (type_id) REFERENCES public.instance_type (id),
-    CONSTRAINT cluster_master_fk FOREIGN KEY (master_id) REFERENCES public.cluster (id)
-);
-
---FK INDEXES for CLUSTER table
-CREATE INDEX cluster_master_idx ON public.cluster (master_id);
-CREATE INDEX cluster_type_idx ON public.cluster (type_id);
-
-
-CREATE TABLE public.cluster_attribute (
-    id serial,
-    cluster_id integer NOT NULL,
-    name varchar(32) NOT NULL,
-    value varchar(250) NOT NULL,
-    CONSTRAINT cluster_attribute_pkey PRIMARY KEY (id),
-    CONSTRAINT cluster_attribute_cluster_fk FOREIGN KEY (cluster_id) REFERENCES public.cluster (id) ON DELETE CASCADE,
-    UNIQUE (cluster_id, name)
-);
-
-CREATE INDEX cluster_attribute_cluster_idx ON public.cluster_attribute (cluster_id);
