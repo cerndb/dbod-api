@@ -6,13 +6,24 @@
 -- or submit itself to any jurisdiction.
 
 -- This optional file connects the FIM Table from Oracle to the current schema.
-
 DROP TABLE public.fim_data;
+DROP VIEW api.fim_data;
 
 CREATE VIEW public.fim_data AS 
-    SELECT * FROM fim.db_on_demand;
+  SELECT * FROM fim.db_on_demand;
     
 CREATE VIEW api.fim_data AS 
-    SELECT * FROM fim.db_on_demand;
+  SELECT * FROM fim.db_on_demand;
 
 
+-- This optional file connects the JOBS Table from Oracle to the current schema.
+DROP TABLE public.job_log;
+DROP VIEW api.job_log;
+
+CREATE VIEW public.job_log AS 
+  SELECT id, log
+  FROM source.dod_jobs;
+    
+CREATE VIEW api.job_log AS 
+  SELECT id, log
+  FROM source.dod_jobs;
