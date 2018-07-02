@@ -197,6 +197,14 @@ CREATE TABLE public.job (
     CONSTRAINT job_instance_fk FOREIGN KEY (instance_id) REFERENCES public.instance (id) ON DELETE CASCADE
 );
 
+-- JOB
+CREATE TABLE public.job_log (
+    id int NOT NULL,
+    log text,
+    PRIMARY KEY (id),
+    CONSTRAINT job_log_job_fk FOREIGN KEY (id) REFERENCES public.job (id) ON DELETE CASCADE
+);
+
 -- COMMAND_PARAM
 CREATE TABLE public.command_param (
     id serial,

@@ -93,6 +93,30 @@ CREATE OR REPLACE VIEW api.job AS
     job.email_sent
   FROM job;
   
+-- Job logs
+CREATE OR REPLACE VIEW api.job_log AS 
+  SELECT job_log.id,
+    job_log.log
+  FROM job_log;
+  
+-- Fim data
+CREATE OR REPLACE VIEW api.fim_data AS
+  SELECT internal_id,
+         instance_name,
+         description,
+         owner_account_type,
+         owner_first_name,
+         owner_last_name,
+         owner_login,
+         owner_mail,
+         owner_phone1,
+         owner_phone2,
+         owner_portable_phone,
+         owner_department,
+         owner_group,
+         owner_section
+  FROM fim_data;
+  
 -- Volumes
 CREATE OR REPLACE VIEW api.volume AS 
   SELECT volume.id,
