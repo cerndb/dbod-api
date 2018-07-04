@@ -28,7 +28,7 @@ class Volume(tornado.web.RequestHandler):
     * We request indirectly a `Postgres <https://www.postgresql.org/>`_ database through `PostgREST <http://postgrest.com/>`_ which returns a response in JSON format
     * The database's table/view that is used for this endpoint is called *Volume* and provides metadata about a Volume and its attributes.
     * Here is an example of this table:
-    --ToDO
+
     The request method implemented for this endpoint is just the :func:`get`.
     """
     def get(self, name):
@@ -52,8 +52,6 @@ class Volume(tornado.web.RequestHandler):
         else:
             logging.error("Entity volume not found: " + name)
             raise tornado.web.HTTPError(NOT_FOUND)
-
-
 
     @http_basic_auth
     def post(self, id):
@@ -91,8 +89,6 @@ class Volume(tornado.web.RequestHandler):
             raise tornado.web.HTTPError(response.status_code)
 
 
-
-
     @http_basic_auth
     def put(self, id):
         """
@@ -112,7 +108,6 @@ class Volume(tornado.web.RequestHandler):
         else:
             logging.error("Error updating the volume: " + response.text)
             raise tornado.web.HTTPError(response.status_code)
-
 
     @http_basic_auth
     def delete(self, id):
