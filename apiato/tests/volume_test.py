@@ -45,7 +45,7 @@ class ClusterTest(AsyncHTTPTestCase):
 
         """test for create and delete a volume with the right data"""
 
-        cluster = """{"instance_id": 3, "volume_type_id": "2", "server": "NAS-server", "mounting_path": "/MNT/data01", "attributes": [{ "test": "testvalue"}, {"test01" : "test01value" }], "file_mode": "0755", "owner": "TSM", "group": "ownergroup", "mount_options": "rw,bg,hard"}"""
+        cluster = """{"instance_id": 3, "type_id": "2", "server": "NAS-server", "mounting_path": "/MNT/data01", "attributes": [{ "test": "testvalue"}, {"test01" : "test01value" }], "file_mode": "0755", "owner": "TSM", "group": "ownergroup", "mount_options": "rw,bg,hard"}"""
         print "test_create_delete_volume"
 
         # Insert the volume

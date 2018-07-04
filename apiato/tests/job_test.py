@@ -84,8 +84,9 @@ class JobTest(AsyncHTTPTestCase, unittest.TestCase):
         # Check the port value is correct
         response = json.loads(response.body).get('response')
         self.assertEquals(len(response), 1)
-        self.assertEquals(response[0]["username"], "user02")
-        self.assertEquals(response[0]["db_name"], "apiato02")
+        self.assertEquals(response[0]["id"], 6)
+        self.assertEquals(response[0]["instance_id"], 2)
+        self.assertEquals(response[0]["requester"], "user02")
         
     @timeout(5)
     def test_get_jobs_many(self):
@@ -96,11 +97,16 @@ class JobTest(AsyncHTTPTestCase, unittest.TestCase):
         # Check the port value is correct
         response = json.loads(response.body).get('response')
         self.assertEquals(len(response), 5)
-        self.assertEquals(response[0]["db_name"], "apiato01")
-        self.assertEquals(response[1]["db_name"], "apiato01")
-        self.assertEquals(response[2]["db_name"], "apiato01")
-        self.assertEquals(response[3]["db_name"], "apiato01")
-        self.assertEquals(response[4]["db_name"], "apiato01")
+        self.assertEquals(response[0]["id"], 1)
+        self.assertEquals(response[0]["instance_id"], 1)
+        self.assertEquals(response[1]["id"], 2)
+        self.assertEquals(response[1]["instance_id"], 1)
+        self.assertEquals(response[2]["id"], 3)
+        self.assertEquals(response[2]["instance_id"], 1)
+        self.assertEquals(response[3]["id"], 4)
+        self.assertEquals(response[3]["instance_id"], 1)
+        self.assertEquals(response[4]["id"], 5)
+        self.assertEquals(response[4]["instance_id"], 1)
         
     @timeout(5)
     def test_get_job(self):
