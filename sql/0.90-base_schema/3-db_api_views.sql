@@ -95,9 +95,18 @@ CREATE OR REPLACE VIEW api.job AS
   
 -- Job logs
 CREATE OR REPLACE VIEW api.job_log AS 
-  SELECT job_log.id,
+  SELECT job.id,
+    job.instance_id,
+    job.command_name,
+    job.creation_date,
+    job.completion_date,
+    job.requester,
+    job.admin_action,
+    job.state,
+    job.email_sent,
     job_log.log
-  FROM job_log;
+  FROM job
+    JOIN job_log ON job.id = job_log.id;
   
 -- Fim data
 CREATE OR REPLACE VIEW api.fim_data AS
