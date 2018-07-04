@@ -25,7 +25,7 @@ class Resources(tornado.web.RequestHandler):
     Things that are given for the development of this endpoint:
 
     * We request indirectly a `Postgres <https://www.postgresql.org/>`_ database through `PostgREST <http://postgrest.com/>`_ which returns a response in JSON format
-    * The database's view that is used for this endpoint is called *api.e_groups* and provides a list of the e_groups owning instances.
+    * The database's view that is used for this endpoint is called *api.egroups* and provides a list of the egroups owning instances.
     
     The request methods implemented for this endpoint are:
 
@@ -38,7 +38,7 @@ class Resources(tornado.web.RequestHandler):
     def get(self, *args):
 
         """
-        The *GET* method returns a list of e_groups owning resources
+        The *GET* method returns a list of egroups owning resources
 
         :rtype: json -- the response of the request
         :raises: HTTPError - if there is an internal error or if the response is empty
@@ -56,21 +56,21 @@ class Resources(tornado.web.RequestHandler):
         resources = {}
         
         # Computing group intersection
-        logging.debug('User e_groups %s' % user_egroups)
+        logging.debug('User egroups %s' % user_egroups)
 
         # Verifying Admin role
         if config.get('auth', 'admin_group') in list(user_egroups):
             resources["admin"] = True
 
-        logging.debug("Requesting system e_groups" + composed_url)
+        logging.debug("Requesting system egroups" + composed_url)
         response = requests.get(composed_url)
         system_egroups = None
         data = response.json()
         if response.ok and data:
             logging.debug("response: " + json.dumps(data))
-            system_egroups = data[0].get("e_groups")
+            system_egroups = data[0].get("egroups")
         else:
-            logging.error("Error fetching list of system recognized e_groups: " + response.text)
+            logging.error("Error fetching list of system recognized egroups: " + response.text)
             raise tornado.web.HTTPError(response.status_code)
         
         intersect = user_egroups.intersection(system_egroups)

@@ -56,7 +56,7 @@ class InstanceTest(AsyncHTTPTestCase):
         response = self.fetch("/api/v1/metadata/instance/testdb")
         self.assertEquals(response.code, 200)
         data = json.loads(response.body)["response"]
-        self.assertEquals(data[0]["db_name"], "testdb")
+        self.assertEquals(data[0]["name"], "testdb")
         self.assertEquals(len(data[0]["volumes"]), 2)
         self.assertEquals(len(data[0]["attributes"]), 2)
         self.assertEquals(data[0]["attributes"]["port"], "5505")  # Reminder: the port is saved as a String in DB
@@ -88,9 +88,9 @@ class InstanceTest(AsyncHTTPTestCase):
         response = self.fetch("/api/v1/metadata/instance/testdb")
         self.assertEquals(response.code, 200)
         data = json.loads(response.body)["response"]
-        self.assertEquals(data[0]["db_name"], "testdb")
+        self.assertEquals(data[0]["name"], "testdb")
         self.assertEquals(data[0]["hosts"][0], "host01")
-        self.assertEquals(data[0]["username"], "testuser")
+        self.assertEquals(data[0]["owner"], "testuser")
         self.assertEquals(data[0]["type"], "MYSQL")
         self.assertEquals(data[0]["version"], "5.6.17")
         self.assertTrue(not data[0]["volumes"])
@@ -106,7 +106,7 @@ class InstanceTest(AsyncHTTPTestCase):
 
 
     @timeout(5)
-    def test_edit_instance_username(self):
+    def test_edit_instance_owner(self):
         """Edit the owner correctly"""
         instance = """{"owner": "newuser"}"""
         restore = """{"owner": "user01"}"""
@@ -119,7 +119,7 @@ class InstanceTest(AsyncHTTPTestCase):
         response = self.fetch("/api/v1/metadata/instance/apiato01")
         self.assertEquals(response.code, 200)
         data = json.loads(response.body)["response"]
-        self.assertEquals(data[0]["username"], "newuser")
+        self.assertEquals(data[0]["owner"], "newuser")
 
         # Restore the instance
         response = self.fetch("/api/v1/instance/1", method='PUT', headers={'Authorization': self.authentication}, body=restore)
@@ -139,7 +139,7 @@ class InstanceTest(AsyncHTTPTestCase):
         response = self.fetch("/api/v1/metadata/instance/newdb01")
         self.assertEquals(response.code, 200)
         data = json.loads(response.body)["response"]
-        self.assertEquals(data[0]["db_name"], "newdb01")
+        self.assertEquals(data[0]["name"], "newdb01")
 
         # Restore the instance
         response = self.fetch("/api/v1/instance/1", method='PUT', headers={'Authorization': self.authentication}, body=restore)

@@ -74,8 +74,8 @@ class ClusterTest(AsyncHTTPTestCase):
 
     def test_update_cluster(self):
         """test for update a cluster"""
-        current_cluster = """{ "e_group" : "testgroupZ"}"""
-        new_cluster = """{ "e_group" : "testgroupX"}"""
+        current_cluster = """{ "egroup" : "testgroupZ"}"""
+        new_cluster = """{ "egroup" : "testgroupX"}"""
 
         response = self.fetch("/api/v1/cluster/1" , method='PUT', headers={'Authorization': self.authentication}, body=new_cluster)
         self.assertEquals(response.code, 200)
@@ -84,7 +84,7 @@ class ClusterTest(AsyncHTTPTestCase):
         response = self.fetch("/api/v1/cluster/cluster01")
         self.assertEquals(response.code, 200)
         data = json.loads(response.body)["response"]
-        self.assertEquals(data[0]["e_group"], "testgroupX")
+        self.assertEquals(data[0]["egroup"], "testgroupX")
 
         # Restore the instance
         response = self.fetch("/api/v1/cluster/1", method='PUT', headers={'Authorization': self.authentication}, body=current_cluster)
@@ -94,7 +94,7 @@ class ClusterTest(AsyncHTTPTestCase):
         response = self.fetch("/api/v1/cluster/cluster01")
         self.assertEquals(response.code, 200)
         data = json.loads(response.body)["response"]
-        self.assertEquals(data[0]["e_group"], "testgroupZ")
+        self.assertEquals(data[0]["egroup"], "testgroupZ")
 
 
     @timeout(5)
