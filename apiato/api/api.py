@@ -43,7 +43,6 @@ from apiato.api.type import Type
 handlers = [
     (r"/", DocHandler),
     (r"/api/v1/auth/resources", Resources),
-    (r"/api/v1/(?P<class>[^\/]+)/type", Type),
     (r"/api/v1/instance/([^/]+)", Instance),
     (r"/api/v1/instance", Instance_filter),
     (r"/api/v1/cluster/([^/]+)", Cluster),
@@ -59,6 +58,7 @@ handlers = [
     (r"/api/v1/(?P<class>[^\/]+)/(?P<entity>[^\/]+)/attribute/?(?P<attribute_name>[^\/]+)?", Attribute),
     (r"/api/v1/instance/(?P<db_name>[^\/]+)/job/?(?P<id>[^\/]+)?", Job),
     (r"/api/v1/job", Job_filter),
+    (r"/api/v1/(?P<class>[^\/]+)/(?P<type>[^\/]+)", Type),
 
     # Deprecated, will be deleted in following versions
     (r"/api/v1/metadata/(?P<class>[^\/]+)/?(?P<name>[^\/]+)?", Metadata),  

@@ -61,17 +61,15 @@ class Type(tornado.web.RequestHandler):
         """
 
         class_n = args.get('class')
-        logging.info('Requested ' + str(class_n) + ' types.')
+        type_n = args.get('type')
+        logging.info('Requested ' + str(class_n) + ' ' + str(type_n))
         
-        if class_n == 'instance':
-            url = self.instance_url
-        elif class_n == 'volume':
-            url = self.volume_url
-        elif class_n == 'cluster':
-            url = self.cluster_url
-        else:
-            logging.error("Trying to get types of unknown class: " + str(class_n))
+        try:
+            url = config.get('postgrest', '{}_{}_url'.format(str(class_n), str(type_n)))
+        except:
+            logging.error("Trying to get types of unknown class: " + str(class_n) + ' ' + str(type_n))
             raise tornado.web.HTTPError(NOT_FOUND)
+        logging.info('URL==' + url)
 
         if url:
             response = requests.get(url)

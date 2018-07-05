@@ -227,3 +227,20 @@ CREATE OR REPLACE VIEW api.instance_type AS
 -- Volume types
 CREATE OR REPLACE VIEW api.volume_type AS
   SELECT * FROM public.volume_type;
+  
+-- Instance state
+CREATE OR REPLACE VIEW api.enum_instance_state AS
+  SELECT unnest(enum_range(NULL::instance_state))::text AS instance_state;
+  
+-- Instance status
+CREATE OR REPLACE VIEW api.enum_instance_status AS
+  SELECT unnest(enum_range(NULL::instance_status))::text AS instance_status;
+  
+-- Instance category
+CREATE OR REPLACE VIEW api.enum_instance_category AS
+  SELECT unnest(enum_range(NULL::instance_category))::text AS instance_category;
+  
+-- Job state
+CREATE OR REPLACE VIEW api.enum_job_state AS
+  SELECT unnest(enum_range(NULL::job_state))::text AS job_state;
+  
