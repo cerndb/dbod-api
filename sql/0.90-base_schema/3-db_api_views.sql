@@ -31,7 +31,7 @@ CREATE OR REPLACE VIEW api.cluster AS
     cluster.status
   FROM cluster
     JOIN instance_type ON cluster.type_id = instance_type.id
-    LEFT JOIN cluster cluster_master ON cluster.id = cluster_master.master_id,
+    LEFT JOIN cluster cluster_master ON cluster.master_id = cluster_master.id,
     LATERAL api.get_cluster_instances(cluster.id) get_cluster_instances(get_cluster_instances);
 
 -- Cluster attributes
@@ -68,8 +68,8 @@ CREATE OR REPLACE VIEW api.instance AS
     api.get_instance_attributes(instance.id) AS attributes,
     api.get_owner_data(instance.name) AS user
   FROM instance
-    LEFT JOIN instance instance_master ON instance.id = instance_master.id
-    LEFT JOIN instance instance_slave ON instance.id = instance_slave.id
+    LEFT JOIN instance instance_master ON instance.master_id = instance_master.id
+    LEFT JOIN instance instance_slave ON instance.slave_id = instance_slave.id
     LEFT JOIN cluster ON instance.cluster_id = cluster.id
     JOIN instance_type ON instance.type_id = instance_type.id
     JOIN host ON instance.host_id = host.id;
@@ -113,19 +113,19 @@ CREATE OR REPLACE VIEW api.job_log AS
 -- Fim data
 CREATE OR REPLACE VIEW api.fim_data AS
   SELECT internal_id,
-         instance_name,
-         description,
-         owner_account_type,
-         owner_first_name,
-         owner_last_name,
-         owner_login,
-         owner_mail,
-         owner_phone1,
-         owner_phone2,
-         owner_portable_phone,
-         owner_department,
-         owner_group,
-         owner_section
+    instance_name,
+    description,
+    owner_account_type,
+    owner_first_name,
+    owner_last_name,
+    owner_login,
+    owner_mail,
+    owner_phone1,
+    owner_phone2,
+    owner_portable_phone,
+    owner_department,
+    owner_group,
+    owner_section
   FROM fim_data;
   
 -- Volumes
