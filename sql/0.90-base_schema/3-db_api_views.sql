@@ -26,7 +26,9 @@ CREATE OR REPLACE VIEW api.cluster AS
     cluster.master_id,
     cluster_master.name AS master,
     api.get_cluster_instances(cluster.id) AS instances,
-    api.get_cluster_attributes(cluster.id) AS attributes
+    api.get_cluster_attributes(cluster.id) AS attributes,
+    cluster.state,
+    cluster.status
   FROM cluster
     JOIN instance_type ON cluster.type_id = instance_type.id
     LEFT JOIN cluster cluster_master ON cluster.id = cluster_master.master_id,
