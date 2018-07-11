@@ -79,28 +79,33 @@ class Instance(tornado.web.RequestHandler):
     """
 
 
-    def get(self, name):
+    def get(self, instance):
         """
-        The *GET* method returns am *instance* given a *database name*.
+        The *GET* method returns am *instance* given a *database name* or *id*.
         (No any special headers for this request)
 
-        :param name: the database name which is given in the url
+        :param instance: the database name or id which is given in the url
         :type name: str
         :rtype: json - the response of the request
         :raises: HTTPError - when the requested database name does not exist or if in case of an internal error 
 
         """
-        response = requests.get(config.get('postgrest', 'instance_url') + "?name=eq." + name)
+        try:
+            id = int(instance) # If instance is an Integer, we are receiving the ID
+            response = requests.get(config.get('postgrest', 'instance_url') + "?id=eq." + instance)
+        except:
+            response = requests.get(config.get('postgrest', 'instance_url') + "?name=eq." + instance)
+
         if response.ok:
             data = response.json()
             if data:
                 self.write({'response' : data})
                 self.set_status(OK)
             else: 
-                logging.error("Instance not found for name: " + name)
+                logging.error("Instance not found for: " + instance)
                 raise tornado.web.HTTPError(NOT_FOUND)
         else:
-            logging.error("Instance not found for name: " + name)
+            logging.error("Instance not found for: " + instance)
             raise tornado.web.HTTPError(NOT_FOUND)
 
     @http_basic_auth
