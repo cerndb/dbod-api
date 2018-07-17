@@ -52,15 +52,17 @@ class Resources(tornado.web.RequestHandler):
             user_egroups = set(body.get("groups"))
         except KeyError, ValueError:
             raise tornado.web.HTTPError(BAD_REQUEST)
-        
+
         resources = {}
-        
+
         # Computing group intersection
         logging.debug('User egroups %s' % user_egroups)
 
         # Verifying Admin role
         if config.get('auth', 'admin_group') in list(user_egroups):
             resources["admin"] = True
+        else:
+            resources["admin"] = False
 
         logging.debug("Requesting system egroups" + composed_url)
         response = requests.get(composed_url)
@@ -72,19 +74,23 @@ class Resources(tornado.web.RequestHandler):
         else:
             logging.error("Error fetching list of system recognized egroups: " + response.text)
             raise tornado.web.HTTPError(response.status_code)
-        
+
         intersect = user_egroups.intersection(system_egroups)
         if bool(intersect):
             resources["groups"] = list(intersect)
-        
+
         # Fetching list of owned instances
         logging.debug('Username: %s' % (username) )
         logging.debug("Requesting user owned instances: " + config.get('postgrest', 'user_instances_url'))
-        rbody = {'owner': username , 'groups': resources.get('groups')}
+
+        rbody = {'owner': username,
+                 'groups': resources.get('groups'),
+                 'admin': resources.get('admin')}
+
         response = requests.post(config.get('postgrest','user_instances_url'),
-            json=rbody,
-            headers={'Prefer': 'return=representation'}
-            )
+                                 json=rbody,
+                                 headers={'Prefer': 'return=representation'}
+                                )
         if response.ok:
             data = response.json()
             logging.debug("User instances response: " + json.dumps(data))
@@ -92,15 +98,15 @@ class Resources(tornado.web.RequestHandler):
         else:
             logging.debug(response)
             logging.info("No instances directly owned by user")
-        
+            resources["instances"] = None
+ 
         # Fetching list of owned clusters
         logging.debug('Username: %s' % (username) )
         logging.debug("Requesting user owned clusters: " + config.get('postgrest', 'user_clusters_url'))
-        rbody = {'owner': username , 'groups': resources.get('groups')}
-        response = requests.post(config.get('postgrest','user_clusters_url'),
-            json=rbody,
-            headers={'Prefer': 'return=representation'}
-            )
+        response = requests.post(config.get('postgrest', 'user_clusters_url'),
+                                 json=rbody,
+                                 headers={'Prefer': 'return=representation'}
+                                )
         if response.ok:
             data = response.json()
             logging.debug("User clusters response: " + json.dumps(data))
@@ -108,12 +114,10 @@ class Resources(tornado.web.RequestHandler):
         else:
             logging.debug(response)
             logging.info("No instances directly owned by user")
+            resources["clusters"] = None
 
         if bool(resources):
             self.write(json.dumps(resources))
             self.set_status(OK)
         else:
             raise tornado.web.HTTPError(NOT_FOUND)
-
-
-
