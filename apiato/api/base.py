@@ -34,6 +34,8 @@ BAD_GATEWAY = 502
 GATEWAY_TIMEOUT = 504
 SERVICE_UNAVAILABLE = 503
 
+ALLOWED_FILTERS = {'status', 'state', 'category', 'type'}
+
 # Basic HTTP Authentication decorator
 def http_basic_auth(fun):
     """Decorator for extracting HTTP basic authentication user/password pairs
@@ -85,7 +87,72 @@ def get_instance_id_by_name(name):
         if data:
             return data[0]["id"]
     return None
-    
+
+def manage_pagination(request, headers):
+    # Get size and from arguments
+    size = request.arguments.get('size')
+    offset = request.arguments.get('from')
+    if offset == None:
+        offset = 0
+
+    if size != None:
+        try:
+            int(offset)
+            int(size)
+        except:
+            logging.error('Invalid pagination values: ' + str(offset) + '-' + str(size))
+            return
+
+        headers.update({'Range-Unit': 'items'})
+        headers.update({'Content-Range': str(offset) + '-' + str(offset + size - 1)})
+
+def manage_sorting(request, arguments):
+    # Check the format of the sorting header
+    order = request.arguments.get('order')
+    if order != None:
+        logging.debug("Order headers: " + str(order))
+        parts = order[0].split('.')
+        if len(parts) == 2 and (parts[1] == 'asc' or parts[1] == 'desc'):
+            arguments.update({'order': order[0]})
+            logging.debug('Applied order: ' + order[0])
+        else:
+            logging.warning('Order ' + str(order[0]) + ' does not have a valid format')
+        if len(order) > 1:
+            logging.warning('Multiple orders found, only the first is applied')
+        
+def manage_filtering(request, arguments):
+    # Get the intersection with allowed filters
+    filters = dict((k, request.arguments[k]) for k in set(ALLOWED_FILTERS) & set(request.arguments.keys()))
+    arguments.update(filters)
+    logging.debug('Filters applied: ' + str(filters))
+
+def make_full_post_request(url, request, arguments, json):
+    headers = {'Prefer': 'return=representation; count=exact'}
+    arguments = dict()
+
+    manage_pagination(request, headers)
+    manage_sorting(request, arguments)
+    manage_filtering(request, arguments)
+
+    return requests.post(url, params=arguments, json=json, headers=headers)
+
+def make_full_get_request(url, request, arguments):
+    headers = {'Prefer': 'return=representation; count=exact'}
+    arguments = dict()
+
+    manage_pagination(request, headers)
+    manage_sorting(request, arguments)
+    manage_filtering(request, arguments)
+
+    return requests.get(url, params=arguments, headers=headers)
+
+def add_meta(response, result):
+    try:
+        _,total = response.headers.get('Content-Range').split('/')
+        result.update({'meta': {'total': total}})
+    except:
+        pass
+
 class DocHandler(tornado.web.RequestHandler):
     """Shows the list of endpoints available in the API"""
     def get(self):
