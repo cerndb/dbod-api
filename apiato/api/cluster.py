@@ -169,11 +169,13 @@ class Cluster_filter(tornado.web.RequestHandler):
 
         logging.debug("RPC Url : %s" % (self.get_clusters_url))
 
-        response = requests.post(self.get_clusters_url, json=auth,
-                headers={'Prefer': 'return=representation'})
+        response = make_full_post_request(self.get_clusters_url, self.request, dict(), auth)
 
         if response.ok:
-            self.write(response.text)
+            logging.debug(response.text)
+            result = {'response': response.text}
+            add_meta(response, result)
+            self.write(result)
             self.set_status(OK)
         else:
             logging.error("Response: %s" % (response.text))

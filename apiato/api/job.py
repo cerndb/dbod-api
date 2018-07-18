@@ -97,13 +97,14 @@ class Job_filter(tornado.web.RequestHandler):
 
         logging.debug("RPC Url : %s" % (self.get_jobs_url))
 
-        response = requests.post(self.get_jobs_url, json=auth, 
-                headers={'Prefer': 'return=representation'})
+        response = make_full_post_request(self.get_jobs_url, self.request, dict(), auth)
 
         if response.ok:
-            self.write(response.text)
+            logging.debug(response.text)
+            result = {'response': response.text}
+            add_meta(response, result)
+            self.write(result)
             self.set_status(OK)
         else:
             logging.error("Response: %s" % (response.text))
             raise tornado.web.HTTPError(response.status_code)
-
