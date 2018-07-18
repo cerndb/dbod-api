@@ -22,7 +22,7 @@ from apiato.config import config
 
 class Job(tornado.web.RequestHandler):
 
-    @http_basic_auth
+    #@http_basic_auth
     def get(self, **args):
         job_id = args.get('id')
         db_name = args.get('db_name')
@@ -52,15 +52,20 @@ class Job(tornado.web.RequestHandler):
                     raise tornado.web.HTTPError(NOT_FOUND)
         else:
             # Get all jobs for this instance starting from the most recent one
-            response = requests.get(config.get('postgrest', 'job_url') + "?instance_id=eq." + str(instance_id))
+            arguments = {'instance_id': 'eq.' + str(instance_id)}
+            response = make_full_get_request(config.get('postgrest', 'job_url'), self.request, arguments)
             if response.ok:
                 data = response.json()
-                logging.debug(data)
+                #logging.debug(data)
                 if data:
-                    self.write({'response' : data})
+                    result = {'response' : data}
+                    add_meta(response, result)
+                    self.write(result)
                     self.set_status(OK)
                 else:
-                    self.write({'response' : []})
+                    result = {'response' : []}
+                    add_meta(response, result)
+                    self.write(result)
                     self.set_status(OK)
             else:
                 logging.error("Error getting jobs for instance: " + db_name)
