@@ -92,19 +92,20 @@ def manage_pagination(request, headers):
     # Get size and from arguments
     size = request.arguments.get('size')
     offset = request.arguments.get('from')
-    if offset == None:
-        offset = 0
-
     if size != None:
         try:
-            int(offset)
-            int(size)
+            size = int(size[0])
+            if offset != None:
+                offset = int(offset)
+            else:
+                offset = 0
         except:
             logging.error('Invalid pagination values: ' + str(offset) + '-' + str(size))
             return
 
         headers.update({'Range-Unit': 'items'})
-        headers.update({'Content-Range': str(offset) + '-' + str(offset + size - 1)})
+        headers.update({'Range': str(offset) + '-' + str(offset + size - 1)})
+        logging.debug('Headers: ' + str(headers))
 
 def manage_sorting(request, arguments):
     # Check the format of the sorting header
@@ -128,7 +129,6 @@ def manage_filtering(request, arguments):
 
 def make_full_post_request(url, request, arguments, json):
     headers = {'Prefer': 'return=representation; count=exact'}
-    arguments = dict()
 
     manage_pagination(request, headers)
     manage_sorting(request, arguments)
@@ -138,7 +138,6 @@ def make_full_post_request(url, request, arguments, json):
 
 def make_full_get_request(url, request, arguments):
     headers = {'Prefer': 'return=representation; count=exact'}
-    arguments = dict()
 
     manage_pagination(request, headers)
     manage_sorting(request, arguments)
