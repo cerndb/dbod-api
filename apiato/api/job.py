@@ -106,7 +106,7 @@ class Job_filter(tornado.web.RequestHandler):
 
         if response.ok:
             logging.debug(response.text)
-            result = {'response': response.text}
+            result = {'response': json.loads(response.text)}
             add_meta(response, result)
             self.write(result)
             self.set_status(OK)

@@ -44,7 +44,7 @@ class JobTest(AsyncHTTPTestCase, unittest.TestCase):
         
         # Check the port value is correct
         response = json.loads(response.body)
-        self.assertEquals(len(response), 3)
+        self.assertEquals(len(response["response"]), 3)
         
     @timeout(5)
     def test_list_instances_user1(self):
@@ -56,7 +56,7 @@ class JobTest(AsyncHTTPTestCase, unittest.TestCase):
         
         # Check the port value is correct
         response = json.loads(response.body)
-        self.assertEquals(len(response), 2)
+        self.assertEquals(len(response["response"]), 2)
         
     @timeout(5)
     def test_list_instances_user2(self):
@@ -68,7 +68,7 @@ class JobTest(AsyncHTTPTestCase, unittest.TestCase):
         
         # Check the port value is correct
         response = json.loads(response.body)
-        self.assertEquals(len(response), 2)
+        self.assertEquals(len(response["response"]), 2)
         
     @timeout(5)
     def test_list_instances_user3(self):
@@ -80,7 +80,7 @@ class JobTest(AsyncHTTPTestCase, unittest.TestCase):
         
         # Check the port value is correct
         response = json.loads(response.body)
-        self.assertEquals(len(response), 2)
+        self.assertEquals(len(response["response"]), 2)
         
     @timeout(5)
     def test_list_instances_user4(self):
@@ -92,7 +92,7 @@ class JobTest(AsyncHTTPTestCase, unittest.TestCase):
         
         # Check the port value is correct
         response = json.loads(response.body)
-        self.assertEquals(len(response), 2)
+        self.assertEquals(len(response["response"]), 2)
         
     @timeout(5)
     def test_list_instances_user5(self):
@@ -104,7 +104,7 @@ class JobTest(AsyncHTTPTestCase, unittest.TestCase):
         
         # Check the port value is correct
         response = json.loads(response.body)
-        self.assertEquals(len(response), 2)
+        self.assertEquals(len(response["response"]), 2)
         
     @timeout(5)
     def test_list_instances_admin1(self):
@@ -116,7 +116,7 @@ class JobTest(AsyncHTTPTestCase, unittest.TestCase):
         
         # Check the port value is correct
         response = json.loads(response.body)
-        self.assertEquals(len(response), 8)
+        self.assertEquals(len(response["response"]), 8)
         
     @timeout(5)
     def test_list_instances_admin2(self):
@@ -128,7 +128,7 @@ class JobTest(AsyncHTTPTestCase, unittest.TestCase):
         
         # Check the port value is correct
         response = json.loads(response.body)
-        self.assertEquals(len(response), 8)
+        self.assertEquals(len(response["response"]), 8)
         
     @timeout(5)
     def test_list_instances_admin3(self):
@@ -140,7 +140,7 @@ class JobTest(AsyncHTTPTestCase, unittest.TestCase):
         
         # Check the port value is correct
         response = json.loads(response.body)
-        self.assertEquals(len(response), 8)
+        self.assertEquals(len(response["response"]), 8)
         
     @timeout(5)
     def test_list_instances_only_owner(self):
