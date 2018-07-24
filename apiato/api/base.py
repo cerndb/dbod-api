@@ -96,7 +96,7 @@ def manage_pagination(request, headers):
         try:
             size = int(size[0])
             if offset != None:
-                offset = int(offset)
+                offset = int(offset[0])
             else:
                 offset = 0
         except:
