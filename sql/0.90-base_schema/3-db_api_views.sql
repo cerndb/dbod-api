@@ -168,6 +168,14 @@ CREATE OR REPLACE VIEW api.functional_aliases AS
     functional_aliases.db_name,
     functional_aliases.alias
   FROM functional_aliases;
+  
+-- Egroups
+CREATE OR REPLACE VIEW api.egroups AS 
+  SELECT ARRAY( 
+    SELECT DISTINCT instance.egroup
+      FROM api.instance
+      WHERE instance.egroup IS NOT NULL
+      ORDER BY instance.egroup) AS egroups;
 
 -- Metadata
 CREATE OR REPLACE VIEW api.metadata AS 
