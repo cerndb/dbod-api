@@ -128,8 +128,12 @@ class RundeckJobs(tornado.web.RequestHandler):
                 raise tornado.web.HTTPError(NOT_ACCEPTABLE, "Error parsing Rundeck response")
 
             exid = str(data["id"])
-            timeout = int(config.get('rundeck', 'timeout')) * 2
-            while timeout > 0:
+            try:
+                timeout = int(self.request.arguments.get('timeout')[0]) * 2
+            except:
+                timeout = int(config.get('rundeck', 'timeout')) * 2
+            elapsed = timeout
+            while elapsed > 0:
                 response_output = self.__get_output__(exid)
                 if response_output.ok:
                     try:
@@ -146,12 +150,19 @@ class RundeckJobs(tornado.web.RequestHandler):
                             logging.warning("The job completed with errors: " + exid)
                             raise tornado.web.HTTPError(BAD_GATEWAY)
                     else:
-                        timeout -= 1
+                        elapsed -= 1
                         time.sleep(0.500)
                 else:
                     logging.error("Error reading the job from Rundeck: " + response_output.text)
                     raise tornado.web.HTTPError(response_output.status_code)
+
             if timeout <= 0:
+                logging.debug("response: " + response_run.text)
+                self.set_status(OK)
+                self.finish({'response' : json.loads(response_run.text)})
+                return
+
+            if elapsed <= 0:
                 logging.error("Rundeck job timed out: " + job)
                 raise tornado.web.HTTPError(GATEWAY_TIMEOUT)
         else:
