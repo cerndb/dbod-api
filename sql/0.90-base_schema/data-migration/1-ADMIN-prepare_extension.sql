@@ -14,6 +14,7 @@ DROP SCHEMA source CASCADE;
 
 CREATE EXTENSION postgres_fdw;
 
+-- Source PG Server
 CREATE SERVER <pg_source> FOREIGN DATA WRAPPER postgres_fdw 
     OPTIONS (host '<pg_source>', dbname 'apiato', port '3000');
 GRANT USAGE ON FOREIGN SERVER <pg_source> TO admin;
@@ -21,6 +22,8 @@ GRANT USAGE ON FOREIGN SERVER <pg_source> TO admin;
 CREATE USER MAPPING FOR admin SERVER <pg_source>
     OPTIONS (user 'admin', password 'admin');
     
+    
+-- Oracle Server
 CREATE EXTENSION oracle_fdw;
 
 CREATE SERVER <oracle_source> FOREIGN DATA WRAPPER oracle_fdw
@@ -28,4 +31,13 @@ CREATE SERVER <oracle_source> FOREIGN DATA WRAPPER oracle_fdw
 GRANT USAGE ON FOREIGN SERVER <oracle_source> TO admin;
 
 CREATE USER MAPPING FOR admin SERVER <oracle_source>
+    OPTIONS (user 'admin', password 'admin');
+    
+    
+-- Rundeck database Server
+CREATE SERVER <rundeck_source> FOREIGN DATA WRAPPER postgres_fdw 
+    OPTIONS (host '<rundeck_source>', dbname 'rundeck', port '3000');
+GRANT USAGE ON FOREIGN SERVER <rundeck_source> TO admin;
+
+CREATE USER MAPPING FOR admin SERVER <rundeck_source>
     OPTIONS (user 'admin', password 'admin');

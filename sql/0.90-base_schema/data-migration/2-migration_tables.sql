@@ -204,3 +204,63 @@ OPTIONS (
     updatable 'false'
 );
 
+-- RUNDECK EXECUTION TABLE
+CREATE FOREIGN TABLE fim.rundeck_execution (
+  id bigint NOT NULL,
+  version bigint NOT NULL,
+  abortedby character varying(255),
+  arg_string text,
+  cancelled boolean NOT NULL,
+  date_completed timestamp without time zone,
+  date_started timestamp without time zone,
+  do_nodedispatch boolean,
+  execution_type character varying(30),
+  failed_node_list text,
+  filter text,
+  loglevel character varying(255),
+  node_exclude text,
+  node_exclude_name text,
+  node_exclude_os_arch text,
+  node_exclude_os_family text,
+  node_exclude_os_name text,
+  node_exclude_os_version text,
+  node_exclude_precedence boolean,
+  node_exclude_tags text,
+  node_filter_editable boolean,
+  node_include text,
+  node_include_name text,
+  node_include_os_arch text,
+  node_include_os_family text,
+  node_include_os_name text,
+  node_include_os_version text,
+  node_include_tags text,
+  node_keepgoing boolean,
+  node_rank_attribute character varying(255),
+  node_rank_order_ascending boolean,
+  node_threadcount integer,
+  orchestrator_id bigint,
+  outputfilepath text,
+  project character varying(255) NOT NULL,
+  retry text,
+  retry_attempt integer,
+  retry_delay character varying(255),
+  retry_execution_id bigint,
+  scheduled_execution_id bigint,
+  server_nodeuuid character varying(36),
+  status character varying(255),
+  succeeded_node_list text,
+  success_on_empty_node_filter boolean,
+  timed_out boolean,
+  timeout text,
+  rduser character varying(255) NOT NULL,
+  user_role_list text,
+  will_retry boolean,
+  workflow_id bigint,
+  retry_original_id bigint
+)
+SERVER <rundeck_source>
+OPTIONS (
+    schema_name 'public',
+    table_name 'execution',
+    updatable 'false'
+);
