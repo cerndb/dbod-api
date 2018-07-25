@@ -87,11 +87,44 @@ class JobTest(AsyncHTTPTestCase, unittest.TestCase):
         self.assertEquals(response[0]["id"], 6)
         self.assertEquals(response[0]["instance_id"], 2)
         self.assertEquals(response[0]["requester"], "user02")
-        
+
     @timeout(5)
     def test_get_jobs_many(self):
         """Get the jobs of an instance having many jobs"""
         response = self.fetch("/api/v1/instance/apiato01/job", headers={'Authorization': self.authentication})
+        self.assertEquals(response.code, 200)
+        
+        # Check the port value is correct
+        response = json.loads(response.body).get('response')
+        self.assertEquals(len(response), 5)
+        self.assertEquals(response[0]["id"], 1)
+        self.assertEquals(response[0]["instance_id"], 1)
+        self.assertEquals(response[1]["id"], 2)
+        self.assertEquals(response[1]["instance_id"], 1)
+        self.assertEquals(response[2]["id"], 3)
+        self.assertEquals(response[2]["instance_id"], 1)
+        self.assertEquals(response[3]["id"], 4)
+        self.assertEquals(response[3]["instance_id"], 1)
+        self.assertEquals(response[4]["id"], 5)
+        self.assertEquals(response[4]["instance_id"], 1)
+
+    @timeout(5)
+    def test_get_jobs_one_id(self):
+        """Get the jobs of an instance id having only one job"""
+        response = self.fetch("/api/v1/instance/2/job", headers={'Authorization': self.authentication})
+        self.assertEquals(response.code, 200)
+        
+        # Check the port value is correct
+        response = json.loads(response.body).get('response')
+        self.assertEquals(len(response), 1)
+        self.assertEquals(response[0]["id"], 6)
+        self.assertEquals(response[0]["instance_id"], 2)
+        self.assertEquals(response[0]["requester"], "user02")
+
+    @timeout(5)
+    def test_get_jobs_many_id(self):
+        """Get the jobs of an instance id having many jobs"""
+        response = self.fetch("/api/v1/instance/1/job", headers={'Authorization': self.authentication})
         self.assertEquals(response.code, 200)
         
         # Check the port value is correct
@@ -116,12 +149,27 @@ class JobTest(AsyncHTTPTestCase, unittest.TestCase):
         
         response = json.loads(response.body).get('response')
         self.assertIsNotNone(response["log"])
+
+    @timeout(5)
+    def test_get_job_id(self):
+        """Get a job correctly using instance id"""
+        response = self.fetch("/api/v1/instance/1/job/1", headers={'Authorization': self.authentication})
+        self.assertEquals(response.code, 200)
+        
+        response = json.loads(response.body).get('response')
+        self.assertIsNotNone(response["log"])
         
     @timeout(5)
     def test_get_job_different_instance(self):
         """Get a job from different instance"""
         response = self.fetch("/api/v1/instance/apiato01/job/6", headers={'Authorization': self.authentication})
-        self.assertEquals(response.code, 401)
+        self.assertEquals(response.code, 404)
+
+    @timeout(5)
+    def test_get_job_different_instance_id(self):
+        """Get a job from different instance id"""
+        response = self.fetch("/api/v1/instance/1/job/6", headers={'Authorization': self.authentication})
+        self.assertEquals(response.code, 404)
         
     @timeout(5)
     def test_get_job_no_exists(self):
@@ -140,3 +188,10 @@ class JobTest(AsyncHTTPTestCase, unittest.TestCase):
         """Get jobs from inexistent instance"""
         response = self.fetch("/api/v1/instance/noexists/job", headers={'Authorization': self.authentication})
         self.assertEquals(response.code, 404)
+
+    @timeout(5)
+    def test_get_job_instance_id_no_exists(self):
+        """Get a job from inexistent instance id"""
+        response = self.fetch("/api/v1/instance/99/job/6", headers={'Authorization': self.authentication})
+        self.assertEquals(response.code, 404)
+        

@@ -29,24 +29,26 @@ class Job(tornado.web.RequestHandler):
 
         # Get instance information
         instance_id = get_instance_id_by_name(db_name)
+
+        try:
+            instance_id = int(db_name) # If instance is an Integer, we are receiving the ID
+        except:
+            instance_id = get_instance_id_by_name(db_name)
         
         if not instance_id:
-            logging.error("Instance not found for name: " + db_name)
+            logging.error("Instance not found for instance: " + db_name)
             raise tornado.web.HTTPError(NOT_FOUND)
 
         if job_id:
             # Get an specific job
-            response = requests.get(config.get('postgrest', 'job_log_url') + "?id=eq." + job_id)
+            arguments = {'instance_id': 'eq.' + str(instance_id), 'id': 'eq.' + str(job_id)}
+            response = requests.get(config.get('postgrest', 'job_log_url'), params=arguments)
             if response.ok:
                 data = response.json()
                 if data:
                     logging.debug("Received data: " + str(data))
-                    if int(data[0]["instance_id"]) == instance_id:
-                        self.write({'response' : data[0]})
-                        self.set_status(OK)
-                    else:
-                        logging.error("No rights to access job id: " + job_id + " from instance: " + db_name)
-                        raise tornado.web.HTTPError(UNAUTHORIZED)
+                    self.write({'response' : data[0]})
+                    self.set_status(OK)
                 else: 
                     logging.error("Job id not found: " + job_id)
                     raise tornado.web.HTTPError(NOT_FOUND)
