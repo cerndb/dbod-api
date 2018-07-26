@@ -232,6 +232,7 @@ class Instance_filter(tornado.web.RequestHandler):
     """
 
     get_instances_url = config.get('postgrest', 'get_instances_url')
+    instance_url = config.get('postgrest', 'instance_url')
 
     def get(self, *args):
 
@@ -251,8 +252,16 @@ class Instance_filter(tornado.web.RequestHandler):
         except:
             raise tornado.web.HTTPError(BAD_REQUEST, "Error parsing JSON 'auth' header.")
 
-        logging.debug("RPC Url : %s" % (self.get_instances_url))
-        response = make_full_post_request(self.get_instances_url, self.request, dict(), auth)
+        # Check if the header contains the 3 required parameters
+        if "admin" not in auth or "groups" not in auth or "owner" not in auth:
+            raise tornado.web.HTTPError(BAD_REQUEST, "Missing parameters in 'auth' header.")
+
+        if "admin" in auth and auth["admin"] == True:
+            logging.debug("Url : %s" % (self.instance_url))
+            response = make_full_get_request(self.instance_url, self.request, dict())
+        else:
+            logging.debug("RPC Url : %s" % (self.get_instances_url))
+            response = make_full_post_request(self.get_instances_url, self.request, dict(), auth)
 
         if response.ok:
             logging.debug(response.text)

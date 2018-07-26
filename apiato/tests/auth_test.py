@@ -151,16 +151,16 @@ class JobTest(AsyncHTTPTestCase, unittest.TestCase):
         self.assertEquals(response.code, 400)
 
     @timeout(5)
-    def test_list_instances_only_egroup(self):
-        """Get the list of instances if only egroup param was specified"""
-        auth_header = '{"egroup": ["testgroupB"]}'
+    def test_list_instances_only_groups(self):
+        """Get the list of instances if only groups param was specified"""
+        auth_header = '{"groups": ["testgroupB"]}'
         
         response = self.fetch("/api/v1/instance", headers={'Authorization': self.authentication, 'Auth':auth_header })
         self.assertEquals(response.code, 400)
         
     @timeout(5)
     def test_list_instances_only_admin(self):
-        """Get the list of instances if only egroup param was specified"""
+        """Get the list of instances if only admin param was specified"""
         auth_header = '{"admin": true}'
         
         response = self.fetch("/api/v1/instance", headers={'Authorization': self.authentication, 'Auth':auth_header })
