@@ -256,7 +256,7 @@ class Instance_filter(tornado.web.RequestHandler):
         if "admin" not in auth or "groups" not in auth or "owner" not in auth:
             raise tornado.web.HTTPError(BAD_REQUEST, "Missing parameters in 'auth' header.")
 
-        if "admin" in auth and auth["admin"] == True:
+        if auth["admin"].upper() == "TRUE":
             logging.debug("Url : %s" % (self.instance_url))
             response = make_full_get_request(self.instance_url, self.request, dict())
         else:
