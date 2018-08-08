@@ -78,23 +78,39 @@ class Attribute(tornado.web.RequestHandler):
             if in case of an internal error 
 
         """
-        instance_name = args.get('entity')
+        instance = args.get('entity')
         attribute_name = args.get('attribute_name')
         class_n = args.get('class')
         url = None
         input = None
         pg_method_name = None
-        if attribute_name:
-            url = config.get('postgrest', class_n + '_attribute_url')
-            input = {
-                    'instance_name': instance_name, 
-                    'attribute_name': attribute_name
-                    }
-            pg_method_name = 'get_instance_attribute'
-        else:
-            url = config.get('postgrest', class_n + '_attributes_url')
-            input = { 'instance_name': instance_name }
-            pg_method_name = 'get_instance_attributes'
+
+        try:
+            instance_id = int(instance) # If instance is an Integer, we are receiving the ID
+            if attribute_name:
+                url = config.get('postgrest', class_n + '_attribute_url')
+                input = {
+                        'instance_name': instance_name, 
+                        'iid': instance_id
+                        }
+                pg_method_name = 'get_instance_attribute'
+            else:
+                url = config.get('postgrest', class_n + '_attributes_url')
+                input = { 'inst_id': instance_id }
+                pg_method_name = 'get_instance_attributes'
+        except:
+            instance_name = instance
+            if attribute_name:
+                url = config.get('postgrest', class_n + '_attribute_url')
+                input = {
+                        'instance_name': instance_name, 
+                        'attribute_name': attribute_name
+                        }
+                pg_method_name = 'get_instance_attribute'
+            else:
+                url = config.get('postgrest', class_n + '_attributes_url')
+                input = { 'instance_name': instance_name }
+                pg_method_name = 'get_instance_attributes'
         
         logging.debug("Requesting %s (%s)" % (url, input))
         response = requests.post(url, json=input, headers ={'Prefer': 'return=representation'})
