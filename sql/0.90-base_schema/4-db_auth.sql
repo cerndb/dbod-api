@@ -25,7 +25,8 @@ BEGIN
     select * from api.cluster 
     where api.cluster.egroup in
       (select value from json_array_elements_text(groups))
-      or api.cluster.owner = owner;
+      or api.cluster.owner = owner
+      and status = 'ACTIVE';
   END IF;
 END
 $$ LANGUAGE plpgsql;
@@ -46,7 +47,8 @@ BEGIN
     select * from api.instance 
     where api.instance.egroup in
       (select value from json_array_elements_text(groups))
-      or api.instance.owner = owner;
+      or api.instance.owner = owner
+      and status = 'ACTIVE';
   END IF;
 END
 $$ LANGUAGE plpgsql;
@@ -69,7 +71,8 @@ BEGIN
       (select id from api.instance 
       where api.instance.egroup in
         (select value from json_array_elements_text(groups))
-        or api.instance.owner = owner);
+        or api.instance.owner = owner)
+        and status = 'ACTIVE';
   END IF;
 END
 $$ LANGUAGE plpgsql;
@@ -93,6 +96,7 @@ BEGIN
     where api.cluster.egroup in
       (select value from json_array_elements_text(groups))
       or api.cluster.owner = owner
+      and status = 'ACTIVE'
     into res;
     return res;
   END IF;
@@ -118,6 +122,7 @@ BEGIN
     where api.instance.egroup in
       (select value from json_array_elements_text(groups))
       or api.instance.owner = owner
+      and status = 'ACTIVE'
     into res;
     return res;
   END IF;
