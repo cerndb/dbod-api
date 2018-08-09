@@ -86,6 +86,8 @@ CREATE OR REPLACE VIEW api.instance_attribute AS
 CREATE OR REPLACE VIEW api.job AS 
   SELECT job.id,
     job.instance_id,
+    instance.name,
+    instance.type,
     job.command_name,
     job.creation_date,
     job.completion_date,
@@ -93,12 +95,15 @@ CREATE OR REPLACE VIEW api.job AS
     job.admin_action,
     job.state,
     job.email_sent
-  FROM job;
+  FROM job
+    JOIN api.instance ON job.instance_id = instance.id;
   
 -- Job logs
 CREATE OR REPLACE VIEW api.job_log AS 
   SELECT job.id,
     job.instance_id,
+    instance.name,
+    instance.type,
     job.command_name,
     job.creation_date,
     job.completion_date,
@@ -108,7 +113,8 @@ CREATE OR REPLACE VIEW api.job_log AS
     job.email_sent,
     job_log.log
   FROM job
-    JOIN job_log ON job.id = job_log.id;
+    JOIN job_log ON job.id = job_log.id
+    JOIN api.instance ON job.instance_id = instance.id;
   
 -- Fim data
 CREATE OR REPLACE VIEW api.fim_data AS
