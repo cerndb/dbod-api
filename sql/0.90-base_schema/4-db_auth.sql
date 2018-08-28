@@ -71,8 +71,8 @@ BEGIN
       (select id from api.instance 
       where api.instance.egroup in
         (select value from json_array_elements_text(groups))
-        or api.instance.owner = owner)
-        and status = 'ACTIVE';
+        or api.instance.owner = owner
+        and api.instance.status = 'ACTIVE');
   END IF;
 END
 $$ LANGUAGE plpgsql;
