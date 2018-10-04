@@ -205,21 +205,34 @@ class Attribute(tornado.web.RequestHandler):
         attribute_name = args.get('attribute_name')
         class_n = args.get('class')
         
-        logging.debug(self.request.body)
+	logging.debug("BODY: %s" % (self.request.body))
         in_json = {
                 'instance_name': instance_name, 
                 'attribute_name': attribute_name,
                 'attribute_value': self.request.body
-                }
-
-        logging.debug("BODY: %s" % (self.request.body))
-
-        response = requests.post(config.get('postgrest', 'update_' + class_n + '_attribute_url'), json=in_json, headers={'Prefer': 'return=representation'})
+        	}
+	response = None
+	try:
+		int(attribute_name) # This fails if the attribute_name is not an integer
+		# Request using attribute id
+		logging.debug('Updating by ID')
+        	response = requests.post(config.get('postgrest', 'update_' + class_n + '_attribute_url'), 
+			headers = {'Prefer': 'return=representation'},
+			json = { 'attribute_id': attribute_name, 'in_json': in_json },
+			)
+	except ValueError:
+		# Request using attribute name
+		logging.debug('Updating by Name')
+        	response = requests.post(config.get('postgrest', 'update_' + class_n + '_attribute_url'), 
+			headers={'Prefer': 'return=representation'},
+			json=in_json, 
+			)
         if response.ok:
             logging.info("Updated " + class_n + " attribute: " + attribute_name)
             self.set_status(OK)
         else:
             logging.error("Error updating the " + class_n + " " + instance_name + " attribute: " + response.text)
+	    logging.error("Sent in_json = " + repr(in_json)), 
             raise tornado.web.HTTPError(response.status_code)
 
     @http_basic_auth
