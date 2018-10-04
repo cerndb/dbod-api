@@ -15,7 +15,7 @@ DB On Demand REST API server setup file
 from setuptools import setup, find_packages
 
 setup(name='apiato',
-      version='0.11.7',
+      version='0.11.9',
       description='CERN Apiato REST API',
       author='CERN',
       author_email='icot@cern.ch',
