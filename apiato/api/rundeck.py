@@ -75,8 +75,10 @@ class RundeckJobs(tornado.web.RequestHandler):
         if (job is None):
             raise tornado.web.HTTPError(BAD_REQUEST, "Parameter 'job' not specified")
 
+        job = int(job)
         if (not isinstance(job, (int, long))):
-            raise tornado.web.HTTPError(BAD_REQUEST, "Parameter 'job' is not a number")
+            raise tornado.web.HTTPError(
+                    BAD_REQUEST, "Parameter 'job':%s is not a number" % (job))
 
         response = self.__get_output__(job)
         if response.ok:
@@ -95,16 +97,21 @@ class RundeckJobs(tornado.web.RequestHandler):
         """
         The *POST* method executes a new Rundeck job and returns the output.
         
-        The job and its hash has to be defined in the *api.cfg* configuration file in order to a specific job to be able to be executed.
+        The job and its hash has to be defined in the *api.cfg* configuration
+        file in order to a specific job to be able to be executed.
         
-        :param job: the name of the job to be executed which is listed in the configuration file
-        :type job: str
+        :param job: the name of the job to be executed which is listed in the
+        configuration file :type job: str
         :param node: the name of the node you want the job to be executed
         :type node: str
-        :raises: HTTPError - if the job didn't succeed or if the timeout has exceeded or in case of an internal error
+        :raises: HTTPError - if the job didn't succeed or if the timeout has
+        exceeded or in case of an internal error
 
-        When a job is executed the request call hangs and waits for a response for a maximum time of 10 seconds. The api constantly calls rundeck's api to check if the job has finished. When it finishes it prints out the response or raises an error if it didn't succeed.
-        """
+        When a job is executed the request call hangs and waits for a response
+        for a maximum time of 10 seconds. The api constantly calls rundeck's
+            api to check if the job has finished. When it finishes it prints
+            out the response or raises an error if it didn't succeed.  """
+
         job = args.get('job')
         node = args.get('node')
         if (job is None):
@@ -118,7 +125,23 @@ class RundeckJobs(tornado.web.RequestHandler):
             logging.debug("Found 'jobid' for " + job + " = " + jobid)
         except:
             raise tornado.web.HTTPError(BAD_REQUEST, "Job '{0}' is not valid".format(job))
+        
+        async_request = self.request.arguments.get('async', False)
+        logging.debug("async_request: " + repr(async_request))
+        
+        try:
+            # Timeout defined as request argument, in seconds
+            timeout = int(self.request.arguments.get('timeout')[0]) * 2
+            logging.debug("User provided timeout: " + repr(timeout))
+        except:
+            # Fetch timeout from configuration defaults. Won't apply for async requests
+            timeout = int(config.get('rundeck', 'timeout')) * 2
+            logging.debug("Default timeout: " + repr(timeout))
+        if timeout <= 2:
+            logging.error("Bad timeout argument")
+            raise tornado.web.HTTPError(BAD_REQUEST, "Incorrect timeout argument")
 
+        # Submit job for execution
         response_run = self.__run_job__(jobid, node)
         if response_run.ok:
             try:
@@ -127,14 +150,17 @@ class RundeckJobs(tornado.web.RequestHandler):
                 logging.debug("Reponse: " + response_run.text)
                 raise tornado.web.HTTPError(NOT_ACCEPTABLE, "Error parsing Rundeck response")
 
-            exid = str(data["id"])
-            try:
-                timeout = int(self.request.arguments.get('timeout')[0]) * 2
-            except:
-                timeout = int(config.get('rundeck', 'timeout')) * 2
+            # the provided timeout is negative return job ID for async follow up by the client
+            if async_request:
+                logging.debug("response: " + response_run.text)
+                self.set_status(OK)
+                self.finish({'response' : {'id': data['id']}})
+                return
+
             elapsed = timeout
+            # Wait for Job completion and output
             while elapsed > 0:
-                response_output = self.__get_output__(exid)
+                response_output = self.__get_output__(data['id'])
                 if response_output.ok:
                     try:
                         output = json.loads(response_output.text)
@@ -156,11 +182,6 @@ class RundeckJobs(tornado.web.RequestHandler):
                     logging.error("Error reading the job from Rundeck: " + response_output.text)
                     raise tornado.web.HTTPError(response_output.status_code)
 
-            if timeout <= 0:
-                logging.debug("response: " + response_run.text)
-                self.set_status(OK)
-                self.finish({'response' : json.loads(response_run.text)})
-                return
 
             if elapsed <= 0:
                 logging.error("Rundeck job timed out: " + job)
