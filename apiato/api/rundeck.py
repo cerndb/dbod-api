@@ -125,9 +125,11 @@ class RundeckJobs(tornado.web.RequestHandler):
             logging.debug("Found 'jobid' for " + job + " = " + jobid)
         except:
             raise tornado.web.HTTPError(BAD_REQUEST, "Job '{0}' is not valid".format(job))
-        
+       
+        logging.debug("Request arguments:" + repr(self.request.arguments))
+        logging.debug("Request body" + repr(self.request.body))
+
         async_request = self.request.arguments.get('async', False)
-        logging.debug("async_request: " + repr(async_request))
         
         try:
             # Timeout defined as request argument, in seconds
@@ -142,7 +144,9 @@ class RundeckJobs(tornado.web.RequestHandler):
             raise tornado.web.HTTPError(BAD_REQUEST, "Incorrect timeout argument")
 
         # Submit job for execution
-        response_run = self.__run_job__(jobid, node)
+        response_run = self.__run_job__(jobid, node, 
+                                        self.request.arguments,
+                                        {})
         if response_run.ok:
             try:
                 data = json.loads(response_run.text)
@@ -173,7 +177,7 @@ class RundeckJobs(tornado.web.RequestHandler):
                             self.finish({'response' : output})
                             return
                         else:
-                            logging.warning("The job completed with errors: " + exid)
+                            logging.warning("The job completed with errors: " + repr(data['id']))
                             raise tornado.web.HTTPError(BAD_GATEWAY)
                     else:
                         elapsed -= 1
@@ -188,6 +192,8 @@ class RundeckJobs(tornado.web.RequestHandler):
                 raise tornado.web.HTTPError(GATEWAY_TIMEOUT)
         else:
             logging.error("Error running the job: " + response_run.text)
+            logging.debug("Original request")
+            logging.debug(self.request)
             raise tornado.web.HTTPError(response_run.status_code)
         
     def __get_output__(self, execution):
@@ -196,11 +202,17 @@ class RundeckJobs(tornado.web.RequestHandler):
         logging.debug("Sending request: " + api_job_output)
         return requests.get(api_job_output, headers={'Authorization': config.get('rundeck', 'api_authorization')}, verify=False)
         
-    def __run_job__(self, jobid, node):
+    def __run_job__(self, jobid, node, args = {}, body = {}):
         """Executes a new Rundeck job and returns the output"""
         run_job_url = config.get('rundeck', 'api_run_job').format(jobid)
         headers = {'Authorization': config.get('rundeck', 'api_authorization')}
-        data = {'filter':'name: ' + node}
-        logging.debug("Sending request: " + run_job_url + " with headers: " + str(headers) + " and data: " + str(data))
-        return requests.post(run_job_url, headers=headers, verify=False, data=data)
+        data = body.copy()
+        data['filter'] = 'name: ' + node
+
+        logging.debug("Rundeck request to: " + run_job_url + " with headers: " + str(headers) + " and data: " + str(data))
+        return requests.post(run_job_url, 
+                             headers=headers,
+                             params=args,
+                             data=data, 
+                             verify=False)
 
