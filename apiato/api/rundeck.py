@@ -127,7 +127,14 @@ class RundeckJobs(tornado.web.RequestHandler):
             raise tornado.web.HTTPError(BAD_REQUEST, "Job '{0}' is not valid".format(job))
        
         logging.debug("Request arguments:" + repr(self.request.arguments))
-        logging.debug("Request body" + repr(self.request.body))
+        if self.request.body:
+            try:
+                fbody = json.loads(self.request.body)
+                logging.debug("Request body" + repr(fbody))
+            except ValueError:
+                raise tornado.web.HTTPError(BAD_REQUEST, "Bad body format (JSON expected)".format(job))
+        else:
+            fbody = {}
 
         async_request = self.request.arguments.get('async', False)
         
@@ -144,9 +151,9 @@ class RundeckJobs(tornado.web.RequestHandler):
             raise tornado.web.HTTPError(BAD_REQUEST, "Incorrect timeout argument")
 
         # Submit job for execution
-        response_run = self.__run_job__(jobid, node, 
-                                        self.request.arguments,
-                                        {})
+        response_run = self.__run_job__(jobid, 
+                                        node, 
+                                        fbody)
         if response_run.ok:
             try:
                 data = json.loads(response_run.text)
@@ -199,20 +206,27 @@ class RundeckJobs(tornado.web.RequestHandler):
     def __get_output__(self, execution):
         """Returns the output of a job execution"""
         api_job_output = config.get('rundeck', 'api_job_output').format(execution)
-        logging.debug("Sending request: " + api_job_output)
-        return requests.get(api_job_output, headers={'Authorization': config.get('rundeck', 'api_authorization')}, verify=False)
+        logging.debug("api_job_ouput: " + api_job_output)
+        headers = {'Authorization': config.get('rundeck', 'api_authorization')}
+        logging.debug("Headers: " + repr(headers))
+        return requests.get(api_job_output, 
+                            headers=headers, 
+                            verify=False)
         
-    def __run_job__(self, jobid, node, args = {}, body = {}):
+    def __run_job__(self, jobid, node, body = {}):
         """Executes a new Rundeck job and returns the output"""
         run_job_url = config.get('rundeck', 'api_run_job').format(jobid)
-        headers = {'Authorization': config.get('rundeck', 'api_authorization')}
+        logging.debug("run_job_url: " + run_job_url)
+        headers = {
+                'Authorization': config.get('rundeck', 'api_authorization'),
+                'Content-Type': 'application/json', 
+                  }
         data = body.copy()
         data['filter'] = 'name: ' + node
+        logging.debug("Body: " + repr(data))
 
-        logging.debug("Rundeck request to: " + run_job_url + " with headers: " + str(headers) + " and data: " + str(data))
         return requests.post(run_job_url, 
                              headers=headers,
-                             params=args,
-                             data=data, 
+                             json=data, 
                              verify=False)
 
