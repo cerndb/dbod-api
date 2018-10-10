@@ -182,7 +182,7 @@ CREATE TABLE public.instance_change (
     CONSTRAINT instance_change_instance_fk FOREIGN KEY (instance_id) REFERENCES public.instance (id) ON DELETE CASCADE
 );
 
--- JOB
+-- JOB (To be deprecated)
 CREATE TABLE public.job (
     id serial,
     instance_id int NOT NULL,
@@ -197,7 +197,18 @@ CREATE TABLE public.job (
     CONSTRAINT job_instance_fk FOREIGN KEY (instance_id) REFERENCES public.instance (id) ON DELETE CASCADE
 );
 
--- JOB
+-- Rundeck JOB
+CREATE TABLE public.rundeck_job (
+    id serial,
+    rundeck_id bigint,
+    instance_id int NOT NULL,
+    command_name varchar(64) NOT NULL,
+    requester varchar(32) NOT NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT job_instance_fk FOREIGN KEY (instance_id) REFERENCES public.instance (id) ON DELETE CASCADE
+);
+
+-- JOB (To be deprecated)
 CREATE TABLE public.job_log (
     id int NOT NULL,
     log text,

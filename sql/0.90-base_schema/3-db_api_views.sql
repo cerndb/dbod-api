@@ -94,6 +94,19 @@ CREATE OR REPLACE VIEW api.job AS
     job.state,
     job.email_sent
   FROM job;
+
+-- Rundeck Jobs view
+create or replace view api.rundeck_job as
+select job.id,
+    job.rundeck_id,
+    job.instance_id,
+    job.requester,
+    job.command_name,
+    ex.date_started,
+    ex.date_completed,
+    ex.status
+from public.rundeck_job as job join rundeck.execution as ex
+on ex.id = job.rundeck_id;
   
 -- Job logs
 CREATE OR REPLACE VIEW api.job_log AS 
