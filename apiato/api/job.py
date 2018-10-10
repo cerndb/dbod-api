@@ -22,7 +22,6 @@ from apiato.config import config
 
 class Job(tornado.web.RequestHandler):
 
-    #@http_basic_auth
     def get(self, **args):
         job_id = args.get('id')
         db_name = args.get('db_name')
@@ -69,6 +68,38 @@ class Job(tornado.web.RequestHandler):
             else:
                 logging.error("Error getting jobs for instance: " + db_name)
                 raise tornado.web.HTTPError(BAD_REQUEST)
+    
+    def post(self, **args):
+        """
+        The *POST* method inserts a new job into the database wih all the
+        information that is needed for tracking it.
+
+        In the request body we specify all the information of the *job*
+        All the information is sent to a stored procedure in PostgreSQL which 
+        will insert the data in the related tables.
+        
+        .. note::
+            
+        :param id: this argument is not used, however it has to exist for compatibility with the rest of endpoints
+        :type id: str
+        :raises: HTTPError - in case of an internal error
+        :request body:  json
+        """
+
+        logging.debug(self.request.body)
+        job = {'in_json': json.loads(self.request.body)}
+        
+        # Insert the job in database using PostgREST
+        insert_job_url = config.get('postgrest', 'insert_rundeck_job_url')
+        response = requests.post(insert_job_url, 
+                json=job, headers={'Prefer': 'return=representation'})
+        if response.ok:
+            logging.info("Inserted Job with Rundeck ID : " + repr(job["in_json"]["rundeck_id"]))
+            logging.debug(response.text)
+            self.set_status(CREATED)
+        else:
+            logging.error("Error creating the job: " + response.text)
+            raise tornado.web.HTTPError(response.status_code)
 
 class Job_filter(tornado.web.RequestHandler):
     """
