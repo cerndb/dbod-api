@@ -27,9 +27,6 @@ class Job(tornado.web.RequestHandler):
         job_id = args.get('id')
         db_name = args.get('db_name')
 
-        # Get instance information
-        instance_id = get_instance_id_by_name(db_name)
-
         try:
             instance_id = int(db_name) # If instance is an Integer, we are receiving the ID
         except:
@@ -42,7 +39,7 @@ class Job(tornado.web.RequestHandler):
         if job_id:
             # Get an specific job
             arguments = {'instance_id': 'eq.' + str(instance_id), 'id': 'eq.' + str(job_id)}
-            response = requests.get(config.get('postgrest', 'job_log_url'), params=arguments)
+            response = requests.get(config.get('postgrest', 'rundeck_job_url'), params=arguments)
             if response.ok:
                 data = response.json()
                 if data:
@@ -55,7 +52,7 @@ class Job(tornado.web.RequestHandler):
         else:
             # Get all jobs for this instance starting from the most recent one
             arguments = {'instance_id': 'eq.' + str(instance_id)}
-            response = make_full_get_request(config.get('postgrest', 'job_url'), self.request, arguments)
+            response = make_full_get_request(config.get('postgrest', 'rundeck_job_url'), self.request, arguments)
             if response.ok:
                 data = response.json()
                 #logging.debug(data)
