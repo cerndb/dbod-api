@@ -230,16 +230,20 @@ CREATE OR REPLACE VIEW api.metadata AS
     LATERAL api.get_directories(instance.name, instance_type.type, instance.version, api.get_instance_attribute('port'::varchar, instance.id)) d(basedir, bindir, datadir, logdir, socket);
 
 -- Rundeck instances
-CREATE OR REPLACE VIEW api.rundeck_instances AS 
+CREATE OR REPLACE VIEW api.rundeck_instances AS
   SELECT instance.name,
     functional_aliases.alias AS hostname,
     api.get_instance_attribute('port'::character varying, instance.id) AS port,
     'apiato'::varchar AS username,
-    instance.type_id,
+    instance_type.type as db_type,
     instance.category,
-    (instance.type_id::text || ','::text) || instance.category::text AS tags
+    instance.id,
+    (instance_type.type::text || ','::text) || instance.category::text AS tags
   FROM instance
-    JOIN functional_aliases ON instance.name::text = functional_aliases.db_name::text;
+    JOIN functional_aliases ON instance.name::text = functional_aliases.db_name::text
+    join public.instance_type on instance.type_id = instance_type.id;
+
+
 
 -- Instance types
 CREATE OR REPLACE VIEW api.instance_type AS

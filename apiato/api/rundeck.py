@@ -39,13 +39,14 @@ class RundeckResources(tornado.web.RequestHandler):
             self.write('<project>')
             for instance in sorted(d.keys()):
                 body = d[instance]
-                text = ('<node name="%s" description="" hostname="%s" username="%s" type="%s" subcategory="%s" port="%s" tags="%s"/>' % 
+                text = ('<node name="%s" description="" hostname="%s" username="%s" type="%s" subcategory="%s" port="%s" id="%s" tags="%s"/>' % 
                         ( instance, # Name
                           body.get(u'hostname'),
                           body.get(u'username'),
                           body.get(u'category'), 
-                          body.get(u'db_type'), 
+                          body.get(u'db_type'),
                           body.get(u'port'), 
+                          body.get(u'id'),
                           body.get(u'tags')
                           ))
                 logging.debug(text)
@@ -208,9 +209,8 @@ class RundeckJobs(tornado.web.RequestHandler):
         api_job_output = config.get('rundeck', 'api_job_output').format(execution)
         logging.debug("api_job_ouput: " + api_job_output)
         headers = {'Authorization': config.get('rundeck', 'api_authorization')}
-        logging.debug("Headers: " + repr(headers))
         return requests.get(api_job_output, 
-                            headers=headers, 
+                            headers=headers,
                             verify=False)
         
     def __run_job__(self, jobid, node, body = {}):
