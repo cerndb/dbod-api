@@ -67,7 +67,7 @@ class Job(tornado.web.RequestHandler):
                     self.set_status(OK)
             else:
                 logging.error("Error getting jobs for instance: " + db_name)
-                raise tornado.web.HTTPError(BAD_REQUEST)
+                raise tornado.web.HTTPError(response.status_code, response.reason)
     
     def post(self, **args):
         """
