@@ -69,6 +69,7 @@ class Job(tornado.web.RequestHandler):
                 logging.error("Error getting jobs for instance: " + db_name)
                 raise tornado.web.HTTPError(response.status_code, response.reason)
     
+    @http_basic_auth
     def post(self, **args):
         """
         The *POST* method inserts a new job into the database wih all the
@@ -87,8 +88,12 @@ class Job(tornado.web.RequestHandler):
         """
 
         logging.debug(self.request.body)
-        job = {'in_json': json.loads(self.request.body)}
-        
+        try:
+            job = {'in_json': json.loads(self.request.body)}
+        except ValueError:
+            logging.error("Error parsing body: " + repr(self.request.body))
+            raise tornado.web.HTTPError(BAD_REQUEST)
+
         # Insert the job in database using PostgREST
         insert_job_url = config.get('postgrest', 'insert_rundeck_job_url')
         response = requests.post(insert_job_url, 
