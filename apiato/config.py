@@ -51,7 +51,7 @@ def load( config_file = None ):
     try:
         parser = argparse.ArgumentParser()
         parser.add_argument(
-                "-c", "--config", default="/etc/apiato/api.cfg", 
+                "-c", "--config", default="/etc/apiato/apiato.cfg", 
                 help = "specify the location of the config file"
                 )
         args, unk = parser.parse_known_args()
