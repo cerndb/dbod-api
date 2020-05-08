@@ -69,6 +69,7 @@ job "apiato-{{MODE}}" {
         }
         network_mode = "docker_custom_network"
         network_aliases = ["apiato"]
+        args = ["/bin/sh", "-c", "sleep 3000"]
       }
       resources {
         cpu = 100 # Mhz
