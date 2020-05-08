@@ -60,7 +60,7 @@ deploy-apiato-dev:
     NOMAD_SINGLE_JOB_SPECIFICATION: "${JOB_NAME}-dev.nomad"
     LANG: "en_US.utf8"
   script:
-    - jinja-env-replacement --template ${JOB_NAME}.tpl --output $NOMAD_SINGLE_JOB_SPECIFICATION MODE=$MODE BUILD_MODE=$BUILD_MODE
+    - jinja-env-replacement --template ${JOB_NAME}.hcl --output $NOMAD_SINGLE_JOB_SPECIFICATION MODE=$MODE BUILD_MODE=$BUILD_MODE
     - nomad-deploy
 
 deploy-apiato-qa:
@@ -77,7 +77,7 @@ deploy-apiato-qa:
     NOMAD_SINGLE_JOB_SPECIFICATION: "${JOB_NAME}-qa.nomad"
     LANG: "en_US.utf8"
   script:
-    - jinja-env-replacement --template ${JOB_NAME}.tpl --output $NOMAD_SINGLE_JOB_SPECIFICATION MODE=$MODE BUILD_MODE=$BUILD_MODE
+    - jinja-env-replacement --template ${JOB_NAME}.hcl --output $NOMAD_SINGLE_JOB_SPECIFICATION MODE=$MODE BUILD_MODE=$BUILD_MODE
     - nomad-deploy
 
 deploy-apiato-prod:
@@ -95,7 +95,7 @@ deploy-apiato-prod:
     NOMAD_SINGLE_JOB_SPECIFICATION: "${JOB_NAME}-prod.nomad"
     LANG: "en_US.utf8"
   script:
-    - jinja-env-replacement --template ${JOB_NAME}.tpl --output $NOMAD_SINGLE_JOB_SPECIFICATION MODE=$MODE BUILD_MODE=$BUILD_MODE
+    - jinja-env-replacement --template ${JOB_NAME}.hcl --output $NOMAD_SINGLE_JOB_SPECIFICATION MODE=$MODE BUILD_MODE=$BUILD_MODE
     - nomad-deploy
 
 ##########################
