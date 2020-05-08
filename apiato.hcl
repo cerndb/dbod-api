@@ -1,10 +1,11 @@
 job "apiato-{{MODE}}" {
   datacenters = [
     "cern-geneva-a",
-    "cern-geneva-b",
-    "cern-geneva-c"
+#    "cern-geneva-b",
+#    "cern-geneva-c"
   ]
-  type = "system"
+
+  type = "service"
 
   {% if MODE == 'dev' %}
   {% set pg_port = 'PG_PORT_DEV' %}
