@@ -1,0 +1,101 @@
+stages:
+    - prebuild
+    - test
+    - docker-build
+    - deploy
+
+variables:
+  DIAGLAB_REGISTRY_TOKEN_RO: ${DIAGLAB_REGISTRY_TOKEN_RO}
+  DEPLOYER_IMAGE: "gitlab-registry.cern.ch/db/batch/ci-scheduler-image/nomad-deployer-v0.10.2:0.10"
+  NOMAD_ADDR_DEV: "https://dia-batch-dbod.cern.ch:4646"
+  NOMAD_ADDR_PROD: "https://dia-batch-dbod.cern.ch:4646"
+  JOB_NAME: "apiato"
+
+##########################
+# BUILD DOCKER IMAGES
+# Build DEV image when pushing to branches
+# Tag it with the name of the branch
+build-apiato-dev:
+  stage: docker-build
+  only:
+    - branches
+  except:
+    - master
+  tags:
+    - docker-image-build
+  script:
+    - "echo 'Building Docker dev image..'"
+  variables:
+    TO: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_NAME}
+
+# Build LATEST image when pushing to master
+# Tag it with latest
+build-apiato-latest:
+  stage: docker-build
+  only:
+    - master
+  tags:
+    - docker-image-build
+  script:
+    - "echo 'Building Docker latest image..'"
+  variables:
+    TO: ${CI_REGISTRY_IMAGE}:latest
+
+##########################
+
+
+##########################
+# Deployment
+deploy-apiato-dev:
+  stage: deploy
+  only:
+    - branches
+  image: ${DEPLOYER_IMAGE}
+  variables:
+    MODE: "dev"
+    BUILD_MODE: ${CI_COMMIT_REF_NAME}
+    NOMAD_ADDR: ${NOMAD_ADDR_DEV}
+    NOMAD_ACTION: "deploy-single-job"
+    NOMAD_JOB_NAME: "${JOB_NAME}-dev"
+    NOMAD_SINGLE_JOB_SPECIFICATION: "${JOB_NAME}-dev.nomad"
+    LANG: "en_US.utf8"
+  script:
+    - jinja-env-replacement --template ${JOB_NAME}.tpl --output $NOMAD_SINGLE_JOB_SPECIFICATION MODE=$MODE BUILD_MODE=$BUILD_MODE
+    - nomad-deploy
+
+deploy-apiato-qa:
+  stage: deploy
+  only:
+    - master
+  image: ${DEPLOYER_IMAGE}
+  variables:
+    MODE: "qa"
+    BUILD_MODE: "latest"
+    NOMAD_ADDR: ${NOMAD_ADDR_PROD}
+    NOMAD_ACTION: "deploy-single-job"
+    NOMAD_JOB_NAME: "${JOB_NAME}-qa"
+    NOMAD_SINGLE_JOB_SPECIFICATION: "${JOB_NAME}-qa.nomad"
+    LANG: "en_US.utf8"
+  script:
+    - jinja-env-replacement --template ${JOB_NAME}.tpl --output $NOMAD_SINGLE_JOB_SPECIFICATION MODE=$MODE BUILD_MODE=$BUILD_MODE
+    - nomad-deploy
+
+deploy-apiato-prod:
+  stage: deploy
+  only:
+    - master
+  when: manual
+  image: ${DEPLOYER_IMAGE}
+  variables:
+    MODE: "prod"
+    BUILD_MODE: "latest"
+    NOMAD_ADDR: ${NOMAD_ADDR_PROD}
+    NOMAD_ACTION: "deploy-single-job"
+    NOMAD_JOB_NAME: "${JOB_NAME}-prod"
+    NOMAD_SINGLE_JOB_SPECIFICATION: "${JOB_NAME}-prod.nomad"
+    LANG: "en_US.utf8"
+  script:
+    - jinja-env-replacement --template ${JOB_NAME}.tpl --output $NOMAD_SINGLE_JOB_SPECIFICATION MODE=$MODE BUILD_MODE=$BUILD_MODE
+    - nomad-deploy
+
+##########################
