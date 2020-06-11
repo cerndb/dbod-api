@@ -94,7 +94,7 @@ class Resources(tornado.web.RequestHandler):
         if response.ok:
             data = response.json()
             logging.debug("User instances response: " + json.dumps(data))
-            resources["instances"] = data[0].get("get_user_instances")
+            resources["instances"] = data
         else:
             logging.debug(response)
             logging.info("No instances directly owned by user")
