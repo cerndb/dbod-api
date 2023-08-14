@@ -1,7 +1,7 @@
 setuptools>=17.1
 configparser
 nose
-tornado==4.2
+tornado==6.3.3
 virtualenv
 requests
 timeout-decorator
